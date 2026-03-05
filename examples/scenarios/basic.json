@@ -6,8 +6,8 @@
   "environment": {
     "mu_W": 3.0,
     "sigma_W": 1.5,
-    "phi": 0.01,
-    "alpha": 0.005,
+    "phi": 0.002,
+    "alpha": 0.001,
     "fee_rate": 0.01,
     "C": 50.0,
     "tau_F": 10.0
@@ -28,7 +28,8 @@
         "min_stake": 0.5,
         "max_stake": 3.0,
         "confidence_threshold": 0.55,
-        "precision_ratio": 2.0
+        "precision_ratio": 2.0,
+        "phi": 0.002
       }
     }
   ]
