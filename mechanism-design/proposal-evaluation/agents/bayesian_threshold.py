@@ -1,0 +1,72 @@
+"""Example Bayesian threshold agent."""
+
+from __future__ import annotations
+
+import math
+
+from proposal_poker.interfaces import AgentBase
+from proposal_poker.types import Contribution
+
+
+class BayesianThresholdAgent(AgentBase):
+    """Stake once when posterior confidence crosses a threshold."""
+
+    agent_id = "bayesian_threshold"
+
+    def __init__(
+        self,
+        min_stake: float = 1.0,
+        max_stake: float = 5.0,
+        confidence_threshold: float = 0.55,
+        precision_ratio: float = 2.0,
+        **params: object,
+    ) -> None:
+        super().__init__(**params)
+        if min_stake <= 0:
+            raise ValueError("min_stake must be positive")
+        if max_stake < min_stake:
+            raise ValueError("max_stake must be >= min_stake")
+        if not 0.5 <= confidence_threshold < 1.0:
+            raise ValueError("confidence_threshold must be in [0.5, 1.0)")
+        if precision_ratio <= 0:
+            raise ValueError("precision_ratio must be positive")
+
+        self.min_stake = float(min_stake)
+        self.max_stake = float(max_stake)
+        self.confidence_threshold = float(confidence_threshold)
+        self.precision_ratio = float(precision_ratio)
+
+    def act(
+        self,
+        wealth: float,
+        signal: float,
+        y: float,
+        public_history: list[object],
+        my_past: list[Contribution],
+    ) -> Contribution | None:
+        del y, public_history
+
+        if my_past:
+            return None
+
+        tau = max(1e-12, self.precision_ratio * wealth)
+        posterior_precision = 1.0 + tau
+        posterior_mean = (tau / posterior_precision) * signal
+        posterior_std = 1.0 / math.sqrt(posterior_precision)
+
+        z_score = posterior_mean / posterior_std
+        prob_approve = 0.5 * (1.0 + math.erf(z_score / math.sqrt(2.0)))
+        confidence = max(prob_approve, 1.0 - prob_approve)
+
+        if confidence < self.confidence_threshold:
+            return None
+
+        side = "approve" if posterior_mean > 0.0 else "reject"
+        if self.max_stake == self.min_stake:
+            stake = self.min_stake
+        else:
+            scale = (confidence - self.confidence_threshold) / (1.0 - self.confidence_threshold)
+            scale = min(max(scale, 0.0), 1.0)
+            stake = self.min_stake + scale * (self.max_stake - self.min_stake)
+
+        return Contribution(amount=stake, data={"side": side})
