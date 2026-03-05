@@ -10,6 +10,7 @@ It supports:
 - Pluggable mechanisms and agents discovered from folders.
 - Scenario-driven runs from JSON.
 - The formal model's two monetary frictions: a deadweight participation cost on first accepted contribution and a deadweight fee proportional to total stake.
+- Mechanism-defined external funding, including public winner subsidies.
 - Per-proposal and aggregate reporting for:
   - agent utility,
   - mechanism `net_profit`,
@@ -64,6 +65,7 @@ A valid mechanism class must expose:
 - `on_contribution(state, contribution) -> (state, receipt | None)`
 - `on_round_end(state) -> (state, done)`
 - `outcome(state) -> (decision, payout_fn, use_futarchy)`
+- `external_funding(state, settlement) -> float` (optional; defaults to `0`)
 - `valid_data() -> pydantic BaseModel class | None`
 
 Built-in examples live in:
@@ -90,7 +92,7 @@ Report includes:
 - `metadata`: scenario hash, seed, duration, discovered plugin IDs
 - `aggregates`: proposal/approval counts, proposal utility totals, oracle-optimal benchmark, regret, mechanism net profit totals/means, utility summary stats
 - `per_agent`: wealth, total/mean utility, stake, transfer, participation count
-- `per_proposal`: `x`, `y`, decisions, oracle fields, contribution and payout totals, mechanism net profit, proposal utility, forced termination flag
+- `per_proposal`: `x`, `y`, decisions, oracle fields, contribution and payout totals, external funding, mechanism net profit, proposal utility, forced termination flag
 
 ## Test
 

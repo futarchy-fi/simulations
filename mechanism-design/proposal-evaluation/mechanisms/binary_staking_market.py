@@ -24,6 +24,7 @@ class BinaryStakingMarket(MechanismBase):
         self,
         max_rounds: int = 1,
         oracle_margin_threshold: float | None = 0.10,
+        winner_subsidy: float = 0.0,
         **params: object,
     ) -> None:
         super().__init__(**params)
@@ -31,9 +32,12 @@ class BinaryStakingMarket(MechanismBase):
             raise ValueError("max_rounds must be >= 1")
         if oracle_margin_threshold is not None and oracle_margin_threshold < 0:
             raise ValueError("oracle_margin_threshold must be >= 0")
+        if winner_subsidy < 0:
+            raise ValueError("winner_subsidy must be >= 0")
 
         self.max_rounds = int(max_rounds)
         self.oracle_margin_threshold = oracle_margin_threshold
+        self.winner_subsidy = float(winner_subsidy)
 
     def init(self) -> dict[str, object]:
         return {
@@ -52,6 +56,7 @@ class BinaryStakingMarket(MechanismBase):
             "approve_stake": stakes["approve"],
             "reject_stake": stakes["reject"],
             "total_stake": stakes["approve"] + stakes["reject"],
+            "winner_subsidy": self.winner_subsidy,
         }
 
     def on_contribution(
@@ -109,9 +114,20 @@ class BinaryStakingMarket(MechanismBase):
             if receipt_side != winner:
                 return 0.0
 
-            return float(receipt.amount * total_stake / winning_pool)
+            return float(receipt.amount * (total_stake + self.winner_subsidy) / winning_pool)
 
         return decision, payout_fn, use_futarchy
+
+    def external_funding(self, state: dict[str, object], settlement: SettlementContext) -> float:
+        total_stake = float(state["stakes"]["approve"]) + float(state["stakes"]["reject"])
+        if total_stake <= 0.0:
+            return 0.0
+
+        winning_pool = float(state["stakes"][settlement.final_decision])
+        if winning_pool <= 0.0:
+            return 0.0
+
+        return self.winner_subsidy
 
     def valid_data(self):
         return _BinaryStakeData

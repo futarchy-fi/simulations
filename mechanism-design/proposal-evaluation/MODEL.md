@@ -158,6 +158,10 @@ A mechanism M is a tuple of functions:
         - PayoutFn: Receipt -> float (money returned to receipt holder)
         - bool: whether to invoke the futarchy oracle
 
+    external_funding(State, Settlement) -> float
+        Optional non-agent funding available at settlement. This can
+        encode public subsidies or sponsor budgets. Defaults to 0.
+
     valid_data() -> Schema
         Defines what data the mechanism accepts in contributions.
 
@@ -172,10 +176,9 @@ outcome.
    outcomes depend only on observed contributions. The mechanism
    cannot condition on x, y, s_j, W_j, tau_j, or N.
 
-2. **Budget balance.** Total payouts cannot exceed total
-   contributions:
-
-       sum over all receipts r: PayoutFn(r) <= sum over all receipts r: r.amount
+2. **Mechanism-defined funding.** Total payouts may exceed total
+   contributions if the mechanism has public external funding defined
+   by its own rules.
 
 3. **Sybil resistance.** Two receipts with identical (amount, data,
    state_at_entry) receive identical payouts. The payout depends

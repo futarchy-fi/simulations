@@ -99,6 +99,7 @@ class ProposalReport(BaseModel):
     oracle_signal: float | None
     contribution_total: float
     payout_total: float
+    external_funding: float
     mechanism_net_profit: float
     proposal_utility: float
     oracle_optimal_value: float

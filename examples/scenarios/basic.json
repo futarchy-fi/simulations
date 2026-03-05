@@ -16,7 +16,8 @@
     "id": "binary_staking_market",
     "params": {
       "max_rounds": 1,
-      "oracle_margin_threshold": 0.1
+      "oracle_margin_threshold": 0.1,
+      "winner_subsidy": 10.0
     }
   },
   "agents": [

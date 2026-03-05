@@ -7,7 +7,7 @@ from typing import Any, Callable, ClassVar, Literal
 
 from pydantic import BaseModel
 
-from .types import Contribution, Receipt
+from .types import Contribution, Receipt, SettlementContext
 
 Decision = Literal["approve", "reject"]
 PayoutFn = Callable[..., float]
@@ -60,6 +60,11 @@ class MechanismBase(ABC):
     @abstractmethod
     def outcome(self, state: Any) -> tuple[Decision, PayoutFn, bool]:
         """Return provisional decision, payout function, and oracle usage flag."""
+
+    def external_funding(self, state: Any, settlement: SettlementContext) -> float:
+        """Return non-agent funds available for settlement, if any."""
+        del state, settlement
+        return 0.0
 
     @abstractmethod
     def valid_data(self) -> type[BaseModel] | None:

@@ -94,15 +94,7 @@ class BayesianThresholdAgent(AgentBase):
         return Contribution(amount=stake, data={"side": side})
 
     def _would_likely_be_minority(self, side: str, stake: float, public_history: list[object]) -> bool:
-        if not public_history:
-            return False
-
-        last_message = public_history[-1]
-        if not isinstance(last_message, dict):
-            return False
-
-        approve_stake = float(last_message.get("approve_stake", 0.0))
-        reject_stake = float(last_message.get("reject_stake", 0.0))
+        approve_stake, reject_stake, _winner_subsidy = self._current_market(public_history)
 
         if side == "approve":
             # Approve loses on tie, so it needs a strict lead.
@@ -120,7 +112,7 @@ class BayesianThresholdAgent(AgentBase):
         win_probability: float,
         public_history: list[object],
     ) -> float:
-        approve_stake, reject_stake = self._current_stakes(public_history)
+        approve_stake, reject_stake, winner_subsidy = self._current_market(public_history)
 
         if side == "approve":
             approve_stake += stake
@@ -129,7 +121,7 @@ class BayesianThresholdAgent(AgentBase):
 
         total_stake = approve_stake + reject_stake
         winning_pool = approve_stake if side == "approve" else reject_stake
-        payout_if_win = stake * total_stake / winning_pool
+        payout_if_win = stake * (total_stake + winner_subsidy) / winning_pool
 
         participation_cost = self.phi * wealth * math.sqrt(y)
         fee_cost = self.fee_rate * stake
@@ -146,14 +138,15 @@ class BayesianThresholdAgent(AgentBase):
             + lose_probability * math.log(wealth_if_lose)
         )
 
-    def _current_stakes(self, public_history: list[object]) -> tuple[float, float]:
+    def _current_market(self, public_history: list[object]) -> tuple[float, float, float]:
         if not public_history:
-            return 0.0, 0.0
+            return 0.0, 0.0, 0.0
 
         last_message = public_history[-1]
         if not isinstance(last_message, dict):
-            return 0.0, 0.0
+            return 0.0, 0.0, 0.0
 
         approve_stake = float(last_message.get("approve_stake", 0.0))
         reject_stake = float(last_message.get("reject_stake", 0.0))
-        return approve_stake, reject_stake
+        winner_subsidy = float(last_message.get("winner_subsidy", 0.0))
+        return approve_stake, reject_stake, winner_subsidy

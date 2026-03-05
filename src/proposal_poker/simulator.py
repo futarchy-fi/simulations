@@ -16,7 +16,7 @@ import numpy as np
 from pydantic import BaseModel, ValidationError
 
 from .discovery import SubmissionRegistry, discover_submissions
-from .errors import BudgetBalanceError, InvalidSubmissionError, SimulationError, SybilViolationError
+from .errors import InvalidSubmissionError, SimulationError, SybilViolationError
 from .metrics import build_aggregates
 from .scenario import ScenarioConfig, scenario_hash
 from .types import AgentReport, Contribution, ProposalReport, Receipt, SettlementContext, SimulationReport
@@ -172,11 +172,9 @@ def run_simulation(
 
         contribution_total = float(np.sum(stake_by_agent))
         payout_total = float(np.sum(payout_by_agent))
-
-        if payout_total > contribution_total + _EPS:
-            raise BudgetBalanceError(
-                f"Budget balance violated on proposal {proposal_idx}: payouts={payout_total} > contributions={contribution_total}"
-            )
+        external_funding = float(mechanism.external_funding(state, settlement))
+        if not math.isfinite(external_funding) or external_funding < 0.0:
+            raise SimulationError("Mechanism external funding must be a non-negative finite float")
 
         _enforce_sybil_invariant(all_settled_receipts)
 
@@ -214,6 +212,7 @@ def run_simulation(
                 oracle_signal=oracle_signal,
                 contribution_total=contribution_total,
                 payout_total=payout_total,
+                external_funding=external_funding,
                 mechanism_net_profit=mechanism_net_profit,
                 proposal_utility=proposal_utility,
                 oracle_optimal_value=oracle_optimal_value,

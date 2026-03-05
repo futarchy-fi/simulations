@@ -61,7 +61,7 @@ def test_stochastic_invariants_hold_across_seeds() -> None:
         report = run_simulation(config, registry=registry)
 
         for proposal in report.per_proposal:
-            assert proposal.payout_total <= proposal.contribution_total + 1e-9
+            assert proposal.payout_total <= proposal.contribution_total + proposal.external_funding + 1e-9
             expected_profit = (
                 proposal.contribution_total
                 - proposal.payout_total

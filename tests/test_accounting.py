@@ -104,6 +104,52 @@ class OneRoundParimutuel(MechanismBase):
         return _SideData
 
 
+class SubsidizedApproveMechanism(MechanismBase):
+    mechanism_id = "subsidized_approve"
+
+    def __init__(self, winner_subsidy: float = 2.0, **params: object) -> None:
+        super().__init__(**params)
+        self.winner_subsidy = winner_subsidy
+
+    def init(self):
+        return {"approve": 0.0}
+
+    def publish(self, state):
+        return {"approve_stake": state["approve"], "reject_stake": 0.0, "winner_subsidy": self.winner_subsidy}
+
+    def on_contribution(self, state, contribution):
+        next_state = dict(state)
+        next_state["approve"] += contribution.amount
+        receipt = Receipt(
+            id="subsidized",
+            amount=contribution.amount,
+            data=contribution.data,
+            state_at_entry=state,
+        )
+        return next_state, receipt
+
+    def on_round_end(self, state):
+        return state, True
+
+    def outcome(self, state):
+        total = state["approve"]
+
+        def payout_fn(receipt, settlement=None):
+            del settlement
+            if total <= 0:
+                return 0.0
+            return receipt.amount * (total + self.winner_subsidy) / total
+
+        return "approve", payout_fn, False
+
+    def external_funding(self, state, settlement):
+        del settlement
+        return self.winner_subsidy if state["approve"] > 0 else 0.0
+
+    def valid_data(self):
+        return _SideData
+
+
 def _base_config(agent_specs):
     return ScenarioConfig.model_validate(
         {
@@ -184,3 +230,30 @@ def test_stake_cap_rejects_contribution() -> None:
     assert proposal.payout_total == pytest.approx(0.0)
     assert agent_row.participation_count == 0
     assert agent_row.total_utility == pytest.approx(math.log(agent_row.wealth))
+
+
+def test_subsidized_mechanism_can_pay_out_more_than_it_collects() -> None:
+    registry = SubmissionRegistry(
+        agents={"fixed_approve": FixedApproveAgent},
+        mechanisms={"subsidized_approve": SubsidizedApproveMechanism},
+    )
+
+    config = _base_config(
+        [
+            {"id": "fixed_approve", "count": 1, "params": {"amount": 0.5}},
+        ]
+    )
+    config = ScenarioConfig.model_validate(
+        {
+            **config.model_dump(mode="python"),
+            "mechanism": {"id": "subsidized_approve", "params": {"winner_subsidy": 2.0}},
+        }
+    )
+
+    report = run_simulation(config, registry=registry)
+    proposal = report.per_proposal[0]
+
+    assert proposal.contribution_total == pytest.approx(0.5)
+    assert proposal.payout_total == pytest.approx(2.5)
+    assert proposal.external_funding == pytest.approx(2.0)
+    assert proposal.mechanism_net_profit == pytest.approx(-2.0)
