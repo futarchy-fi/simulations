@@ -197,6 +197,9 @@ def test_accounting_identities_and_tie_reject() -> None:
     assert proposal.payout_total == pytest.approx(1.0)
     assert proposal.mechanism_net_profit == pytest.approx(0.0)
     assert proposal.proposal_utility == pytest.approx(0.0)
+    assert len(proposal.agent_reports) == 2
+    assert all(agent_report.attempts for agent_report in proposal.agent_reports)
+    assert all(agent_report.attempts[0].accepted for agent_report in proposal.agent_reports)
 
     assert report.aggregates.regret == pytest.approx(
         report.aggregates.oracle_optimal_total - report.aggregates.proposal_utility_total
@@ -229,7 +232,7 @@ def test_stake_cap_rejects_contribution() -> None:
     assert proposal.contribution_total == pytest.approx(0.0)
     assert proposal.payout_total == pytest.approx(0.0)
     assert agent_row.participation_count == 0
-    assert agent_row.total_utility == pytest.approx(math.log(agent_row.wealth))
+    assert agent_row.total_utility == pytest.approx(0.0)
 
 
 def test_subsidized_mechanism_can_pay_out_more_than_it_collects() -> None:

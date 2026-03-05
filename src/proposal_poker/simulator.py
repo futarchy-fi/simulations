@@ -19,7 +19,16 @@ from .discovery import SubmissionRegistry, discover_submissions
 from .errors import InvalidSubmissionError, SimulationError, SybilViolationError
 from .metrics import build_aggregates
 from .scenario import ScenarioConfig, scenario_hash
-from .types import AgentReport, Contribution, ProposalReport, Receipt, SettlementContext, SimulationReport
+from .types import (
+    AgentAttemptReport,
+    AgentReport,
+    Contribution,
+    ProposalAgentReport,
+    ProposalReport,
+    Receipt,
+    SettlementContext,
+    SimulationReport,
+)
 
 _EPS = 1e-9
 
@@ -62,6 +71,7 @@ def run_simulation(
 
         receipts_by_agent: list[list[Receipt]] = [[] for _ in runtimes]
         my_past_by_agent: list[list[Contribution]] = [[] for _ in runtimes]
+        attempts_by_agent: list[list[AgentAttemptReport]] = [[] for _ in runtimes]
         stake_by_agent = np.zeros(len(runtimes), dtype=float)
         entry_cost_by_agent = np.zeros(len(runtimes), dtype=float)
         payout_by_agent = np.zeros(len(runtimes), dtype=float)
@@ -82,6 +92,13 @@ def run_simulation(
 
                 # Participation constraint from the model.
                 if config.environment.phi * math.sqrt(y) >= 1.0:
+                    attempts_by_agent[agent_index].append(
+                        AgentAttemptReport(
+                            round_index=_round,
+                            accepted=False,
+                            rejection_reason="participation_constraint",
+                        )
+                    )
                     continue
 
                 message = mechanism.publish(state)
@@ -95,6 +112,14 @@ def run_simulation(
                     my_past=list(my_past_by_agent[agent_index]),
                 )
                 if raw_contribution is None:
+                    attempts_by_agent[agent_index].append(
+                        AgentAttemptReport(
+                            round_index=_round,
+                            public_message=message,
+                            accepted=False,
+                            rejection_reason="abstain",
+                        )
+                    )
                     continue
 
                 contribution = Contribution.model_validate(raw_contribution)
@@ -118,6 +143,15 @@ def run_simulation(
                     potential_loss += entry_cost
 
                 if potential_loss > max_allowed_loss:
+                    attempts_by_agent[agent_index].append(
+                        AgentAttemptReport(
+                            round_index=_round,
+                            public_message=message,
+                            contribution=contribution,
+                            accepted=False,
+                            rejection_reason="stake_cap",
+                        )
+                    )
                     continue
 
                 contribution = contribution.model_copy(
@@ -127,6 +161,15 @@ def run_simulation(
                 state_at_entry = copy.deepcopy(state)
                 state, raw_receipt = mechanism.on_contribution(state, contribution)
                 if raw_receipt is None:
+                    attempts_by_agent[agent_index].append(
+                        AgentAttemptReport(
+                            round_index=_round,
+                            public_message=message,
+                            contribution=contribution,
+                            accepted=False,
+                            rejection_reason="mechanism_rejected",
+                        )
+                    )
                     continue
 
                 receipt = _normalize_receipt(
@@ -142,6 +185,14 @@ def run_simulation(
                 stake_by_agent[agent_index] += contribution.amount
                 if entry_cost_by_agent[agent_index] == 0.0:
                     entry_cost_by_agent[agent_index] = entry_cost
+                attempts_by_agent[agent_index].append(
+                    AgentAttemptReport(
+                        round_index=_round,
+                        public_message=message,
+                        contribution=contribution,
+                        accepted=True,
+                    )
+                )
 
             state, done = mechanism.on_round_end(state)
             if done:
@@ -183,6 +234,7 @@ def run_simulation(
         proposal_utility = x * y if final_decision == "approve" else 0.0
         oracle_optimal_value = x * y if x > 0.0 else 0.0
 
+        proposal_agent_rows: list[ProposalAgentReport] = []
         for agent_index, runtime in enumerate(runtimes):
             stake = float(stake_by_agent[agent_index])
             entry_cost = float(entry_cost_by_agent[agent_index])
@@ -193,13 +245,28 @@ def run_simulation(
                 raise SimulationError(
                     f"Non-positive terminal wealth for {runtime.instance_id} on proposal {proposal_idx}"
                 )
-            utility = math.log(terminal_wealth)
+            utility = math.log(terminal_wealth) - math.log(runtime.wealth)
 
             runtime.total_utility += utility
             runtime.total_stake += stake
             runtime.total_transfer += transfer
             if stake > 0.0:
                 runtime.participation_count += 1
+            proposal_agent_rows.append(
+                ProposalAgentReport(
+                    agent_instance_id=runtime.instance_id,
+                    agent_type_id=runtime.type_id,
+                    wealth=runtime.wealth,
+                    signal=float(signals[agent_index]),
+                    attempts=attempts_by_agent[agent_index],
+                    stake=stake,
+                    payout=float(payout_by_agent[agent_index]),
+                    entry_cost=entry_cost,
+                    fee_cost=fee_cost,
+                    transfer=transfer,
+                    utility=utility,
+                )
+            )
 
         proposal_rows.append(
             ProposalReport(
@@ -217,6 +284,7 @@ def run_simulation(
                 proposal_utility=proposal_utility,
                 oracle_optimal_value=oracle_optimal_value,
                 forced_termination=forced_termination,
+                agent_reports=proposal_agent_rows,
             )
         )
 

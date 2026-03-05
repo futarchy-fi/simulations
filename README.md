@@ -11,6 +11,7 @@ It supports:
 - Scenario-driven runs from JSON.
 - The formal model's two monetary frictions: a deadweight participation cost on first accepted contribution and a deadweight fee proportional to total stake.
 - Mechanism-defined external funding, including public winner subsidies.
+- Utility is reported as excess log-wealth relative to abstaining, so `0` means break-even versus `log(W)` and negative means worse than abstaining.
 - Per-proposal and aggregate reporting for:
   - agent utility,
   - mechanism `net_profit`,
@@ -91,8 +92,8 @@ Reference scenario:
 Report includes:
 - `metadata`: scenario hash, seed, duration, discovered plugin IDs
 - `aggregates`: proposal/approval counts, proposal utility totals, oracle-optimal benchmark, regret, mechanism net profit totals/means, utility summary stats
-- `per_agent`: wealth, total/mean utility, stake, transfer, participation count
-- `per_proposal`: `x`, `y`, decisions, oracle fields, contribution and payout totals, external funding, mechanism net profit, proposal utility, forced termination flag
+- `per_agent`: wealth, total/mean excess utility, stake, transfer, participation count
+- `per_proposal`: `x`, `y`, decisions, oracle fields, contribution and payout totals, external funding, mechanism net profit, proposal utility, forced termination flag, and per-agent action logs
 
 ## Test
 

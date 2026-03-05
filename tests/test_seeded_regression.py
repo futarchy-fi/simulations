@@ -64,12 +64,17 @@ def test_seeded_regression_snapshot() -> None:
     assert agg.regret == pytest.approx(51.58878936524919)
     assert agg.mechanism_net_profit_total == pytest.approx(0.0, abs=1e-12)
     assert agg.mechanism_net_profit_mean == pytest.approx(0.0, abs=1e-12)
-    assert agg.utility_mean == pytest.approx(61.83650306053041)
-    assert agg.utility_min == pytest.approx(21.60656113295133)
-    assert agg.utility_max == pytest.approx(122.38981717984167)
-    assert agg.utility_std == pytest.approx(31.615779334276077)
+    assert agg.utility_mean == pytest.approx(0.0)
+    assert agg.utility_min == pytest.approx(0.0)
+    assert agg.utility_max == pytest.approx(0.0)
+    assert agg.utility_std == pytest.approx(0.0)
 
     assert [row.final_decision for row in report.per_proposal[:3]] == ["reject", "reject", "reject"]
     assert [row.mechanism_net_profit for row in report.per_proposal[:3]] == pytest.approx([0.0, 0.0, 0.0])
     assert [row.proposal_utility for row in report.per_proposal[:3]] == pytest.approx([0.0, 0.0, 0.0])
     assert [row.contribution_total for row in report.per_proposal[:3]] == pytest.approx([0.0, 0.0, 0.0])
+    assert [row.agent_reports[0].attempts[0].rejection_reason for row in report.per_proposal[:3]] == [
+        "abstain",
+        "abstain",
+        "abstain",
+    ]

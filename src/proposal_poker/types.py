@@ -85,6 +85,36 @@ class AgentReport(BaseModel):
     participation_count: int
 
 
+class AgentAttemptReport(BaseModel):
+    """One agent decision opportunity within a proposal round."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    round_index: int
+    public_message: Any | None = None
+    contribution: Contribution | None = None
+    accepted: bool
+    rejection_reason: str | None = None
+
+
+class ProposalAgentReport(BaseModel):
+    """Per-agent outcome for one proposal."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    agent_instance_id: str
+    agent_type_id: str
+    wealth: float
+    signal: float
+    attempts: list[AgentAttemptReport]
+    stake: float
+    payout: float
+    entry_cost: float
+    fee_cost: float
+    transfer: float
+    utility: float
+
+
 class ProposalReport(BaseModel):
     """Per-proposal outcome and accounting."""
 
@@ -104,6 +134,7 @@ class ProposalReport(BaseModel):
     proposal_utility: float
     oracle_optimal_value: float
     forced_termination: bool
+    agent_reports: list[ProposalAgentReport]
 
 
 class SimulationReport(BaseModel):

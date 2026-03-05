@@ -66,7 +66,7 @@ to the mechanism or to other agents.
 
 Agent j's utility for a single proposal:
 
-    U_j = log(W_j + T_j - K_j - fee_rate * S_j)
+    U_j = log(W_j + T_j - K_j - fee_rate * S_j) - log(W_j)
 
 Where:
 - T_j = net monetary transfer (payouts received minus money contributed)
@@ -79,7 +79,7 @@ reduce terminal wealth directly and are not paid to the mechanism or
 to other agents.
 
 If agent j does not participate: T_j = 0, K_j = 0, S_j = 0,
-U_j = log(W_j).
+U_j = 0.
 
 ### 2.6 Participation constraint
 
@@ -217,7 +217,7 @@ For each proposal (x, y):
        - payout_j = sum of payout_fn(r) for r in j's receipts
        - K_j = phi * W_j * sqrt(y) if j has any accepted contribution, else 0
        - T_j = payout_j - S_j
-       - U_j = log(W_j + T_j - K_j - fee_rate * S_j)
+       - U_j = log(W_j + T_j - K_j - fee_rate * S_j) - log(W_j)
 
 ## 6. Agent Interface
 

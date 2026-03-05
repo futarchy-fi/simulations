@@ -88,7 +88,7 @@ class BayesianThresholdAgent(AgentBase):
             win_probability=confidence,
             public_history=public_history,
         )
-        if expected_utility <= math.log(wealth):
+        if expected_utility <= 0.0:
             return None
 
         return Contribution(amount=stake, data={"side": side})
@@ -136,6 +136,7 @@ class BayesianThresholdAgent(AgentBase):
         return (
             win_probability * math.log(wealth_if_win)
             + lose_probability * math.log(wealth_if_lose)
+            - math.log(wealth)
         )
 
     def _current_market(self, public_history: list[object]) -> tuple[float, float, float]:
