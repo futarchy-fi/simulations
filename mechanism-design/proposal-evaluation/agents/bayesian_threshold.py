@@ -9,7 +9,7 @@ from proposal_poker.types import Contribution
 
 
 class BayesianThresholdAgent(AgentBase):
-    """Stake once when posterior confidence crosses a threshold."""
+    """Stake once when posterior confidence clears a net-utility threshold."""
 
     agent_id = "bayesian_threshold"
 
@@ -20,6 +20,8 @@ class BayesianThresholdAgent(AgentBase):
         confidence_threshold: float = 0.55,
         precision_ratio: float = 2.0,
         avoid_likely_minority: bool = True,
+        phi: float = 0.01,
+        fee_rate: float = 0.01,
         **params: object,
     ) -> None:
         super().__init__(**params)
@@ -31,12 +33,18 @@ class BayesianThresholdAgent(AgentBase):
             raise ValueError("confidence_threshold must be in [0.5, 1.0)")
         if precision_ratio <= 0:
             raise ValueError("precision_ratio must be positive")
+        if phi < 0:
+            raise ValueError("phi must be non-negative")
+        if fee_rate < 0:
+            raise ValueError("fee_rate must be non-negative")
 
         self.min_stake = float(min_stake)
         self.max_stake = float(max_stake)
         self.confidence_threshold = float(confidence_threshold)
         self.precision_ratio = float(precision_ratio)
         self.avoid_likely_minority = bool(avoid_likely_minority)
+        self.phi = float(phi)
+        self.fee_rate = float(fee_rate)
 
     def act(
         self,
@@ -46,8 +54,6 @@ class BayesianThresholdAgent(AgentBase):
         public_history: list[object],
         my_past: list[Contribution],
     ) -> Contribution | None:
-        del y
-
         if my_past:
             return None
 
@@ -74,6 +80,17 @@ class BayesianThresholdAgent(AgentBase):
         if self.avoid_likely_minority and self._would_likely_be_minority(side, stake, public_history):
             return None
 
+        expected_utility = self._expected_trade_utility(
+            side=side,
+            stake=stake,
+            wealth=wealth,
+            y=y,
+            win_probability=confidence,
+            public_history=public_history,
+        )
+        if expected_utility <= math.log(wealth):
+            return None
+
         return Contribution(amount=stake, data={"side": side})
 
     def _would_likely_be_minority(self, side: str, stake: float, public_history: list[object]) -> bool:
@@ -93,3 +110,50 @@ class BayesianThresholdAgent(AgentBase):
 
         # Reject wins on tie in this mechanism.
         return reject_stake + stake < approve_stake
+
+    def _expected_trade_utility(
+        self,
+        side: str,
+        stake: float,
+        wealth: float,
+        y: float,
+        win_probability: float,
+        public_history: list[object],
+    ) -> float:
+        approve_stake, reject_stake = self._current_stakes(public_history)
+
+        if side == "approve":
+            approve_stake += stake
+        else:
+            reject_stake += stake
+
+        total_stake = approve_stake + reject_stake
+        winning_pool = approve_stake if side == "approve" else reject_stake
+        payout_if_win = stake * total_stake / winning_pool
+
+        participation_cost = self.phi * wealth * math.sqrt(y)
+        fee_cost = self.fee_rate * stake
+
+        wealth_if_win = wealth + payout_if_win - stake - participation_cost - fee_cost
+        wealth_if_lose = wealth - stake - participation_cost - fee_cost
+
+        if wealth_if_win <= 0.0 or wealth_if_lose <= 0.0:
+            return float("-inf")
+
+        lose_probability = 1.0 - win_probability
+        return (
+            win_probability * math.log(wealth_if_win)
+            + lose_probability * math.log(wealth_if_lose)
+        )
+
+    def _current_stakes(self, public_history: list[object]) -> tuple[float, float]:
+        if not public_history:
+            return 0.0, 0.0
+
+        last_message = public_history[-1]
+        if not isinstance(last_message, dict):
+            return 0.0, 0.0
+
+        approve_stake = float(last_message.get("approve_stake", 0.0))
+        reject_stake = float(last_message.get("reject_stake", 0.0))
+        return approve_stake, reject_stake

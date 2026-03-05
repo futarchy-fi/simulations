@@ -66,7 +66,7 @@ to the mechanism or to other agents.
 
 Agent j's utility for a single proposal:
 
-    U_j = log(W_j + T_j - K_j) - fee_rate * (S_j / W_j)
+    U_j = log(W_j + T_j - K_j - fee_rate * S_j)
 
 Where:
 - T_j = net monetary transfer (payouts received minus money contributed)
@@ -74,9 +74,9 @@ Where:
 - S_j = total money contributed to the mechanism across all rounds
 - fee_rate = 0.01 (1%) by default
 
-The first term is log utility over terminal wealth. The second term
-is the stake disutility — a utility cost proportional to the fraction
-of wealth put at stake, regardless of whether the money is returned.
+Both `K_j` and `fee_rate * S_j` are dead-weight monetary costs. They
+reduce terminal wealth directly and are not paid to the mechanism or
+to other agents.
 
 If agent j does not participate: T_j = 0, K_j = 0, S_j = 0,
 U_j = log(W_j).
@@ -214,7 +214,7 @@ For each proposal (x, y):
        - payout_j = sum of payout_fn(r) for r in j's receipts
        - K_j = phi * W_j * sqrt(y) if j has any accepted contribution, else 0
        - T_j = payout_j - S_j
-       - U_j = log(W_j + T_j - K_j) - fee_rate * S_j / W_j
+       - U_j = log(W_j + T_j - K_j - fee_rate * S_j)
 
 ## 6. Agent Interface
 
@@ -245,7 +245,7 @@ tau = (phi / alpha) * wealth.
 | Wealth          | W_j     | LN(3,1.5)| Agent wealth (fixed across proposals)|
 | Entry cost frac | phi     | 0.01    | Participation constraint parameter   |
 | Precision scale | alpha   | 0.005   | tau_j = phi * W_j / alpha            |
-| Stake disutility| fee_rate| 0.01    | Utility cost per unit S/W staked     |
+| Stake fee       | fee_rate| 0.01    | Dead-weight monetary fee per unit staked |
 | Futarchy cost   | C       | 50      | Cost of verification oracle          |
 | Futarchy prec   | tau_F   | 10      | Verification oracle precision        |
 | Proposals       | M       | 500     | Number of proposals                  |

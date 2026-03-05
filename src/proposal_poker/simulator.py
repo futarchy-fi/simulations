@@ -108,7 +108,12 @@ def run_simulation(
                     )
 
                 max_allowed_loss = config.stake_cap_fraction * runtime.wealth
-                potential_loss = stake_by_agent[agent_index] + contribution.amount + entry_cost_by_agent[agent_index]
+                potential_stake = stake_by_agent[agent_index] + contribution.amount
+                potential_loss = (
+                    potential_stake
+                    + _stake_fee_cost(potential_stake, config.environment.fee_rate)
+                    + entry_cost_by_agent[agent_index]
+                )
                 if not receipts_by_agent[agent_index]:
                     potential_loss += entry_cost
 
@@ -183,13 +188,14 @@ def run_simulation(
         for agent_index, runtime in enumerate(runtimes):
             stake = float(stake_by_agent[agent_index])
             entry_cost = float(entry_cost_by_agent[agent_index])
-            transfer = float(payout_by_agent[agent_index] - stake - entry_cost)
+            fee_cost = _stake_fee_cost(stake, config.environment.fee_rate)
+            transfer = float(payout_by_agent[agent_index] - stake - entry_cost - fee_cost)
             terminal_wealth = runtime.wealth + transfer
             if terminal_wealth <= 0.0:
                 raise SimulationError(
                     f"Non-positive terminal wealth for {runtime.instance_id} on proposal {proposal_idx}"
                 )
-            utility = math.log(terminal_wealth) - config.environment.fee_rate * (stake / runtime.wealth)
+            utility = math.log(terminal_wealth)
 
             runtime.total_utility += utility
             runtime.total_stake += stake
@@ -291,6 +297,10 @@ def _validate_contribution_data(schema: type[BaseModel] | None, data: Any) -> An
 
 def _participation_entry_cost(wealth: float, y: float, phi: float) -> float:
     return phi * wealth * math.sqrt(y)
+
+
+def _stake_fee_cost(stake: float, fee_rate: float) -> float:
+    return fee_rate * stake
 
 
 def _normalize_receipt(

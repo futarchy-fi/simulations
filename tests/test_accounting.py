@@ -158,7 +158,10 @@ def test_accounting_identities_and_tie_reject() -> None:
     expected_entry_cost = config.environment.phi * math.sqrt(proposal.y) * sum(
         row.wealth for row in report.per_agent
     )
-    assert sum(row.total_transfer for row in report.per_agent) == pytest.approx(-expected_entry_cost)
+    expected_fee_cost = config.environment.fee_rate * proposal.contribution_total
+    assert sum(row.total_transfer for row in report.per_agent) == pytest.approx(
+        -(expected_entry_cost + expected_fee_cost)
+    )
 
 
 def test_stake_cap_rejects_contribution() -> None:

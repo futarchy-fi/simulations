@@ -57,18 +57,19 @@ def test_seeded_regression_snapshot() -> None:
 
     assert report.metadata.scenario_hash == "3888c4ea6dc463e82482d1b5b51041a735eb1a62fe4a2a6ed92493a579a95d34"
 
-    assert agg.approval_count == 12
+    assert agg.approval_count == 0
     assert agg.futarchy_count == 0
-    assert agg.proposal_utility_total == pytest.approx(51.57195221635675)
+    assert agg.proposal_utility_total == pytest.approx(0.0)
     assert agg.oracle_optimal_total == pytest.approx(51.58878936524919)
-    assert agg.regret == pytest.approx(0.016837148892442144)
+    assert agg.regret == pytest.approx(51.58878936524919)
     assert agg.mechanism_net_profit_total == pytest.approx(0.0, abs=1e-12)
     assert agg.mechanism_net_profit_mean == pytest.approx(0.0, abs=1e-12)
-    assert agg.utility_mean == pytest.approx(61.37812648523266)
-    assert agg.utility_min == pytest.approx(21.555395047856106)
-    assert agg.utility_max == pytest.approx(121.8994824499307)
-    assert agg.utility_std == pytest.approx(31.544523618200348)
+    assert agg.utility_mean == pytest.approx(61.83650306053041)
+    assert agg.utility_min == pytest.approx(21.60656113295133)
+    assert agg.utility_max == pytest.approx(122.38981717984167)
+    assert agg.utility_std == pytest.approx(31.615779334276077)
 
     assert [row.final_decision for row in report.per_proposal[:3]] == ["reject", "reject", "reject"]
     assert [row.mechanism_net_profit for row in report.per_proposal[:3]] == pytest.approx([0.0, 0.0, 0.0])
     assert [row.proposal_utility for row in report.per_proposal[:3]] == pytest.approx([0.0, 0.0, 0.0])
+    assert [row.contribution_total for row in report.per_proposal[:3]] == pytest.approx([0.0, 0.0, 0.0])

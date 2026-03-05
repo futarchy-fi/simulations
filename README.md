@@ -9,7 +9,7 @@ This repository now includes a Python simulation engine implementing the formal 
 It supports:
 - Pluggable mechanisms and agents discovered from folders.
 - Scenario-driven runs from JSON.
-- The formal model's two frictions: a deadweight participation cost on first accepted contribution and a separate stake disutility term in utility.
+- The formal model's two monetary frictions: a deadweight participation cost on first accepted contribution and a deadweight fee proportional to total stake.
 - Per-proposal and aggregate reporting for:
   - agent utility,
   - mechanism `net_profit`,
