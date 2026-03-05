@@ -19,6 +19,7 @@ class BayesianThresholdAgent(AgentBase):
         max_stake: float = 5.0,
         confidence_threshold: float = 0.55,
         precision_ratio: float = 2.0,
+        avoid_likely_minority: bool = True,
         **params: object,
     ) -> None:
         super().__init__(**params)
@@ -35,6 +36,7 @@ class BayesianThresholdAgent(AgentBase):
         self.max_stake = float(max_stake)
         self.confidence_threshold = float(confidence_threshold)
         self.precision_ratio = float(precision_ratio)
+        self.avoid_likely_minority = bool(avoid_likely_minority)
 
     def act(
         self,
@@ -44,7 +46,7 @@ class BayesianThresholdAgent(AgentBase):
         public_history: list[object],
         my_past: list[Contribution],
     ) -> Contribution | None:
-        del y, public_history
+        del y
 
         if my_past:
             return None
@@ -69,4 +71,25 @@ class BayesianThresholdAgent(AgentBase):
             scale = min(max(scale, 0.0), 1.0)
             stake = self.min_stake + scale * (self.max_stake - self.min_stake)
 
+        if self.avoid_likely_minority and self._would_likely_be_minority(side, stake, public_history):
+            return None
+
         return Contribution(amount=stake, data={"side": side})
+
+    def _would_likely_be_minority(self, side: str, stake: float, public_history: list[object]) -> bool:
+        if not public_history:
+            return False
+
+        last_message = public_history[-1]
+        if not isinstance(last_message, dict):
+            return False
+
+        approve_stake = float(last_message.get("approve_stake", 0.0))
+        reject_stake = float(last_message.get("reject_stake", 0.0))
+
+        if side == "approve":
+            # Approve loses on tie, so it needs a strict lead.
+            return approve_stake + stake <= reject_stake
+
+        # Reject wins on tie in this mechanism.
+        return reject_stake + stake < approve_stake

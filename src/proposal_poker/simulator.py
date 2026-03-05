@@ -63,6 +63,7 @@ def run_simulation(
         receipts_by_agent: list[list[Receipt]] = [[] for _ in runtimes]
         my_past_by_agent: list[list[Contribution]] = [[] for _ in runtimes]
         stake_by_agent = np.zeros(len(runtimes), dtype=float)
+        entry_cost_by_agent = np.zeros(len(runtimes), dtype=float)
         payout_by_agent = np.zeros(len(runtimes), dtype=float)
 
         if len(runtimes) > 0:
@@ -98,8 +99,20 @@ def run_simulation(
 
                 contribution = Contribution.model_validate(raw_contribution)
 
-                max_allowed_stake = config.stake_cap_fraction * runtime.wealth
-                if stake_by_agent[agent_index] + contribution.amount > max_allowed_stake:
+                entry_cost = 0.0
+                if not receipts_by_agent[agent_index]:
+                    entry_cost = _participation_entry_cost(
+                        wealth=runtime.wealth,
+                        y=y,
+                        phi=config.environment.phi,
+                    )
+
+                max_allowed_loss = config.stake_cap_fraction * runtime.wealth
+                potential_loss = stake_by_agent[agent_index] + contribution.amount + entry_cost_by_agent[agent_index]
+                if not receipts_by_agent[agent_index]:
+                    potential_loss += entry_cost
+
+                if potential_loss > max_allowed_loss:
                     continue
 
                 contribution = contribution.model_copy(
@@ -122,6 +135,8 @@ def run_simulation(
                 receipts_by_agent[agent_index].append(receipt)
                 my_past_by_agent[agent_index].append(contribution)
                 stake_by_agent[agent_index] += contribution.amount
+                if entry_cost_by_agent[agent_index] == 0.0:
+                    entry_cost_by_agent[agent_index] = entry_cost
 
             state, done = mechanism.on_round_end(state)
             if done:
@@ -167,7 +182,8 @@ def run_simulation(
 
         for agent_index, runtime in enumerate(runtimes):
             stake = float(stake_by_agent[agent_index])
-            transfer = float(payout_by_agent[agent_index] - stake)
+            entry_cost = float(entry_cost_by_agent[agent_index])
+            transfer = float(payout_by_agent[agent_index] - stake - entry_cost)
             terminal_wealth = runtime.wealth + transfer
             if terminal_wealth <= 0.0:
                 raise SimulationError(
@@ -271,6 +287,10 @@ def _validate_contribution_data(schema: type[BaseModel] | None, data: Any) -> An
     except ValidationError as exc:
         raise SimulationError(f"Contribution data failed schema validation: {exc}") from exc
     return validated.model_dump(mode="python")
+
+
+def _participation_entry_cost(wealth: float, y: float, phi: float) -> float:
+    return phi * wealth * math.sqrt(y)
 
 
 def _normalize_receipt(

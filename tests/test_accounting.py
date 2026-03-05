@@ -155,7 +155,10 @@ def test_accounting_identities_and_tie_reject() -> None:
     assert report.aggregates.regret == pytest.approx(
         report.aggregates.oracle_optimal_total - report.aggregates.proposal_utility_total
     )
-    assert sum(row.total_transfer for row in report.per_agent) == pytest.approx(0.0)
+    expected_entry_cost = config.environment.phi * math.sqrt(proposal.y) * sum(
+        row.wealth for row in report.per_agent
+    )
+    assert sum(row.total_transfer for row in report.per_agent) == pytest.approx(-expected_entry_cost)
 
 
 def test_stake_cap_rejects_contribution() -> None:

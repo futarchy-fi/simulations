@@ -64,10 +64,10 @@ def test_seeded_regression_snapshot() -> None:
     assert agg.regret == pytest.approx(0.016837148892442144)
     assert agg.mechanism_net_profit_total == pytest.approx(0.0, abs=1e-12)
     assert agg.mechanism_net_profit_mean == pytest.approx(0.0, abs=1e-12)
-    assert agg.utility_mean == pytest.approx(61.37840542649422)
-    assert agg.utility_min == pytest.approx(19.902062963660327)
-    assert agg.utility_max == pytest.approx(122.40554503442964)
-    assert agg.utility_std == pytest.approx(32.10442990548472)
+    assert agg.utility_mean == pytest.approx(61.37812648523266)
+    assert agg.utility_min == pytest.approx(21.555395047856106)
+    assert agg.utility_max == pytest.approx(121.8994824499307)
+    assert agg.utility_std == pytest.approx(31.544523618200348)
 
     assert [row.final_decision for row in report.per_proposal[:3]] == ["reject", "reject", "reject"]
     assert [row.mechanism_net_profit for row in report.per_proposal[:3]] == pytest.approx([0.0, 0.0, 0.0])

@@ -51,14 +51,26 @@ For every proposal, every agent observes a private signal for free:
 Conditionally independent across agents given x. Agents observe s_j
 and y before taking any action.
 
-### 2.4 Utility
+### 2.4 Participation cost
+
+If an agent enters the betting pool for a proposal, they pay a
+dead-weight monetary cost:
+
+    K_j = phi * W_j * sqrt(y) * 1(participates)
+
+Where `participates` means the agent has at least one accepted
+contribution on that proposal. This money vanishes; it does not go
+to the mechanism or to other agents.
+
+### 2.5 Utility
 
 Agent j's utility for a single proposal:
 
-    U_j = log(W_j + T_j) - fee_rate * (S_j / W_j)
+    U_j = log(W_j + T_j - K_j) - fee_rate * (S_j / W_j)
 
 Where:
 - T_j = net monetary transfer (payouts received minus money contributed)
+- K_j = participation cost paid on first accepted contribution
 - S_j = total money contributed to the mechanism across all rounds
 - fee_rate = 0.01 (1%) by default
 
@@ -66,9 +78,10 @@ The first term is log utility over terminal wealth. The second term
 is the stake disutility — a utility cost proportional to the fraction
 of wealth put at stake, regardless of whether the money is returned.
 
-If agent j does not participate: T_j = 0, S_j = 0, U_j = log(W_j).
+If agent j does not participate: T_j = 0, K_j = 0, S_j = 0,
+U_j = log(W_j).
 
-### 2.5 Participation constraint
+### 2.6 Participation constraint
 
 Agent j cannot participate in a proposal when:
 
@@ -199,8 +212,9 @@ For each proposal (x, y):
     6. For each agent j:
        - S_j = sum of amounts in j's contributions
        - payout_j = sum of payout_fn(r) for r in j's receipts
+       - K_j = phi * W_j * sqrt(y) if j has any accepted contribution, else 0
        - T_j = payout_j - S_j
-       - U_j = log(W_j + T_j) - fee_rate * S_j / W_j
+       - U_j = log(W_j + T_j - K_j) - fee_rate * S_j / W_j
 
 ## 6. Agent Interface
 
