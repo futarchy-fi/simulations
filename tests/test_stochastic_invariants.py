@@ -20,7 +20,6 @@ def _scenario(seed: int) -> ScenarioConfig:
             "seed": seed,
             "num_proposals": 40,
             "round_cap": 20,
-            "stake_cap_fraction": 0.99,
             "environment": {
                 "mu_W": 3.0,
                 "sigma_W": 1.5,

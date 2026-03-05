@@ -79,10 +79,11 @@ Top-level keys:
 - `seed` (optional)
 - `num_proposals` (default `500`)
 - `round_cap` (default `20`)
-- `stake_cap_fraction` (default `0.99`)
 - `environment`
 - `mechanism`
 - `agents`
+
+There is no artificial stake cap in the simulator. Contributions are rejected only if losing that stake would make the agent's terminal wealth non-positive, which would make log utility undefined.
 
 Reference scenario:
 - [`examples/scenarios/basic.json`](examples/scenarios/basic.json)

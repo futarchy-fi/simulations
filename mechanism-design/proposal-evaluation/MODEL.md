@@ -200,6 +200,9 @@ For each proposal (x, y):
           - agent sees (W_j, s_j, y, public_history, own_past)
           - agent returns a Contribution or None
           - if Contribution:
+              - reject it if the contribution would make j's terminal
+                wealth non-positive in the worst case (zero payout),
+                since log utility would be undefined
               state, receipt = mechanism.on_contribution(state, c)
               assign receipt to agent j (invisible to mechanism)
               append msg to public_history for all agents

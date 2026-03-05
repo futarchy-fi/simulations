@@ -2,7 +2,6 @@
   "seed": 7,
   "num_proposals": 50,
   "round_cap": 20,
-  "stake_cap_fraction": 0.99,
   "environment": {
     "mu_W": 3.0,
     "sigma_W": 1.5,
@@ -26,7 +25,6 @@
       "count": 20,
       "params": {
         "min_stake": 0.5,
-        "max_stake": 3.0,
         "confidence_threshold": 0.55,
         "precision_ratio": 0.5,
         "phi": 0.002

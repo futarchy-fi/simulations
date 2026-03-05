@@ -15,19 +15,20 @@ class BayesianThresholdAgent(AgentBase):
 
     def __init__(
         self,
-        min_stake: float = 1.0,
-        max_stake: float = 5.0,
+        min_stake: float = 0.5,
+        max_stake: float | None = None,
         confidence_threshold: float = 0.55,
         precision_ratio: float = 2.0,
         avoid_likely_minority: bool = True,
         phi: float = 0.01,
         fee_rate: float = 0.01,
+        search_points: int = 96,
         **params: object,
     ) -> None:
         super().__init__(**params)
         if min_stake <= 0:
             raise ValueError("min_stake must be positive")
-        if max_stake < min_stake:
+        if max_stake is not None and max_stake < min_stake:
             raise ValueError("max_stake must be >= min_stake")
         if not 0.5 <= confidence_threshold < 1.0:
             raise ValueError("confidence_threshold must be in [0.5, 1.0)")
@@ -37,14 +38,17 @@ class BayesianThresholdAgent(AgentBase):
             raise ValueError("phi must be non-negative")
         if fee_rate < 0:
             raise ValueError("fee_rate must be non-negative")
+        if search_points < 4:
+            raise ValueError("search_points must be at least 4")
 
         self.min_stake = float(min_stake)
-        self.max_stake = float(max_stake)
+        self.max_stake = None if max_stake is None else float(max_stake)
         self.confidence_threshold = float(confidence_threshold)
         self.precision_ratio = float(precision_ratio)
         self.avoid_likely_minority = bool(avoid_likely_minority)
         self.phi = float(phi)
         self.fee_rate = float(fee_rate)
+        self.search_points = int(search_points)
 
     def act(
         self,
@@ -70,28 +74,71 @@ class BayesianThresholdAgent(AgentBase):
             return None
 
         side = "approve" if posterior_mean > 0.0 else "reject"
-        if self.max_stake == self.min_stake:
-            stake = self.min_stake
-        else:
-            scale = (confidence - self.confidence_threshold) / (1.0 - self.confidence_threshold)
-            scale = min(max(scale, 0.0), 1.0)
-            stake = self.min_stake + scale * (self.max_stake - self.min_stake)
-
-        if self.avoid_likely_minority and self._would_likely_be_minority(side, stake, public_history):
-            return None
-
-        expected_utility = self._expected_trade_utility(
+        stake, expected_utility = self._optimal_stake(
             side=side,
-            stake=stake,
             wealth=wealth,
             y=y,
             win_probability=confidence,
             public_history=public_history,
         )
-        if expected_utility <= 0.0:
+        if stake <= 0.0 or expected_utility <= 0.0:
             return None
 
         return Contribution(amount=stake, data={"side": side})
+
+    def _optimal_stake(
+        self,
+        side: str,
+        wealth: float,
+        y: float,
+        win_probability: float,
+        public_history: list[object],
+    ) -> tuple[float, float]:
+        max_affordable_stake = self._max_affordable_stake(wealth=wealth, y=y)
+        if max_affordable_stake < self.min_stake:
+            return 0.0, 0.0
+
+        max_search_stake = max_affordable_stake
+        if self.max_stake is not None:
+            max_search_stake = min(max_search_stake, self.max_stake)
+        if max_search_stake < self.min_stake:
+            return 0.0, 0.0
+
+        best_stake = 0.0
+        best_utility = 0.0
+        candidate_stakes = {self.min_stake, max_search_stake}
+        for idx in range(1, self.search_points + 1):
+            fraction = idx / self.search_points
+            candidate_stakes.add(self.min_stake + fraction * (max_search_stake - self.min_stake))
+            candidate_stakes.add(
+                self.min_stake + (fraction * fraction) * (max_search_stake - self.min_stake)
+            )
+
+        for stake in sorted(candidate_stakes):
+            if self.avoid_likely_minority and self._would_likely_be_minority(side, stake, public_history):
+                continue
+            expected_utility = self._expected_trade_utility(
+                side=side,
+                stake=stake,
+                wealth=wealth,
+                y=y,
+                win_probability=win_probability,
+                public_history=public_history,
+            )
+            if expected_utility > best_utility:
+                best_stake = stake
+                best_utility = expected_utility
+
+        return best_stake, best_utility
+
+    def _max_affordable_stake(self, wealth: float, y: float) -> float:
+        participation_cost = self.phi * wealth * math.sqrt(y)
+        spendable_wealth = wealth - participation_cost
+        if spendable_wealth <= 0.0:
+            return 0.0
+
+        # Keep losing-state terminal wealth strictly positive for log utility.
+        return max(0.0, math.nextafter(spendable_wealth / (1.0 + self.fee_rate), 0.0))
 
     def _would_likely_be_minority(self, side: str, stake: float, public_history: list[object]) -> bool:
         approve_stake, reject_stake, _winner_subsidy = self._current_market(public_history)

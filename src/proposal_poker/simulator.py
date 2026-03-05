@@ -132,7 +132,6 @@ def run_simulation(
                         phi=config.environment.phi,
                     )
 
-                max_allowed_loss = config.stake_cap_fraction * runtime.wealth
                 potential_stake = stake_by_agent[agent_index] + contribution.amount
                 potential_loss = (
                     potential_stake
@@ -142,14 +141,14 @@ def run_simulation(
                 if not receipts_by_agent[agent_index]:
                     potential_loss += entry_cost
 
-                if potential_loss > max_allowed_loss:
+                if potential_loss >= runtime.wealth:
                     attempts_by_agent[agent_index].append(
                         AgentAttemptReport(
                             round_index=_round,
                             public_message=message,
                             contribution=contribution,
                             accepted=False,
-                            rejection_reason="stake_cap",
+                            rejection_reason="insufficient_wealth",
                         )
                     )
                     continue

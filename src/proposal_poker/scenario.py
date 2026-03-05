@@ -51,7 +51,6 @@ class ScenarioConfig(BaseModel):
     seed: int | None = None
     num_proposals: int = Field(default=500, ge=1)
     round_cap: int = Field(default=20, ge=1)
-    stake_cap_fraction: float = Field(default=0.99, gt=0, le=1)
     environment: EnvironmentConfig = Field(default_factory=EnvironmentConfig)
     mechanism: MechanismSelection
     agents: list[AgentSelection] = Field(min_length=1)

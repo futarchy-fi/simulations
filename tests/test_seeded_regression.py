@@ -20,7 +20,6 @@ def test_seeded_regression_snapshot() -> None:
             "seed": 12345,
             "num_proposals": 25,
             "round_cap": 20,
-            "stake_cap_fraction": 0.99,
             "environment": {
                 "mu_W": 3.0,
                 "sigma_W": 1.5,
@@ -55,7 +54,7 @@ def test_seeded_regression_snapshot() -> None:
     report = run_simulation(config, registry=registry)
     agg = report.aggregates
 
-    assert report.metadata.scenario_hash == "3888c4ea6dc463e82482d1b5b51041a735eb1a62fe4a2a6ed92493a579a95d34"
+    assert report.metadata.scenario_hash == "333d46545d41cb73e38ec08d32cfb08452e8ad8a1ef76f6702cbd534a5de3d68"
 
     assert agg.approval_count == 0
     assert agg.futarchy_count == 0

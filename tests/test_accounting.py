@@ -156,7 +156,6 @@ def _base_config(agent_specs):
             "seed": 13,
             "num_proposals": 1,
             "round_cap": 5,
-            "stake_cap_fraction": 0.99,
             "environment": {
                 "mu_W": 0.0,
                 "sigma_W": 0.0,
@@ -213,7 +212,7 @@ def test_accounting_identities_and_tie_reject() -> None:
     )
 
 
-def test_stake_cap_rejects_contribution() -> None:
+def test_insufficient_wealth_rejects_contribution() -> None:
     registry = SubmissionRegistry(
         agents={"all_in": AllInAgent},
         mechanisms={"one_round": OneRoundParimutuel},
@@ -231,6 +230,7 @@ def test_stake_cap_rejects_contribution() -> None:
 
     assert proposal.contribution_total == pytest.approx(0.0)
     assert proposal.payout_total == pytest.approx(0.0)
+    assert proposal.agent_reports[0].attempts[0].rejection_reason == "insufficient_wealth"
     assert agent_row.participation_count == 0
     assert agent_row.total_utility == pytest.approx(0.0)
 
