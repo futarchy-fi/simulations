@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+results/*.pkl
+results/*.npz
+results/*.log
+results/hanson_*.json
+results/hanson_*.txt
+.DS_Store
