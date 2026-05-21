@@ -360,19 +360,13 @@ The MetaDAO design (deployed on Solana) replaces LMSR with two conditional const
 </p>
 
 <p>
-The relevant equilibrium question is how the constant-product invariant x·y = k changes the trader-versus-attacker geometry compared to LMSR's exponential cost function. With LMSR, the cost to move price from p to p+δ scales as <code>b · log((1−p+δ)/(1−p))</code> — roughly linear in δ at midprices, blowing up exponentially near the endpoints. With CFMM, the cost scales as <code>k · δ / (1−p−δ)</code> — hyperbolic in δ, with finite cost even at endpoints. This makes the manipulator's marginal cost curve very different: it is cheap to move CFMM prices across the middle and expensive to push them to extremes, whereas LMSR is expensive everywhere and especially so at extremes.
+The relevant equilibrium question is how the constant-product invariant x·y = K changes the trader-versus-attacker geometry compared to LMSR's logarithmic cost function. Both diverge at the endpoints, but the growth rate is different. LMSR cost to push p from 0.5 to p' (with q_N = 0 normalisation) is <code>b · (log(1/(1−p')) − log 2)</code> — logarithmic in (1−p')⁻¹. CFMM with K = 1 has cost <code>sqrt(p'/(1−p')) − 1</code> — power-law growth, asymptotic to (1−p')⁻¹ᐟ². For comparable scales (b = 0.01, K = 1) and a 0.5 → 0.99 push, LMSR costs ≈ 0.039 and CFMM costs ≈ 8.95. They are very different geometries, even if both go to infinity as p → 1. The implication for manipulation analysis: the LMSR threshold-and-saturate pattern of Chapter 6 should look smoother under CFMM, because the manipulator's marginal LMSR-cost climbs more slowly with each unit of price-shift, but CFMM's faster terminal-cost growth means small extreme deviations are correspondingly more punishing.
 </p>
 
-<h3>Why this is not yet solved here</h3>
+<h3>What is in the repo</h3>
 
 <p>
-Tabular CFR on a CFMM-based futarchy needs an OpenSpiel implementation of (a) the conditional minting accounting, (b) the constant-product swap math with sensible discretisation, and (c) the dual-pool state. The same player taxonomy and manipulator framework would then apply directly. Roughly 300 LoC of new game code; left as follow-up.
-</p>
-
-<h3>What we expect</h3>
-
-<p>
-A priori prediction, to be tested when the implementation lands: the CFMM design's manipulation curve will <em>not</em> show the sharp threshold of LMSR. Because CFMM marginal cost is bounded for any single trade, the manipulator can dribble in budget continuously, and the equilibrium price-shift-per-dollar should be smoother and monotonic in the attacker's budget — gentler than LMSR's flat-then-cliff pattern shown in Chapter 6.
+The CFMM pricing primitives are implemented in <code>mechanism-design/metadao-cfmm/src/metadao_cfmm/cfmm.py</code> with passing tests (<code>pytest -q</code>). Specifically: cost-to-move between two prices, shares-to-move, and trade payoff at resolution. The remaining work is the OpenSpiel game wrapper (conditional minting accounting, dual-pool state, discretised action space) — roughly 300 LoC analogous to the Hanson implementation in Chapter 2. We left this stub-complete so the manipulator analysis from Chapter 6 can be re-run on a CFMM-based mechanism once the wrapper lands.
 </p>
 
 <h2 id="proposal-poker" class="chapter"><span class="chapter-number">Chapter 5</span> Proposal Poker</h2>
