@@ -1,0 +1,341 @@
+{
+  "config": {
+    "iterations": 50,
+    "num_actions": 11,
+    "structures": [
+      "t3s111y2",
+      "t3s110",
+      "t3s111",
+      "t3s111o2ye2"
+    ],
+    "rounds": [
+      3
+    ]
+  },
+  "runs": [
+    {
+      "structure": "t3s111y2",
+      "num_rounds": 3,
+      "num_actions": 11,
+      "iterations": 50,
+      "elapsed_seconds": 124.10329031944275,
+      "nash_conv_trace": [
+        [
+          50,
+          8.758953778787402e-05
+        ]
+      ],
+      "mean_log_error": 0.08961289817499513,
+      "median_log_error": 0.08701101335333225,
+      "price_by_omega": {
+        "a": {
+          "x": 1.0,
+          "cfr_mean_price": 0.9150099732437043,
+          "cfr_median_price": 0.916667,
+          "myopic_price": 1.0,
+          "log_error_cfr": 0.0888203140461219,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "b": {
+          "x": 1.0,
+          "cfr_mean_price": 0.9136558843812735,
+          "cfr_median_price": 0.916667,
+          "myopic_price": 1.0,
+          "log_error_cfr": 0.09030127253208166,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "c": {
+          "x": 1.0,
+          "cfr_mean_price": 0.9142422460108817,
+          "cfr_median_price": 0.916667,
+          "myopic_price": 1.0,
+          "log_error_cfr": 0.0896597032455098,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "d": {
+          "x": 0.0,
+          "cfr_mean_price": 0.08576744456798956,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.08967030287626618,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "e": {
+          "x": 1.0,
+          "cfr_mean_price": 0.9142325554320092,
+          "cfr_median_price": 0.916667,
+          "myopic_price": 1.0,
+          "log_error_cfr": 0.08967030287626751,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "f": {
+          "x": 0.0,
+          "cfr_mean_price": 0.0857577539891188,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.08965970324551029,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "g": {
+          "x": 0.0,
+          "cfr_mean_price": 0.08634411561872635,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.09030127253208153,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "h": {
+          "x": 0.0,
+          "cfr_mean_price": 0.08499002675629594,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.08882031404612213,
+          "median_log_error_cfr": 0.08701101335333224
+        }
+      }
+    },
+    {
+      "structure": "t3s110",
+      "num_rounds": 3,
+      "num_actions": 11,
+      "iterations": 50,
+      "elapsed_seconds": 122.08136105537415,
+      "nash_conv_trace": [
+        [
+          50,
+          0.00016743870534797437
+        ]
+      ],
+      "mean_log_error": 0.09663753460017775,
+      "median_log_error": 0.08701101335333225,
+      "price_by_omega": {
+        "a": {
+          "x": 1.0,
+          "cfr_mean_price": 0.8920104052035169,
+          "cfr_median_price": 0.916667,
+          "myopic_price": 1.0,
+          "log_error_cfr": 0.11427748144379929,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "b": {
+          "x": 0.0,
+          "cfr_mean_price": 0.0895988256084825,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.09386992563779466,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "c": {
+          "x": 0.0,
+          "cfr_mean_price": 0.0899867702728148,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.09429614141517736,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "d": {
+          "x": 0.0,
+          "cfr_mean_price": 0.08601391271432182,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.08993992943193788,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "e": {
+          "x": 0.0,
+          "cfr_mean_price": 0.10650136166079185,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.11261046834664916,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "f": {
+          "x": 0.0,
+          "cfr_mean_price": 0.0857974260983189,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.08970309761954254,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "g": {
+          "x": 0.0,
+          "cfr_mean_price": 0.08559261273411854,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.08947908772196328,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "h": {
+          "x": 0.0,
+          "cfr_mean_price": 0.08508502835135066,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.08892414518455787,
+          "median_log_error_cfr": 0.08701101335333224
+        }
+      }
+    },
+    {
+      "structure": "t3s111",
+      "num_rounds": 3,
+      "num_actions": 11,
+      "iterations": 50,
+      "elapsed_seconds": 121.82218384742737,
+      "nash_conv_trace": [
+        [
+          50,
+          0.00016743870534797437
+        ]
+      ],
+      "mean_log_error": 0.09663753460017775,
+      "median_log_error": 0.08701101335333225,
+      "price_by_omega": {
+        "a": {
+          "x": 1.0,
+          "cfr_mean_price": 0.8920104052035169,
+          "cfr_median_price": 0.916667,
+          "myopic_price": 1.0,
+          "log_error_cfr": 0.11427748144379929,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "b": {
+          "x": 0.0,
+          "cfr_mean_price": 0.0895988256084825,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.09386992563779466,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "c": {
+          "x": 0.0,
+          "cfr_mean_price": 0.0899867702728148,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.09429614141517736,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "d": {
+          "x": 0.0,
+          "cfr_mean_price": 0.08601391271432182,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.08993992943193788,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "e": {
+          "x": 0.0,
+          "cfr_mean_price": 0.10650136166079185,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.11261046834664916,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "f": {
+          "x": 0.0,
+          "cfr_mean_price": 0.0857974260983189,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.08970309761954254,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "g": {
+          "x": 0.0,
+          "cfr_mean_price": 0.08559261273411854,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.08947908772196328,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "h": {
+          "x": 0.0,
+          "cfr_mean_price": 0.08508502835135066,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.08892414518455787,
+          "median_log_error_cfr": 0.08701101335333224
+        }
+      }
+    },
+    {
+      "structure": "t3s111o2ye2",
+      "num_rounds": 3,
+      "num_actions": 11,
+      "iterations": 50,
+      "elapsed_seconds": 124.38948559761047,
+      "nash_conv_trace": [
+        [
+          50,
+          7.100225145126099e-05
+        ]
+      ],
+      "mean_log_error": 0.08975880951139008,
+      "median_log_error": 0.08701101335333225,
+      "price_by_omega": {
+        "a": {
+          "x": 0.0,
+          "cfr_mean_price": 0.08682031331345251,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.09082260867535946,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "b": {
+          "x": 1.0,
+          "cfr_mean_price": 0.9135639782351251,
+          "cfr_median_price": 0.916667,
+          "myopic_price": 1.0,
+          "log_error_cfr": 0.0904018692343245,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "c": {
+          "x": 1.0,
+          "cfr_mean_price": 0.9142836002939646,
+          "cfr_median_price": 0.916667,
+          "myopic_price": 1.0,
+          "log_error_cfr": 0.08961447087083643,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "d": {
+          "x": 0.0,
+          "cfr_mean_price": 0.08551533031691298,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.08939457489688103,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "e": {
+          "x": 1.0,
+          "cfr_mean_price": 0.9140088319392348,
+          "cfr_median_price": 0.916667,
+          "myopic_price": 1.0,
+          "log_error_cfr": 0.08991504462146217,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "f": {
+          "x": 0.0,
+          "cfr_mean_price": 0.08600876070957385,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.08993429259533926,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "g": {
+          "x": 0.0,
+          "cfr_mean_price": 0.08515594638267883,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.08900166143711839,
+          "median_log_error_cfr": 0.08701101335333224
+        },
+        "h": {
+          "x": 0.0,
+          "cfr_mean_price": 0.08514157619462655,
+          "cfr_median_price": 0.083333,
+          "myopic_price": 0.0,
+          "log_error_cfr": 0.08898595375979938,
+          "median_log_error_cfr": 0.08701101335333224
+        }
+      }
+    }
+  ]
+}

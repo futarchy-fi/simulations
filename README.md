@@ -2,6 +2,11 @@
 
 Mechanism design research and simulations for Futarchy.
 
+## Sub-projects
+
+- [`mechanism-design/proposal-evaluation/`](mechanism-design/proposal-evaluation/) — Proposal Poker model (see engine docs below).
+- [`mechanism-design/galanis-market/`](mechanism-design/galanis-market/) — OpenSpiel formulation of the Galanis (2026) prediction-market game; CFR+ equilibria of the 4 information structures. See [`galanis-market/results/equilibria.md`](mechanism-design/galanis-market/results/equilibria.md) and the [public HTML writeup](mechanism-design/galanis-market/results/index.html).
+
 ## Proposal Poker Engine (v1)
 
 This repository now includes a Python simulation engine implementing the formal model in [`mechanism-design/proposal-evaluation/MODEL.md`](mechanism-design/proposal-evaluation/MODEL.md).

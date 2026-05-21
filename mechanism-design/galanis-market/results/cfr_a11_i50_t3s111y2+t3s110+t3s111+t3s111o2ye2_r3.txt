@@ -1,0 +1,60 @@
+Galanis Market — CFR+ equilibria vs paper empirics
+==============================================================================
+
+iterations=50  num_actions=11
+
+--- t3s111y2  rounds=3  NashConv_final=8.759e-05  t=124.1s
+  CFR mean log err    = 0.0896   vs Galanis mean   = 0.131
+  CFR median log err  = 0.0870   vs Galanis median = 0.018   (typical empirical price when X=1: 0.98)
+  omega |  X  |  mean p CFR+ | median p CFR+ |  myopic Bayes
+  ------+-----+--------------+---------------+---------------
+    a   | 1.0 |    0.9150    |    0.9167     |     1.0000
+    b   | 1.0 |    0.9137    |    0.9167     |     1.0000
+    c   | 1.0 |    0.9142    |    0.9167     |     1.0000
+    d   | 0.0 |    0.0858    |    0.0833     |     0.0000
+    e   | 1.0 |    0.9142    |    0.9167     |     1.0000
+    f   | 0.0 |    0.0858    |    0.0833     |     0.0000
+    g   | 0.0 |    0.0863    |    0.0833     |     0.0000
+    h   | 0.0 |    0.0850    |    0.0833     |     0.0000
+
+--- t3s110  rounds=3  NashConv_final=1.674e-04  t=122.1s
+  CFR mean log err    = 0.0966   vs Galanis mean   = 0.173
+  CFR median log err  = 0.0870   vs Galanis median = 0.018   (typical empirical price when X=1: 0.98)
+  omega |  X  |  mean p CFR+ | median p CFR+ |  myopic Bayes
+  ------+-----+--------------+---------------+---------------
+    a   | 1.0 |    0.8920    |    0.9167     |     1.0000
+    b   | 0.0 |    0.0896    |    0.0833     |     0.0000
+    c   | 0.0 |    0.0900    |    0.0833     |     0.0000
+    d   | 0.0 |    0.0860    |    0.0833     |     0.0000
+    e   | 0.0 |    0.1065    |    0.0833     |     0.0000
+    f   | 0.0 |    0.0858    |    0.0833     |     0.0000
+    g   | 0.0 |    0.0856    |    0.0833     |     0.0000
+    h   | 0.0 |    0.0851    |    0.0833     |     0.0000
+
+--- t3s111  rounds=3  NashConv_final=1.674e-04  t=121.8s
+  CFR mean log err    = 0.0966   vs Galanis mean   = 0.407
+  CFR median log err  = 0.0870   vs Galanis median = 0.304   (typical empirical price when X=1: 0.75)
+  omega |  X  |  mean p CFR+ | median p CFR+ |  myopic Bayes
+  ------+-----+--------------+---------------+---------------
+    a   | 1.0 |    0.8920    |    0.9167     |     1.0000
+    b   | 0.0 |    0.0896    |    0.0833     |     0.0000
+    c   | 0.0 |    0.0900    |    0.0833     |     0.0000
+    d   | 0.0 |    0.0860    |    0.0833     |     0.0000
+    e   | 0.0 |    0.1065    |    0.0833     |     0.0000
+    f   | 0.0 |    0.0858    |    0.0833     |     0.0000
+    g   | 0.0 |    0.0856    |    0.0833     |     0.0000
+    h   | 0.0 |    0.0851    |    0.0833     |     0.0000
+
+--- t3s111o2ye2  rounds=3  NashConv_final=7.100e-05  t=124.4s
+  CFR mean log err    = 0.0898   vs Galanis mean   = 0.469
+  CFR median log err  = 0.0870   vs Galanis median = 0.718   (typical empirical price when X=1: 0.5)
+  omega |  X  |  mean p CFR+ | median p CFR+ |  myopic Bayes
+  ------+-----+--------------+---------------+---------------
+    a   | 0.0 |    0.0868    |    0.0833     |     0.0000
+    b   | 1.0 |    0.9136    |    0.9167     |     1.0000
+    c   | 1.0 |    0.9143    |    0.9167     |     1.0000
+    d   | 0.0 |    0.0855    |    0.0833     |     0.0000
+    e   | 1.0 |    0.9140    |    0.9167     |     1.0000
+    f   | 0.0 |    0.0860    |    0.0833     |     0.0000
+    g   | 0.0 |    0.0852    |    0.0833     |     0.0000
+    h   | 0.0 |    0.0851    |    0.0833     |     0.0000
