@@ -726,12 +726,63 @@ Given a converged CFR+ average policy, we compute the equilibrium price distribu
   <li>The manipulator framework parameterises bias by an abstract utility coefficient rather than by an explicit budget. To translate to real budgets one would invert the LMSR cost curve; this is straightforward but not done in the current draft.</li>
 </ul>
 
+<h2 id="repro" class="chapter"><span class="chapter-number">Appendix B</span> Reproducibility</h2>
+
+<p>
+All code and data are in <a href="https://github.com/futarchy-fi/simulations/tree/main/mechanism-design" target="_blank" rel="noopener">github.com/futarchy-fi/simulations/mechanism-design</a>. Sub-projects are independent; install each with <code>pip install -e .</code>.
+</p>
+
+<pre>git clone https://github.com/futarchy-fi/simulations.git
+cd simulations/mechanism-design
+
+# 1. Galanis (Chapter 1) + manipulator (Chapter 6)
+cd galanis-market
+pip install -e .
+pytest -q                                              # 44 tests
+python scripts/solve_all.py \
+    --iterations 50 --num-actions 11 \
+    --structures t3s111y2,t3s110,t3s111,t3s111o2ye2 --rounds 3
+python scripts/manipulator_sweep.py                     # 5 bonus levels
+cd ..
+
+# 2. Hanson conditional (Chapter 2) + manipulator (Chapter 7)
+cd hanson-conditional
+pip install -e .
+pytest -q                                              #  8 tests
+python scripts/solve_all.py --iterations 80 --num-actions 7 --num-rounds 3
+python scripts/manipulator_sweep.py                     # 5 bonus levels
+cd ..
+
+# 3. MetaDAO CFMM (Chapter 4)
+cd metadao-cfmm
+pip install -e .
+pytest -q                                              # 13 tests
+python scripts/manipulator_sweep.py                     # baseline + 4 bonus levels
+cd ..</pre>
+
+<p>
+Total CFR+ runtime for the data in this draft: ≈ 50 minutes on a laptop CPU (single-threaded Python). MCCFR or C++ CFR would cut this dramatically.
+</p>
+
+<h3>What is solved as of this draft</h3>
+
+<table>
+  <thead>
+    <tr><th>Sub-project</th><th>Files</th><th>Tests</th><th>CFR runs done</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>galanis-market</td><td>≈ 1000 LoC</td><td>44</td><td>4 structures × baseline + manipulator sweep (5 bonus levels)</td></tr>
+    <tr><td>hanson-conditional</td><td>≈ 500 LoC</td><td>8</td><td>baseline (30 + 80 iter) + manipulator sweep (5 bonus levels)</td></tr>
+    <tr><td>metadao-cfmm</td><td>≈ 500 LoC</td><td>13</td><td>baseline; manipulator sweep in flight</td></tr>
+  </tbody>
+</table>
+
 <!-- ===================== FOOTER ===================== -->
 
 <p class="footer">
-Code and data: <a href="https://github.com/futarchy-fi/simulations/tree/main/mechanism-design" target="_blank" rel="noopener">github.com/futarchy-fi/simulations/mechanism-design</a>.
 OpenSpiel 1.6.3. Tabular CFR+ for the games reported here.
 The Galanis chapter replicates the experimental setup of arXiv:2604.20050v2 modulo the price-grid discretisation and the number of trading rounds.
+The Proposal Poker model (Chapter 5) is specified in <code>mechanism-design/proposal-evaluation/MODEL.md</code> in the same repository.
 </p>
 
 </body>
