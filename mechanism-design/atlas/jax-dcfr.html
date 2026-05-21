@@ -123,22 +123,19 @@ Mean log error: DCFR 0.39 vs CFR+ tabular 0.087 (5-action discretisation floor).
 <h3>Running it on the DGX Spark</h3>
 
 <p>
-We have remote access to a shared NVIDIA DGX Spark (Grace Blackwell GB10, 121 GB unified memory, 20-core ARM CPU) via Tailscale. The CUDA on this machine is version 13 (released August 2025) while JAX's published CUDA wheels are still on CUDA 12 — so for now we run JAX in CPU mode there. Even on CPU the DGX is meaningfully faster than the local farol machine:
+We have remote access to a shared NVIDIA DGX Spark (Grace Blackwell GB10, 121 GB unified memory, 20-core ARM CPU) via Tailscale. The DGX runs CUDA 13 (August 2025 toolkit); pip-published JAX wheels target CUDA 12 and (in some cases) <code>x86_64</code> only, so the bare-metal pip install gives CPU-only JAX. The fix is to use NVIDIA's NGC container <code>nvcr.io/nvidia/jax:26.04-py3</code>, which bundles a JAX build (0.9.2.dev) with the correct CUDA-13 + Blackwell-aware <code>jax_cuda13_pjrt</code> plugin. Inside that container <code>jax.devices()</code> returns <code>[CudaDevice(id=0)]</code> and JAX runs on the GB10. We cap our GPU memory allocation at 25% via <code>XLA_PYTHON_CLIENT_MEM_FRACTION=0.25</code> so we coexist with the vLLM service Vinicius runs on the same GPU.
 </p>
 
 <table>
   <thead>
-    <tr><th>Configuration</th><th class="num">per-iter time</th><th class="num">CPU utilisation</th></tr>
+    <tr><th>Configuration</th><th class="num">throughput</th></tr>
   </thead>
   <tbody>
-    <tr><td>farol (single-thread CPU)</td><td class="num">1.0 s/iter</td><td class="num">~100% (1 core)</td></tr>
-    <tr><td>DGX Spark (multi-core JAX, no GPU)</td><td class="num">0.4 s/iter</td><td class="num">~330% (3.3 cores)</td></tr>
+    <tr><td>farol (single-thread CPU JAX)</td><td class="num">~ 1 game/iter * 1.0 s</td></tr>
+    <tr><td>DGX Spark (multi-core CPU JAX, no container)</td><td class="num">~ 1 game/iter * 0.4 s</td></tr>
+    <tr><td>DGX Spark (GPU JAX in 26.04 container)</td><td class="num">benchmark in flight; expect 10–100× vs CPU on SGD step</td></tr>
   </tbody>
 </table>
-
-<p>
-Once NVIDIA / the JAX team releases CUDA-13 wheels for aarch64, the GPU on this machine should give another 10–100× lift on the SGD step that's currently the bottleneck.
-</p>
 
 <h3>9-round Galanis (4 structures, no manipulator)</h3>
 
