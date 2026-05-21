@@ -116,6 +116,12 @@ class GalanisMarketGame(pyspiel.Game):
         self.manipulator_player: int = int(params.get("manipulator_player", -1))
         self.manipulator_direction: int = int(params.get("manipulator_direction", 1))
         self.manipulator_bonus: float = float(params.get("manipulator_bonus", 0.0))
+        # Player types: 'bayesian' (default, CFR best-response), 'naive'
+        # (action restricted to play price = 0.5), 'insider' (info state
+        # includes ALL signals -- god-mode trader who sees omega exactly).
+        # Manipulator is configured via the manipulator_* params above.
+        self.naive_player: int = int(params.get("naive_player", -1))
+        self.insider_player: int = int(params.get("insider_player", -1))
 
         if self.structure_name not in STRUCTURES:
             raise ValueError(
@@ -130,6 +136,10 @@ class GalanisMarketGame(pyspiel.Game):
             raise ValueError("manipulator_player must be -1, 0, 1, or 2")
         if self.manipulator_direction not in (-1, 1):
             raise ValueError("manipulator_direction must be -1 or +1")
+        if self.naive_player not in (-1, 0, 1, 2):
+            raise ValueError("naive_player must be -1, 0, 1, or 2")
+        if self.insider_player not in (-1, 0, 1, 2):
+            raise ValueError("insider_player must be -1, 0, 1, or 2")
 
         self.structure: Structure = STRUCTURES[self.structure_name]
         self.price_grid: List[float] = _default_price_grid(self.num_actions)
@@ -166,6 +176,14 @@ class GalanisMarketState(pyspiel.State):
         self._manipulator_player = game.manipulator_player
         self._manipulator_direction = game.manipulator_direction
         self._manipulator_bonus = game.manipulator_bonus
+        self._naive_player = game.naive_player
+        self._insider_player = game.insider_player
+        # Compute the action index whose target price is closest to 0.5;
+        # this is the naive player's only legal action.
+        self._naive_action = min(
+            range(len(game.price_grid)),
+            key=lambda i: abs(game.price_grid[i] - 0.5),
+        )
         # Mutable state.
         self._omega_idx: Optional[int] = None
         self._price_history: List[float] = [game.initial_price]
@@ -198,6 +216,9 @@ class GalanisMarketState(pyspiel.State):
 
     def _legal_actions(self, player: int) -> List[int]:
         assert player >= 0
+        # Naive players have a degenerate action set: only "play 0.5".
+        if player == self._naive_player:
+            return [self._naive_action]
         return list(range(self._num_actions))
 
     def _apply_action(self, action: int) -> None:
@@ -240,6 +261,9 @@ class GalanisMarketState(pyspiel.State):
             player = self.current_player()
         if self._omega_idx is None:
             cell = "?"
+        elif player == self._insider_player:
+            # Insider sees all three signals -- the full omega index.
+            cell = f"omega{self._omega_idx}"
         else:
             cell = str(
                 self._structure.cell_of(player, STATES[self._omega_idx])

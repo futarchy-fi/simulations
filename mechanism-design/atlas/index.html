@@ -526,6 +526,38 @@ The states the manipulator <em>breaks</em> are exactly those where player 0's qu
 Saturation occurs because beyond <code>bonus</code> ≈ 0.05 the manipulator already plays a fully adversarial strategy in the 4 states they can affect; further bonus increase changes nothing because there is no more aggregation to destroy in those states. The 4 pinned states remain pinned because no manipulation strategy can change them.
 </p>
 
+<h3>Other player types: naive flat-prior and informed insider</h3>
+
+<p>
+The same framework supports two additional non-Bayesian player types. A <em>naive</em> player has a degenerate strategy: they always play the price closest to 0.5 regardless of their signal — effectively contributing zero information to the price-discovery process. An <em>insider</em> player observes the full state ω (i.e., all three signals), not just their partition cell — a "god-mode" trader that establishes the ceiling for what any player population can achieve. Both are configured by setting <code>naive_player</code> or <code>insider_player</code> to the player index. Implementation detail: the naive player's action set is restricted to a single price = 0.5 action; the insider's information-state string includes the full ω.
+</p>
+
+<table id="player-type-table">
+  <thead>
+    <tr>
+      <th>Configuration</th>
+      <th class="num">mean log error</th>
+      <th class="num">median log error</th>
+      <th class="num">NashConv</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>3 Bayesian (baseline)</td><td class="num">tbd</td><td class="num">tbd</td><td class="num">tbd</td></tr>
+    <tr><td>Player 0 = naive, others Bayesian</td><td class="num">tbd</td><td class="num">tbd</td><td class="num">tbd</td></tr>
+    <tr><td>Player 0 = insider, others Bayesian</td><td class="num">tbd</td><td class="num">tbd</td><td class="num">tbd</td></tr>
+  </tbody>
+</table>
+
+<p style="font-size: 0.9rem; color: var(--muted)">
+Galanis Easy, 3 rounds, 9-action grid, 40 CFR+ iterations. Numbers filled in when the sweep finishes. Code: <code>mechanism-design/galanis-market/scripts/player_type_sweep.py</code>.
+</p>
+
+<h3>LLM stand-in players</h3>
+
+<p>
+The goal of an LLM stand-in player is to encode the strategy <em>actually played</em> by the LLM traders in Galanis (2026), so that the equilibrium of the resulting game tells us "what if 1 of the 3 traders is an LLM and the others are Bayesian best-responders?". The honest answer is that the empirical data in the Galanis paper does not give per-information-state strategy granularity — we only have per-omega median final prices in aggregate. Encoding this as a fixed strategy would require additional assumptions that we have not committed to. We note the gap and leave LLM stand-ins to a follow-up draft that uses per-info-set strategy data from re-running the Galanis experiments with logging instrumented.
+</p>
+
 <h3>Cross-mechanism comparison (preview)</h3>
 
 <p style="color: var(--muted); font-style: italic">
