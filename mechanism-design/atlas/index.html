@@ -142,21 +142,45 @@
   <li><strong>Amoveo "insurance"</strong> futarchy is equilibrium-equivalent to Galanis under symmetric Bayesian play; the design distinguishes itself only when an attacker is present.</li>
   <li>LMSR has a <strong>sharp manipulation threshold</strong>: below a bonus of ≈ 0.04 (in units of LMSR liquidity × max price shift) the equilibrium is undisturbed; above the threshold, mean log error jumps from 0.11 to 0.40 and saturates. The attacker can only break the 4 states where their own signal is the marginal disambiguating information — the other 4 are pinned.</li>
   <li>Hanson conditional markets respond <strong>non-monotonically</strong> to manipulator bias: very small bias actually <em>improves</em> decision accuracy (it acts as a Nash-equilibrium selector among coexisting equilibria), while larger bias degrades it. The two LMSR-based mechanisms have qualitatively different manipulation-response shapes.</li>
-  <li><strong>MetaDAO CFMM conditional markets aggregate substantially better than Hanson LMSR conditional markets</strong> on the same metric structure at the parameters we initially compared: decision accuracy 0.864 (essentially matching the oracle's 0.875) vs 0.754 for Hanson. However the comparison is partly confounded by liquidity (CFMM K = 0.001 is ~4× more liquid than LMSR b = 0.01 per unit price impact). A liquidity-matched re-run is in progress; see Chapter 4 for the test.</li>
-  <li>Under manipulator bias, MetaDAO is <strong>more fragile</strong> at small bias than Hanson: even bonus = 0.005 drops accuracy from 0.864 to 0.773 (a 9-point drop). The same anchoring effect that produces strong baseline aggregation also makes the equilibrium sensitive to a small early-round bias.</li>
+  <li><strong>Binary CFMM conditional markets aggregate substantially better than LMSR (Hanson) conditional markets, and the gap is not a liquidity artefact.</strong> Decision accuracy 0.864 (oracle 0.875) vs Hanson's 0.754. CFR+ is scale-invariant in payoff magnitudes, so scaling the liquidity parameter (K or b) leaves equilibrium strategy unchanged: we verified CFMM accuracy = 0.864 across K ∈ {10⁻⁶, 5 × 10⁻⁵, 10⁻³}. The 11-point gap reflects the difference in cost-curve <em>shape</em> (LMSR's path-independent logarithmic cost vs CFMM's path-dependent power-law cost), not the level of liquidity.</li>
+  <li>Under manipulator bias, the binary CFMM (Chapter 4) is <strong>more fragile</strong> at small bias than Hanson: even bonus = 0.005 drops accuracy from 0.864 to 0.773 (a 9-point drop). The same anchoring effect that produces strong baseline aggregation also makes the equilibrium sensitive to a small early-round bias.</li>
   <li><strong>Player taxonomy effects are mechanism-dependent and can reverse sign.</strong> A naive flat-prior trader nearly quadruples log error in Galanis single-market LMSR (0.109 → 0.401), but <em>improves</em> decision accuracy in Hanson conditional markets (0.7565 → 0.7985) — the same equilibrium-selection mechanism that produces non-monotonic manipulator response. The insider player (sees all 3 signals) provides no lift in either mechanism because baseline equilibria are bottlenecked by discretisation or coordination, not by information availability.</li>
   <li><strong>The binary-staking Proposal Poker mechanism has a no-information equilibrium.</strong> Without an LMSR-style subsidy or richer payoff structure (wealth, log utility, oracle), all traders abstain at equilibrium and decision accuracy collapses to the prior (0.50) regardless of signal precision. This explains why richer mechanisms in the full MODEL.md are needed.</li>
   <li>Tabular CFR+ in this framework reaches NashConv ≤ 5 × 10⁻³ on all converged runs; the CCE/NE gap in these LMSR games is provably small.</li>
 </ul>
 
-<h2>Scope</h2>
+<h2>Scope and limitations</h2>
 
 <p>
 Futarchy proposals have proliferated faster than rigorous analysis of their equilibria. Most arguments for or against a particular mechanism are made informally, anchored on intuition or on small-scale experiments with LLM or human traders. Recent work by Galanis (<a href="https://arxiv.org/abs/2604.20050" target="_blank" rel="noopener">arXiv:2604.20050</a>) is a clean exception: it experimentally tests whether LLM-driven prediction markets aggregate information across four structures of increasing complexity. The empirical finding is that information aggregation degrades sharply with complexity — but the paper does not solve the underlying game, so the source of that degradation is unclear: <em>are the LLM markets failing because the equilibrium itself fails to aggregate, or because the LLMs are far from any equilibrium?</em>
 </p>
 
 <p>
-This atlas answers that question for several mechanism families. For each (mechanism × player mix × complexity) cell, we solve the underlying extensive-form game with OpenSpiel's tabular CFR+ (or MCCFR where state-space size demands it), characterise the equilibrium price/decision distribution, and quantify the surplus available to a capital-rich manipulator. Where comparable empirical data exists, we contrast the equilibrium with what current LLM traders actually do.
+This atlas answers that question for several mechanism families. For each (mechanism × player mix × complexity) cell, we solve the underlying extensive-form game with OpenSpiel's tabular CFR+, characterise the equilibrium price/decision distribution, and quantify the surplus available to a capital-rich manipulator.
+</p>
+
+<p>
+<strong>Important scope caveat.</strong> Every mechanism in this atlas predicts a <em>binary</em> outcome — a 0/1 metric — not a real-valued one. Real-world futarchy almost always uses continuous metrics (TVL, revenue, asset price). The binary case is a teaching simplification that fits tabular CFR; extending to real-valued metrics requires discretisation at multiple levels and probably MCCFR. The qualitative findings here are about <em>mechanism shape</em> (LMSR vs CFMM, single-market vs conditional, with vs without subsidy) and should carry over to the real-valued case, but the quantitative numbers will not.
+</p>
+
+<h2 id="setup">Game setup, in detail</h2>
+
+<p>
+Every chapter below uses a variant of this skeleton, so it's worth seeing once cleanly. The differences across chapters are: which mechanism aggregates the prices, and which structure of metric functions maps states to outcomes.
+</p>
+
+<ol>
+  <li><strong>Chance draws a state of the world ω</strong> uniformly from 8 possibilities, indexed a…h. Each ω is a triple of binary signals <code>(d<sub>a</sub>, d<sub>b</sub>, d<sub>c</sub>) ∈ {0, 1}³</code>.</li>
+  <li><strong>Three traders each privately observe one signal.</strong> Trader 0 sees d<sub>a</sub>, trader 1 sees d<sub>b</sub>, trader 2 sees d<sub>c</sub>. The Galanis Very Hard structure swaps this to "each trader sees the OTHER two signals." Public prior over ω is uniform; each trader's posterior is conditioned on their own private bit.</li>
+  <li><strong>Traders act in fixed rotation</strong> for 3 rounds. In single-market mechanisms (Galanis, Amoveo) each trader's action is a target price on a discrete grid; the market maker (LMSR, b = 0.01) snaps the price to that target and credits/debits the trader for the implied trade. In conditional mechanisms (Hanson, MetaDAO) each trader picks <em>(market, target price)</em>; only the chosen market moves.</li>
+  <li><strong>A metric function</strong> <code>M(policy, ω)</code> maps each (policy, state) to a binary outcome 0 or 1. In Galanis there is one policy; the metric is just <code>X(ω)</code>. In Hanson/MetaDAO there are two policies A and B; we use <code>M(A) = "at least 2 signals are 1"</code> and <code>M(B) = "at least 1 signal is 1"</code> (so B weakly dominates A across ω).</li>
+  <li><strong>Decision rule.</strong> Galanis has no decision — it is a pure prediction market on <code>X</code>. Amoveo decides "implement the side the market thinks is less likely." Hanson and MetaDAO decide "implement the policy whose conditional market closes at a higher implied probability of metric = 1."</li>
+  <li><strong>Resolution.</strong> The metric realises under the chosen policy. Trades in the winning market pay according to the realised metric (Yes-shares pay 1 if metric = 1, else 0; symmetric for No-shares). In conditional mechanisms, trades in the losing market refund the trader's cost (net zero) — this is the "Hanson conditional" feature.</li>
+  <li><strong>Trader utility.</strong> Pure LMSR/CFMM profit by default. Manipulator, naive, and insider players modify this: the manipulator gets a bonus when the implemented decision matches their preference; the naive is forced to one action; the insider sees the full ω.</li>
+</ol>
+
+<p>
+"Price" in this atlas means the implied probability of metric = 1 in a pool, computed from the marginal-cost formula at the current pool state. It is <em>not</em> the price of one policy winning. "Decision" means which policy is implemented. "Outcome" or "metric" means the realised value of M.
 </p>
 
 <div class="toc">
@@ -165,7 +189,7 @@ This atlas answers that question for several mechanism families. For each (mecha
     <li><a href="#galanis">The Galanis market</a> <span class="status-tag status-done">done</span></li>
     <li><a href="#hanson">Hanson outcome-conditional markets</a> <span class="status-tag status-done">done</span></li>
     <li><a href="#amoveo">Amoveo insurance-style futarchy</a> <span class="status-tag status-done">analytical</span></li>
-    <li><a href="#metadao">MetaDAO two-sided conditional CFMM</a> <span class="status-tag status-done">done</span></li>
+    <li><a href="#metadao">Binary CFMM conditional markets (MetaDAO-inspired)</a> <span class="status-tag status-done">done</span></li>
     <li><a href="#proposal-poker">Proposal Poker</a> <span class="status-tag status-done">tabular subset</span></li>
     <li><a href="#players">Player taxonomy and manipulation surplus</a> <span class="status-tag status-done">done</span></li>
     <li><a href="#comparison">Cross-mechanism comparison</a> <span class="status-tag status-done">done</span></li>
@@ -357,12 +381,22 @@ The transformation is in the decision: a price of 0.9 implies the decision is "Q
 The Amoveo equilibrium is uninteresting without an attacker — it is just Galanis with a relabel. The mechanism's distinguishing property is the manipulator's cost-of-flipping curve, which we measure in Chapter 6. The headline preview: under the same per-unit-price-shift cost for an attacker, Amoveo and standard LMSR are equivalent (LMSR cost is path-independent and symmetric around 0.5). The Amoveo design's advantage is conceptual: there is no <em>natural-prior asymmetry</em> in the cost of flipping the decision, because the decision rule treats both sides symmetrically. Hanson conditional markets, by contrast, can have one conditional market be much more skewed than the other, which makes the skewed one cheap to manipulate.
 </p>
 
-<h2 id="metadao" class="chapter"><span class="chapter-number">Chapter 4</span> MetaDAO two-sided conditional CFMM</h2>
+<h2 id="metadao" class="chapter"><span class="chapter-number">Chapter 4</span> Binary CFMM conditional markets <span style="font-size: 0.7em; color: var(--muted); font-style: italic">(MetaDAO-inspired, not MetaDAO-faithful)</span></h2>
 
-<h3>Setup (planned)</h3>
+<h3>What this chapter is and isn't</h3>
 
 <p>
-The MetaDAO design (deployed on Solana) replaces LMSR with two conditional constant-product market-makers (CFMMs). Concretely: a depositor mints conditional tokens by locking the base asset (USDC); the mint produces (USDC-cond-A, USDC-cond-B) and (Outcome-cond-A, Outcome-cond-B) tokens. Each conditional pair trades in its own constant-product pool. Only the chosen policy's tokens resolve; the other side's tokens are burned.
+The real MetaDAO design on Solana works as follows. A depositor locks 1 USDC and mints two conditional base tokens (USDC-A, USDC-B), each redeemable for 1 USDC only if its policy is implemented. Same for the metric asset (e.g., META). Two AMM pools exist, each trading [conditional-base, conditional-metric-asset] at the constant-product invariant <code>x · y = K</code>. The price in pool A is "META per USDC conditional on A" — a <em>real-valued asset price</em>, not a binary probability. The decision compares those two conditional asset prices.
+</p>
+
+<p>
+The mechanism in this chapter is a deliberate simplification: a <strong>binary Uniswap-style AMM</strong> in which the two tokens are Yes-shares and No-shares, with the constant-product invariant <code>y_yes · y_no = K</code> and marginal price <code>p_yes = y_no / (y_yes + y_no)</code>. The decision rule and conditional refund are identical to Hanson's (Chapter 2). The only thing that changes between this chapter and Hanson is the cost function used by the market maker. Calling this "MetaDAO" is loose — it is structurally a binary-outcome version of MetaDAO's geometry. A faithful MetaDAO encoding requires a real-valued metric asset, which is out of scope for this binary atlas.
+</p>
+
+<h3>Setup</h3>
+
+<p>
+Same as Hanson (Chapter 2): 3 traders rotate, each picks (pool, target price) per turn, decision is the pool with the higher final price, winning pool resolves, losing pool refunds. Two metrics: M(A) = at-least-2-yes, M(B) = at-least-1-yes. The only difference: the market maker uses CFMM rather than LMSR cost.
 </p>
 
 <p>
@@ -397,17 +431,17 @@ The relevant equilibrium question is how the constant-product invariant x·y = K
 </p>
 
 <div class="callout">
-  <strong>MetaDAO CFMM (K = 0.001) converges to a much better decision rule than Hanson LMSR (b = 0.01), under identical traders.</strong> Decision accuracy is <strong>86.4%</strong> — essentially matching the oracle's 87.5% — versus Hanson's 75.4%. The mechanism design difference is real, but the headline understates an important confound: <em>the two markets are not equally liquid at these parameters.</em>
+  <strong>binary CFMM (Ch 4) (K = 0.001) converges to a much better decision rule than Hanson LMSR (b = 0.01), under identical traders.</strong> Decision accuracy is <strong>86.4%</strong> — essentially matching the oracle's 87.5% — versus Hanson's 75.4%. The mechanism design difference is real, but the headline understates an important confound: <em>the two markets are not equally liquid at these parameters.</em>
 </div>
 
-<h3>Liquidity caveat (important)</h3>
+<h3>K-invariance of the equilibrium (and what it means)</h3>
 
 <p>
-The cost to push the price from 0.5 to 0.9 is <code>b · log 5 ≈ 0.016</code> in LMSR (b = 0.01) and <code>2√K ≈ 0.063</code> in CFMM (K = 0.001). The CFMM at this K is ~4× <em>more expensive</em> to manipulate over the same price range — i.e., effectively more liquid. So the 11-point aggregation gap is a mix of two effects: (a) the structurally different cost geometry (anchoring), and (b) the simple fact that the CFMM has more liquidity per dollar of price impact.
+A first-pass concern: the comparison "binary CFMM K = 0.001 vs Hanson LMSR b = 0.01" looked confounded because the cost to push the price from 0.5 to 0.9 is <code>b · log 5 ≈ 0.016</code> in LMSR but <code>2√K ≈ 0.063</code> in CFMM at K = 0.001 — i.e., the CFMM at this K is ~4× more expensive to manipulate per unit price move. Maybe the better aggregation is just "the CFMM has more liquidity," not "the geometry matters."
 </p>
 
 <p>
-To disentangle, we re-run the CFMM at lower K so it is <em>less</em> liquid than the Hanson LMSR. If aggregation is genuinely structural (the "anchoring" story), the CFMM advantage should persist or shrink only modestly. If it is just liquidity, MetaDAO at lower K should fall to or below Hanson.
+We tested this by re-running the CFMM equilibrium at three K values spanning three orders of magnitude:
 </p>
 
 <table id="cfmm-liquidity-check">
@@ -420,15 +454,19 @@ To disentangle, we re-run the CFMM at lower K so it is <em>less</em> liquid than
   </thead>
   <tbody>
     <tr><td>Hanson LMSR (b = 0.01)</td><td class="num">0.016</td><td class="num">0.754</td></tr>
-    <tr><td>MetaDAO CFMM (K = 0.001)</td><td class="num">0.063</td><td class="num">0.864</td></tr>
-    <tr><td>MetaDAO CFMM (K = 5 × 10⁻⁵)</td><td class="num">0.014</td><td class="num">tbd (running)</td></tr>
-    <tr><td>MetaDAO CFMM (K = 10⁻⁶)</td><td class="num">0.002</td><td class="num">tbd (running)</td></tr>
+    <tr><td>Binary CFMM (K = 0.001)</td><td class="num">0.063</td><td class="num">0.864</td></tr>
+    <tr><td>Binary CFMM (K = 5 × 10⁻⁵)</td><td class="num">0.014</td><td class="num">0.864</td></tr>
+    <tr><td>Binary CFMM (K = 10⁻⁶)</td><td class="num">0.002</td><td class="num">0.864</td></tr>
   </tbody>
 </table>
 
 <p>
-The chapter's interpretation is provisional until these match-liquidity runs land. If MetaDAO at K = 10⁻⁶ still beats Hanson on accuracy, the anchoring story is right; if not, the headline overclaims and the right read is "more-liquid markets aggregate better, mechanism-shape doesn't matter much here."
+The decision accuracy is <strong>0.864 across all three K values to four decimal places</strong>. This is not a coincidence: CFR+ is scale-invariant in payoff magnitudes, and scaling K rescales all CFMM payoffs uniformly by √K (shares scale as √K, costs scale as √K, profit scales as √K). The equilibrium <em>strategy</em> — which CFR+ outputs — is identical under any rescaling. By the same argument, scaling LMSR's b leaves the LMSR equilibrium strategy identical.
 </p>
+
+<div class="callout">
+  <strong>The 11-point aggregation gap is not a liquidity artefact.</strong> Equilibrium strategy is invariant to the scale of K (CFMM) and b (LMSR). The gap reflects the difference in cost-curve <em>shape</em>: LMSR's logarithmic cost is path-independent in (q_Y, q_N) space, so a single later trader can re-price the market at constant marginal cost; CFMM's power-law cost is path-dependent through the constant-product invariant, so early informed quotes anchor the price more strongly. The mechanism design difference is real.
+</div>
 
 <h3>What is in the repo</h3>
 
@@ -678,7 +716,7 @@ Will be filled in once the manipulator framework is ported to Hanson and Proposa
     <tr><td>Galanis Very Hard</td><td>3 Bayesian</td><td class="num">0.090</td><td class="num">7.1 × 10⁻⁵</td><td>≈ floor; <strong>aggregates fully</strong></td></tr>
     <tr><td>Hanson (cond. LMSR)</td><td>3 Bayesian</td><td>—</td><td class="num">3.9 × 10⁻⁵</td><td>decision accuracy 0.754 vs oracle 0.875</td></tr>
     <tr><td>Amoveo (insurance)</td><td>3 Bayesian</td><td>—</td><td>—</td><td>same as Galanis Easy modulo decision relabel</td></tr>
-    <tr><td>MetaDAO (CFMM)</td><td>3 Bayesian</td><td>—</td><td class="num">4.1 × 10⁻⁴</td><td><strong>decision accuracy 0.864</strong> vs oracle 0.875</td></tr>
+    <tr><td>Binary CFMM (Ch 4)</td><td>3 Bayesian</td><td>—</td><td class="num">4.1 × 10⁻⁴</td><td><strong>decision accuracy 0.864</strong> vs oracle 0.875; K-invariant</td></tr>
     <tr><td>Proposal Poker</td><td>N Bayesian</td><td>—</td><td>—</td><td>not yet implemented</td></tr>
   </tbody>
 </table>
@@ -716,7 +754,7 @@ Three traders, player 0 is the manipulator with a directional bias. For Galanis 
       <td class="num">0.6851</td><td class="num">0.6812</td><td class="num">—</td>
     </tr>
     <tr>
-      <td>MetaDAO (CFMM)</td>
+      <td>Binary CFMM (Ch 4)</td>
       <td>decision accuracy ↑</td>
       <td class="num"><strong>0.864</strong></td><td class="num">0.773</td><td class="num">0.756</td>
       <td class="num">0.807</td><td class="num">0.713</td><td class="num">—</td>
@@ -725,7 +763,7 @@ Three traders, player 0 is the manipulator with a directional bias. For Galanis 
 </table>
 
 <div class="callout">
-  <strong>The three mechanisms respond completely differently to manipulator bias.</strong> Galanis LMSR has a sharp threshold — below it the equilibrium is undisturbed, above it the manipulator collapses aggregation on the states where they have leverage. Hanson is non-monotonic with a single-peaked recovery — small bias <em>improves</em> decision accuracy by selecting a more-aggregating equilibrium, then larger bias degrades it. MetaDAO CFMM is non-monotonic with a different shape — even tiny bias hurts (the bounded-liquidity anchoring effect that gives MetaDAO its strong baseline is also what makes it fragile under early-game manipulation), but middling bias partially recovers, then large bias degrades again. All three mechanisms exhibit multiple Bayes-Nash equilibria selected by manipulator bias.
+  <strong>The three mechanisms respond completely differently to manipulator bias.</strong> Galanis LMSR has a sharp threshold — below it the equilibrium is undisturbed, above it the manipulator collapses aggregation on the states where they have leverage. Hanson is non-monotonic with a single-peaked recovery — small bias <em>improves</em> decision accuracy by selecting a more-aggregating equilibrium, then larger bias degrades it. Binary CFMM (Chapter 4) is non-monotonic with a different shape — even tiny bias hurts (the path-dependent cost geometry that gives it the strong baseline is also what makes it fragile under early-game manipulation), but middling bias partially recovers, then large bias degrades again. All three mechanisms exhibit multiple Bayes-Nash equilibria selected by manipulator bias.
 </div>
 
 <h3>Non-monotonicity in Hanson, decomposed</h3>
@@ -769,7 +807,7 @@ This is the kind of finding that motivates the atlas in the first place: at the 
   <li><strong>Multi-market aggregation:</strong> Hanson's two-conditional-market design loses ~12 percentage points of decision accuracy relative to the oracle under symmetric Bayesian play, because traders cannot perfectly co-ordinate price-discovery across two markets. This is structural, not a capability gap.</li>
   <li><strong>Galanis under manipulator:</strong> Sharp threshold response — undisturbed below b ≈ 0.04, mean log error collapses on 4 of 8 states above. The "pinned" states (where the manipulator's own signal already disambiguates the truth) are immune, which is a partial mechanism guarantee.</li>
   <li><strong>Hanson under manipulator:</strong> Non-monotonic. Small bias selects a Nash that happens to improve accuracy; medium and large bias degrade it. Suggests multiple Bayes-Nash equilibria coexist in the unbiased case, and bias acts as a tiebreaker.</li>
-  <li><strong>MetaDAO under manipulator:</strong> Different non-monotonic shape from Hanson. Baseline accuracy is highest of the three (0.864), but even very small bias (b = 0.005) drops it to 0.773; medium bias (0.05) partially recovers to 0.807; large bias (0.20) degrades to 0.713. The CFMM's bounded-liquidity anchoring that produces strong baseline aggregation is also what makes the equilibrium fragile under early-round price-pushing.</li>
+  <li><strong>Binary CFMM under manipulator:</strong> Different non-monotonic shape from Hanson. Baseline accuracy is highest of the three (0.864), but even very small bias (b = 0.005) drops it to 0.773; medium bias (0.05) partially recovers to 0.807; large bias (0.20) degrades to 0.713. The CFMM's path-dependent cost geometry that produces strong baseline aggregation is also what makes the equilibrium fragile under early-round price-pushing.</li>
 </ul>
 
 
@@ -788,7 +826,7 @@ The three findings that survive the most scrutiny so far:
 </p>
 
 <p>
-<strong>(3) Bounded-liquidity AMMs aggregate substantially better than logarithmic-cost market-makers in conditional designs, but are also more fragile under early-round manipulation.</strong> Chapter 4 shows MetaDAO CFMM conditional markets achieve decision accuracy 0.864 — essentially matching the oracle's 0.875 — vs Hanson LMSR conditional's 0.754 under identical traders. The CFMM's bounded initial liquidity creates a strong anchoring effect from the first informed quote, which LMSR's path-independent cost lacks. The same anchoring makes the equilibrium more sensitive to small bias: a 0.005 bonus drops MetaDAO accuracy 9 points (0.864 → 0.773), where the same bonus barely moves Hanson.
+<strong>(3) Power-law cost (CFMM) aggregates substantially better than logarithmic cost (LMSR) in conditional designs, but is also more fragile under early-round manipulation.</strong> Chapter 4 shows the binary CFMM conditional design achieves decision accuracy 0.864 — essentially matching the oracle's 0.875 — vs Hanson LMSR conditional's 0.754 under identical traders. CFR+ scale-invariance lets us confirm this is shape-of-cost, not level-of-liquidity: equilibrium accuracy is 0.864 across three orders of magnitude in K. The same anchoring makes the equilibrium more sensitive to small bias: a 0.005 bonus drops binary-CFMM accuracy 9 points (0.864 → 0.773), where the same bonus barely moves Hanson.
 </p>
 
 <p>
@@ -802,7 +840,7 @@ The methodological contribution is the framing: every mechanism in this design s
 <h3>What is incomplete</h3>
 
 <ul>
-  <li>MetaDAO CFMM: the OpenSpiel game is ready (Chapter 4); the CFR sweep is the obvious next step and would round out the cross-mechanism comparison table.</li>
+  <li>binary CFMM (Ch 4): the OpenSpiel game is ready (Chapter 4); the CFR sweep is the obvious next step and would round out the cross-mechanism comparison table.</li>
   <li>Proposal Poker: the formal model exists and a non-OpenSpiel simulation engine is in the repo; wrapping it for CFR is the natural next step. The wealth heterogeneity and continuous state space will require MCCFR rather than tabular.</li>
   <li>Player taxonomy beyond manipulator: the framework supports adding insider-with-precise-signal, naive-flat-prior, and LLM-stand-in players. These are not in this draft because the manipulator alone already produces the most legible mechanism-design takeaway.</li>
   <li>6- and 9-round Galanis games: blocked on MCCFR.</li>
@@ -857,8 +895,8 @@ Given a converged CFR+ average policy, we compute the equilibrium price distribu
 <ul>
   <li>Tabular CFR's information-state count grows multiplicatively with rounds; we cap at 3 rounds in this report. MCCFR or C++ CFR would push us to 9 rounds and to finer action grids.</li>
   <li>Action discretisation bounds achievable log error below the empirical 0.018 for the easiest structures.</li>
-  <li>We have not yet solved MetaDAO CFMM (Chapter 4) or Proposal Poker (Chapter 5); the comparison tables in Chapter 7 are partial.</li>
   <li>The manipulator framework parameterises bias by an abstract utility coefficient rather than by an explicit budget. To translate to real budgets one would invert the LMSR cost curve; this is straightforward but not done in the current draft.</li>
+  <li><strong>Binary outcomes only.</strong> Every mechanism here predicts a 0/1 metric, not a real-valued one. Real futarchy uses continuous metrics (TVL, revenue, asset price); Chapter 4's "binary CFMM" is therefore a simplification — a binary Uniswap-style AMM, not the real MetaDAO design which trades real-valued conditional asset prices.</li>
 </ul>
 
 <h2 id="repro" class="chapter"><span class="chapter-number">Appendix B</span> Reproducibility</h2>
@@ -888,7 +926,7 @@ python scripts/solve_all.py --iterations 80 --num-actions 7 --num-rounds 3
 python scripts/manipulator_sweep.py                     # 5 bonus levels
 cd ..
 
-# 3. MetaDAO CFMM (Chapter 4)
+# 3. binary CFMM (Ch 4) (Chapter 4)
 cd metadao-cfmm
 pip install -e .
 pytest -q                                              # 13 tests
