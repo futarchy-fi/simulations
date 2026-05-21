@@ -164,6 +164,7 @@ This atlas answers that question for several mechanism families. For each (mecha
     <li><a href="#proposal-poker">Proposal Poker</a> <span class="status-tag status-pending">planned</span></li>
     <li><a href="#players">Player taxonomy and manipulation surplus</a> <span class="status-tag status-pending">planned</span></li>
     <li><a href="#comparison">Cross-mechanism comparison</a> <span class="status-tag status-pending">planned</span></li>
+    <li><a href="#methods">Appendix: methods</a> <span class="status-tag status-done">done</span></li>
   </ol>
 </div>
 
@@ -553,6 +554,59 @@ Hanson manipulator sweep running at the time of this draft; numbers will be fill
   <li><strong>Manipulation resistance:</strong> LMSR has a sharp threshold response — below ≈ 0.04 in bonus units the equilibrium is undisturbed; above the threshold, aggregation collapses on 4 of 8 states. The "pinned" states (where the manipulator's own signal already disambiguates the truth) are immune, which is a partial mechanism guarantee.</li>
 </ul>
 
+
+<!-- ===================== METHODS APPENDIX ===================== -->
+
+<h2 id="methods" class="chapter"><span class="chapter-number">Appendix A</span> Methods</h2>
+
+<h3>LMSR pricing</h3>
+
+<p>
+We use the binary Logarithmic Market Scoring Rule throughout. The cost function is
+<code>C(q_Y, q_N) = b · log(exp(q_Y/b) + exp(q_N/b))</code>, where <em>b</em> is the liquidity parameter (default <em>b</em> = 0.01) and <code>q_Y, q_N</code> are the outstanding share counts of the Yes and No assets. The marginal price of Yes is the softmax,
+<code>p_Y = exp(q_Y/b) / (exp(q_Y/b) + exp(q_N/b))</code>. A trader moving the state from <code>(q_Y, q_N)</code> to <code>(q'_Y, q'_N)</code> pays <code>C(q') − C(q)</code> in cash and receives the delta in shares. At resolution, a Yes share pays 1 if Yes wins, 0 otherwise; symmetrically for No. The LMSR's maximum loss to the market-maker is <em>b</em> · log 2 regardless of trader strategy. The cost is path-independent in the state space (q_Y, q_N).
+</p>
+
+<h3>Action discretisation</h3>
+
+<p>
+CFR is tabular, so every game uses a finite action set. We discretise the price grid uniformly on (0, 1) with <em>K</em> levels: <code>{1/(K+1), 2/(K+1), ..., K/(K+1)}</code>. For <em>K</em> = 11 the grid is {0.083, 0.167, ..., 0.917}, imposing a log-error floor of <code>−log(0.917) ≈ 0.087</code> on any well-aggregating equilibrium. We report results for <em>K</em> = 11 (Galanis) and <em>K</em> = 7 (Hanson, smaller for state-space reasons since each Hanson turn has 2<em>K</em> = 14 combined actions).
+</p>
+
+<h3>CFR+ and NashConv</h3>
+
+<p>
+We solve each game via OpenSpiel's <code>cfr.CFRPlusSolver</code>. After every iteration we update the average strategy; at termination we report <strong>NashConv</strong> = sum over players of the best-response improvement gain over the current average policy. Formally, NashConv(π) = sum_i max_{π_i'} U_i(π_i', π_{−i}) − U_i(π). In 2-player zero-sum games NashConv equals exploitability and converges to 0 with rate O(1/√T); in N-player general-sum games (our setting) it is a useful convergence signal but does not certify Nash. We treat NashConv ≤ 2 × 10⁻⁴ as converged for all reported runs.
+</p>
+
+<h3>CCE vs Nash equilibrium</h3>
+
+<p>
+For three-or-more-player general-sum games, CFR+ converges to a coarse correlated equilibrium (CCE), not a Nash equilibrium. The CCE set is a superset of the NE set. We argue per-mechanism that the gap is small in these LMSR games because the market maker's strict positive-EV deviation incentive rules out babbling-style CCEs: a player who ignores their private signal and just submits a constant quote against the recommendation can always profitably deviate to truthful play. The CCE we converge to therefore lies in the small subset that survives this filter.
+</p>
+
+<h3>Manipulator utility</h3>
+
+<p>
+The biased-player formulation in Chapter 6 is
+<code>u_0 = LMSR_profit_0 + bonus · (p_final − 0.5) · direction</code>
+where <code>direction</code> ∈ {+1, −1}. We sweep <code>bonus</code> over {0, 0.01, 0.05, 0.20, 1.00} and report equilibrium-mean per-omega prices, mean log error, and final NashConv. For Hanson the manipulator's utility is discrete: <code>u_0 += bonus</code> when the implemented policy matches their preference, else 0.
+</p>
+
+<h3>Equilibrium statistics</h3>
+
+<p>
+Given a converged CFR+ average policy, we compute the equilibrium price distribution per chance outcome by walking the game tree from each ω, weighting paths by the average policy's action probabilities. The implementation is the recursive <code>_final_price_distribution</code> in <code>galanis_market.solve</code>. Mean and median final prices are taken over this weighted empirical distribution. Log error is computed with prices clipped to [10⁻¹⁵, 1 − 10⁻¹⁵] to avoid divergences.
+</p>
+
+<h3>Limitations</h3>
+
+<ul>
+  <li>Tabular CFR's information-state count grows multiplicatively with rounds; we cap at 3 rounds in this report. MCCFR or C++ CFR would push us to 9 rounds and to finer action grids.</li>
+  <li>Action discretisation bounds achievable log error below the empirical 0.018 for the easiest structures.</li>
+  <li>We have not yet solved MetaDAO CFMM (Chapter 4) or Proposal Poker (Chapter 5); the comparison tables in Chapter 7 are partial.</li>
+  <li>The manipulator framework parameterises bias by an abstract utility coefficient rather than by an explicit budget. To translate to real budgets one would invert the LMSR cost curve; this is straightforward but not done in the current draft.</li>
+</ul>
 
 <!-- ===================== FOOTER ===================== -->
 
