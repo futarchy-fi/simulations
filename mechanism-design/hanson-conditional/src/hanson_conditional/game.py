@@ -80,6 +80,9 @@ _GAME_TYPE = pyspiel.GameType(
         "num_actions": 7,
         "b": 0.01,
         "initial_price": 0.5,
+        "manipulator_player": -1,
+        "manipulator_prefers_A": 1,
+        "manipulator_bonus": 0.0,
     },
 )
 
@@ -105,11 +108,22 @@ class HansonConditionalGame(pyspiel.Game):
         self.num_actions: int = int(params.get("num_actions", 7))
         self.b: float = float(params.get("b", 0.01))
         self.initial_price: float = float(params.get("initial_price", 0.5))
+        # Manipulator: if `manipulator_player` in {0,1,2}, that player's
+        # utility gets a bonus of `manipulator_bonus` whenever the
+        # implemented decision matches their preference. The preference
+        # is encoded as policy A (1) or policy B (0).
+        self.manipulator_player: int = int(params.get("manipulator_player", -1))
+        self.manipulator_prefers_A: int = int(params.get("manipulator_prefers_A", 1))
+        self.manipulator_bonus: float = float(params.get("manipulator_bonus", 0.0))
 
         if self.num_rounds not in (3, 6, 9):
             raise ValueError("num_rounds must be 3, 6, or 9")
         if not 0.0 < self.initial_price < 1.0:
             raise ValueError("initial_price must lie strictly in (0, 1)")
+        if self.manipulator_player not in (-1, 0, 1, 2):
+            raise ValueError("manipulator_player must be -1, 0, 1, or 2")
+        if self.manipulator_prefers_A not in (0, 1):
+            raise ValueError("manipulator_prefers_A must be 0 or 1")
 
         self.price_grid: List[float] = _default_price_grid(self.num_actions)
         self.lmsr: LMSR = LMSR(b=self.b)
@@ -130,6 +144,9 @@ class HansonConditionalState(pyspiel.State):
         self._price_grid = list(game.price_grid)
         self._lmsr = game.lmsr
         self._initial_price = game.initial_price
+        self._manipulator_player = game.manipulator_player
+        self._manipulator_prefers_A = game.manipulator_prefers_A
+        self._manipulator_bonus = game.manipulator_bonus
 
         self._omega_idx: Optional[int] = None
         # Per-market price history. Market 0 = policy A, market 1 = policy B.
@@ -226,12 +243,16 @@ class HansonConditionalState(pyspiel.State):
         assert self._omega_idx is not None
         winning = self._winning_market()
         m = metric_under_policy(winning, self._omega_idx)
-        out = []
+        out: List[float] = []
         for trader in range(3):
             shares, cost = self._holdings[trader][winning]
             payout = shares if m == 1 else 0.0
             # Losing-market trades refund cost -> net zero on that side.
             out.append(payout - cost)
+        if 0 <= self._manipulator_player <= 2 and self._manipulator_bonus != 0.0:
+            preferred_market = 0 if self._manipulator_prefers_A == 1 else 1
+            if winning == preferred_market:
+                out[self._manipulator_player] += self._manipulator_bonus
         return out
 
     # ---- Information state ----

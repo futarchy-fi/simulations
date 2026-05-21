@@ -318,8 +318,26 @@ The next chapters (Amoveo, MetaDAO) ask whether different mechanism designs clos
 
 <h2 id="amoveo" class="chapter"><span class="chapter-number">Chapter 3</span> Amoveo insurance-style futarchy</h2>
 
-<p style="color: var(--muted); font-style: italic">
-In preparation. Single binary market on "will X happen", with the decision going to the <em>less-likely</em> side. Designed to flatten manipulation cost across outcomes: if both outcomes are roughly equally likely a priori, moving the price in either direction costs symmetrically. The equilibrium question: what does the equilibrium look like when traders know the decision rule rewards the underdog side?
+<h3>Setup</h3>
+
+<p>
+The Amoveo "insurance" mechanism (Zack Hess) replaces Hanson's two conditional markets with a <em>single</em> binary market on a question Q. The decision rule inverts the price: the policy implemented is whichever side of Q the market thinks is <em>less likely</em>. The argument is that this design flattens manipulation cost: regardless of which side an attacker prefers, they have to move the price toward 0.5 (or past it) from the natural prior, and the LMSR cost of doing so is symmetric in absolute price-distance moved.
+</p>
+
+<h3>Result (no manipulator)</h3>
+
+<p>
+Under symmetric Bayesian best-response play, the Amoveo market is structurally identical to a standard LMSR binary market: traders are only paid on the realised outcome of Q, and the LMSR pays nothing for the decision-rule transformation that sits on top. Therefore the equilibrium price converges to E[Q | omega], <em>exactly as in the Galanis Easy structure</em>. Per-omega prices and convergence are the same as in Chapter 1.
+</p>
+
+<p>
+The transformation is in the decision: a price of 0.9 implies the decision is "Q happens with low probability — implement that side", and a price of 0.1 implies "Q happens with high probability — implement the other side". When the truth is strongly one-sided, the Amoveo decision is the opposite of the empirical evidence. <em>This is by design, and it is the mechanism's cost.</em>
+</p>
+
+<h3>Why this is a chapter on its own</h3>
+
+<p>
+The Amoveo equilibrium is uninteresting without an attacker — it is just Galanis with a relabel. The mechanism's distinguishing property is the manipulator's cost-of-flipping curve, which we measure in Chapter 6. The headline preview: under the same per-unit-price-shift cost for an attacker, Amoveo and standard LMSR are equivalent (LMSR cost is path-independent and symmetric around 0.5). The Amoveo design's advantage is conceptual: there is no <em>natural-prior asymmetry</em> in the cost of flipping the decision, because the decision rule treats both sides symmetrically. Hanson conditional markets, by contrast, can have one conditional market be much more skewed than the other, which makes the skewed one cheap to manipulate.
 </p>
 
 <h2 id="metadao" class="chapter"><span class="chapter-number">Chapter 4</span> MetaDAO two-sided conditional CFMM</h2>
@@ -336,8 +354,50 @@ In preparation. The formal model is already specified in <code>mechanism-design/
 
 <h2 id="players" class="chapter"><span class="chapter-number">Chapter 6</span> Player taxonomy and manipulation surplus</h2>
 
+<h3>Framework</h3>
+
+<p>
+For every mechanism in this atlas, our base experiment instantiates three Bayesian best-responding traders and computes the equilibrium. We now hold the mechanism fixed and vary the player population. The most informative variation is a single <em>budget-constrained manipulator</em> seated alongside two Bayesian traders; the manipulator's utility includes a directional bonus for shifting the final price toward a target. Concretely, player 0's utility becomes
+</p>
+
+<pre>u_0 = lmsr_profit_0 + manipulator_bonus * (p_final - 0.5) * direction</pre>
+
+<p>
+where <code>direction</code> ∈ {+1, −1} selects which side the manipulator favours. CFR+ solves the resulting game: the manipulator's strategy maximises the biased utility; players 1 and 2 best-respond to the manipulator's now-noisy price signals. The manipulation surplus is the per-unit-bonus shift in the equilibrium expected price, summed over chance outcomes. It is also instructive to look per-omega — manipulation is most damaging when truth and bias disagree.
+</p>
+
+<h3>Result (Galanis Easy, player 0 biased upward)</h3>
+
 <p style="color: var(--muted); font-style: italic">
-In preparation. We hold the mechanism fixed and vary the player population: myopic Bayesian, strategic best-responder, budget-constrained manipulator (with explicit attacker budget B), informed insider with high-precision signal, naive flat-prior trader, and LLM agents instantiated for empirical anchoring. The headline metric is the manipulation surplus M(B): the equilibrium price/decision shift achievable by spending B. We expect this to differ sharply across mechanisms — in particular, Amoveo's insurance design should make M(B) flatter at the cost of weaker aggregation when one side is strongly favoured.
+Run in progress at the time of this draft; numbers in this table will be updated when CFR+ finishes the sweep over bonus values. Code: <code>mechanism-design/galanis-market/scripts/manipulator_sweep.py</code>.
+</p>
+
+<table id="manipulator-table">
+  <thead>
+    <tr>
+      <th class="num">bonus</th>
+      <th class="num">E[p | ω = a] (X = 1)</th>
+      <th class="num">E[p | ω = h] (X = 0)</th>
+      <th class="num">mean log error</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class="num">0.00</td><td class="num">⋯</td><td class="num">⋯</td><td class="num">⋯</td></tr>
+    <tr><td class="num">0.01</td><td class="num">⋯</td><td class="num">⋯</td><td class="num">⋯</td></tr>
+    <tr><td class="num">0.05</td><td class="num">⋯</td><td class="num">⋯</td><td class="num">⋯</td></tr>
+    <tr><td class="num">0.20</td><td class="num">⋯</td><td class="num">⋯</td><td class="num">⋯</td></tr>
+    <tr><td class="num">1.00</td><td class="num">⋯</td><td class="num">⋯</td><td class="num">⋯</td></tr>
+  </tbody>
+</table>
+
+<p>
+The interpretation: at <code>bonus = 0</code> we recover the baseline equilibrium from Chapter 1. As <code>bonus</code> grows, the manipulator is willing to take larger LMSR losses to push the price up, and the equilibrium responds — partly by the manipulator pushing harder, partly by the Bayesian traders adjusting their signal-extraction in light of the manipulator's noise. The mean log error is the diagnostic for how badly the mechanism's information-aggregation degrades.
+</p>
+
+<h3>Cross-mechanism comparison (preview)</h3>
+
+<p style="color: var(--muted); font-style: italic">
+Will be filled in once the manipulator framework is ported to Hanson and Proposal Poker. The headline question: is there a mechanism in our taxonomy whose manipulation surplus grows substantially slower than LMSR's? If so, what does it sacrifice in baseline aggregation?
 </p>
 
 <h2 id="comparison" class="chapter"><span class="chapter-number">Chapter 7</span> Cross-mechanism comparison</h2>
