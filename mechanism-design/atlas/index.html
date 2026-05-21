@@ -144,7 +144,7 @@
   <li>Hanson conditional markets respond <strong>non-monotonically</strong> to manipulator bias: very small bias actually <em>improves</em> decision accuracy (it acts as a Nash-equilibrium selector among coexisting equilibria), while larger bias degrades it. The two LMSR-based mechanisms have qualitatively different manipulation-response shapes.</li>
   <li><strong>MetaDAO CFMM conditional markets aggregate substantially better than Hanson LMSR conditional markets</strong> on the same metric structure: decision accuracy 0.864 (essentially matching the oracle's 0.875) vs 0.754 for Hanson. The CFMM's bounded initial liquidity creates a strong anchoring effect from the first informed quote, which the LMSR path-independent cost lacks.</li>
   <li>Under manipulator bias, MetaDAO is <strong>more fragile</strong> at small bias than Hanson: even bonus = 0.005 drops accuracy from 0.864 to 0.773 (a 9-point drop). The same anchoring effect that produces strong baseline aggregation also makes the equilibrium sensitive to a small early-round bias.</li>
-  <li><strong>Player taxonomy lift is asymmetric.</strong> Replacing one Bayesian with a naive flat-prior trader nearly quadruples mean log error (0.109 → 0.401); replacing one Bayesian with an insider who sees all three signals does not improve accuracy at all (0.108) because the baseline equilibrium already saturates the action-grid floor.</li>
+  <li><strong>Player taxonomy effects are mechanism-dependent and can reverse sign.</strong> A naive flat-prior trader nearly quadruples log error in Galanis single-market LMSR (0.109 → 0.401), but <em>improves</em> decision accuracy in Hanson conditional markets (0.7565 → 0.7985) — the same equilibrium-selection mechanism that produces non-monotonic manipulator response. The insider player (sees all 3 signals) provides no lift in either mechanism because baseline equilibria are bottlenecked by discretisation or coordination, not by information availability.</li>
   <li><strong>The binary-staking Proposal Poker mechanism has a no-information equilibrium.</strong> Without an LMSR-style subsidy or richer payoff structure (wealth, log utility, oracle), all traders abstain at equilibrium and decision accuracy collapses to the prior (0.50) regardless of signal precision. This explains why richer mechanisms in the full MODEL.md are needed.</li>
   <li>Tabular CFR+ in this framework reaches NashConv ≤ 5 × 10⁻³ on all converged runs; the CCE/NE gap in these LMSR games is provably small.</li>
 </ul>
@@ -585,8 +585,45 @@ Galanis Easy, 3 rounds, 9-action grid, 40 CFR+ iterations per config (3 min tota
 </p>
 
 <div class="callout">
-  <strong>Naive damage is severe, insider lift is zero.</strong> Replacing one Bayesian with a naive player who always quotes 0.5 nearly quadruples the mean log error (0.109 → 0.401), because the equilibrium price now reflects only the two remaining traders' signals, with the third quote contributing pure noise. Replacing one Bayesian with an <em>insider</em> who sees all 3 signals leaves accuracy unchanged (0.109 → 0.108). The reason is structural: under the baseline 3-Bayesian-with-own-signal partition, the Galanis Easy equilibrium already saturates at the action-grid floor, so the insider's extra information cannot improve a price that is already at the maximum-precision discretisation. The insider's leverage would emerge in <em>harder</em> structures (Hard, Very Hard) or in <em>multi-market</em> mechanisms (Hanson, MetaDAO) where the baseline equilibrium does not fully aggregate.
+  <strong>Naive damage is severe in Galanis, insider lift is zero.</strong> Replacing one Bayesian with a naive player who always quotes 0.5 nearly quadruples the mean log error (0.109 → 0.401), because the equilibrium price now reflects only the two remaining traders' signals, with the third quote contributing pure noise. Replacing one Bayesian with an <em>insider</em> who sees all 3 signals leaves accuracy unchanged (0.109 → 0.108). The reason is structural: under the baseline 3-Bayesian-with-own-signal partition, the Galanis Easy equilibrium already saturates at the action-grid floor, so the insider's extra information cannot improve a price that is already at the maximum-precision discretisation.
 </div>
+
+<h3>Cross-mechanism: same player types, very different effects</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Mechanism</th><th>Metric</th>
+      <th class="num">3 Bayesian baseline</th>
+      <th class="num">Naive p0</th>
+      <th class="num">Insider p0</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Galanis Easy (LMSR)</td>
+      <td>mean log error ↓</td>
+      <td class="num">0.109</td><td class="num"><strong>0.401</strong></td><td class="num">0.108</td>
+    </tr>
+    <tr>
+      <td>Hanson (cond. LMSR)</td>
+      <td>decision accuracy ↑</td>
+      <td class="num">0.7565</td><td class="num"><strong>0.7985</strong></td><td class="num">0.7581</td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="font-size: 0.9rem; color: var(--muted)">
+Galanis Easy: 9-action grid, 40 iters per config. Hanson: 7-action grid, 40 iters per config.
+</p>
+
+<div class="callout">
+  <strong>The naive player's effect is mechanism-dependent and reverses sign.</strong> In single-market LMSR (Galanis Easy), a naive player <em>destroys</em> aggregation (0.109 → 0.401). In conditional-market Hanson, the same naive player <em>improves</em> decision accuracy (0.7565 → 0.7985). The reason is the equilibrium-selection phenomenon: Hanson has multiple Bayes-Nash equilibria, and the naive player's silence acts as a Nash-selector that picks a more-aggregating equilibrium — the same mechanism that produces non-monotonic responses to small manipulator bias in Chapter 7.
+</div>
+
+<p>
+The insider's null effect is consistent across both mechanisms: in Galanis Easy the baseline already saturates the action grid; in Hanson the bottleneck is co-ordination across two markets, not information availability, so a single insider's extra signal does not move the equilibrium. The insider's leverage would presumably emerge in <em>harder</em> Galanis structures (Hard, Very Hard) or in coordination-broken mechanisms with smaller action grids.
+</p>
 
 <h3>LLM stand-in players</h3>
 
