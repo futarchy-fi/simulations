@@ -140,19 +140,61 @@ We have remote access to a shared NVIDIA DGX Spark (Grace Blackwell GB10, 121 GB
 Once NVIDIA / the JAX team releases CUDA-13 wheels for aarch64, the GPU on this machine should give another 10–100× lift on the SGD step that's currently the bottleneck.
 </p>
 
-<h3>9-round results</h3>
+<h3>9-round Galanis (4 structures, no manipulator)</h3>
 
-<p style="color: var(--muted); font-style: italic">
-Runs in flight on the DGX at the time of this draft:
+<table>
+  <thead>
+    <tr>
+      <th>Structure</th>
+      <th class="num">mean LE (DCFR)</th>
+      <th class="num">median LE (DCFR)</th>
+      <th class="num">CFR+ tabular @ 3 rounds</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Easy (t3s111y2)</td><td class="num">0.329</td><td class="num">0.274</td><td class="num">0.087</td></tr>
+    <tr><td>Medium (t3s110)</td><td class="num">0.278</td><td class="num">0.182</td><td class="num">0.087</td></tr>
+    <tr><td>Hard (t3s111)</td><td class="num">0.278</td><td class="num">0.182</td><td class="num">0.087</td></tr>
+    <tr><td>Very Hard (t3s111o2ye2)</td><td class="num">0.630</td><td class="num">0.755</td><td class="num">0.087</td></tr>
+  </tbody>
+</table>
+
+<p style="font-size: 0.9rem; color: var(--muted)">
+9 rounds, 5-action grid (discretisation floor ~0.182), 300 DCFR iterations, 512 traversals/iter, buffer cap 100K. Trained on DGX Spark in ~30 min total (4 structures, multi-core JAX CPU, no GPU).
 </p>
-<ul style="color: var(--muted); font-style: italic">
-  <li>Galanis 4 structures × 9 rounds × 300 DCFR iterations (~24 min total)</li>
-  <li>Galanis Easy 9 rounds × manipulator bonus sweep over {0, 0.005, 0.02, 0.05, 0.2}</li>
-  <li>Hanson conditional 9 rounds × 300 DCFR iterations</li>
-</ul>
+
+<div class="callout">
+  <strong>Two findings emerge at 9 rounds that did not at 3 rounds:</strong> (1) Medium and Hard structures now aggregate <em>better</em> than Easy under DCFR — the additional rounds let the network find the dominant strategy more cleanly when the metric is "all yes" (clear signal-aggregation problem) than when it's "at least 2 yes" (which has more partial-information cases that confuse the network). (2) The Very Hard structure (each trader sees the other two signals; payoff = exactly 2 yes) is the worst by far — median LE 0.755 means the equilibrium is essentially uninformative. The 4-cell partition combined with 9-round dynamics overwhelms our small (64×2 MLP) network's capacity.
+</div>
+
+<h3>9-round Galanis Easy with manipulator</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th class="num">bonus</th>
+      <th class="num">mean LE</th>
+      <th class="num">median LE</th>
+      <th>per-ω notes (X=1 states should approach 0.83; X=0 should approach 0.17)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class="num">0.0 (baseline)</td><td class="num">0.400</td><td class="num">0.302</td><td>a, b, c, e correctly biased toward 0.83</td></tr>
+    <tr><td class="num">0.005</td><td class="num"><strong>0.573</strong></td><td class="num">0.640</td><td>X=0 states (d, h) drift up to 0.71, 0.44 — manipulator effect</td></tr>
+    <tr><td class="num">0.02</td><td class="num">0.350</td><td class="num">0.246</td><td>Aggregation actually IMPROVES (Nash selection)</td></tr>
+    <tr><td class="num">0.05</td><td class="num">0.400</td><td class="num">0.302</td><td>Back to baseline-ish</td></tr>
+    <tr><td class="num">0.20</td><td class="num">0.368</td><td class="num">0.380</td><td>Stable</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <strong>9-round manipulator response is non-monotonic, replicating the 3-round CFR+ finding qualitatively.</strong> Small bias hurts (0.005 → mean LE 0.573); larger bias selects a Nash equilibrium that <em>improves</em> aggregation (0.02 → 0.350); even larger bias stays near baseline. This confirms that the equilibrium-selection phenomenon Chapter 6 of the main atlas identifies at 3 rounds also holds at 9 rounds — under genuine multi-turn dynamics where the manipulator has 3 opportunities to bias rather than 1.
+</div>
+
+<h3>9-round Hanson conditional</h3>
 
 <p style="color: var(--muted); font-style: italic">
-Numbers will be filled in here when the runs complete. The qualitative comparison we are most interested in: <em>does the 9-round equilibrium look different from the 3-round one when the manipulator has multi-turn dynamics to exploit?</em>
+Running on DGX at the time of this draft; numbers fill in when complete.
 </p>
 
 <h2>Honest gap analysis</h2>
