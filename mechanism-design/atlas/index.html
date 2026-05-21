@@ -142,7 +142,7 @@
   <li><strong>Amoveo "insurance"</strong> futarchy is equilibrium-equivalent to Galanis under symmetric Bayesian play; the design distinguishes itself only when an attacker is present.</li>
   <li>LMSR has a <strong>sharp manipulation threshold</strong>: below a bonus of ≈ 0.04 (in units of LMSR liquidity × max price shift) the equilibrium is undisturbed; above the threshold, mean log error jumps from 0.11 to 0.40 and saturates. The attacker can only break the 4 states where their own signal is the marginal disambiguating information — the other 4 are pinned.</li>
   <li>Hanson conditional markets respond <strong>non-monotonically</strong> to manipulator bias: very small bias actually <em>improves</em> decision accuracy (it acts as a Nash-equilibrium selector among coexisting equilibria), while larger bias degrades it. The two LMSR-based mechanisms have qualitatively different manipulation-response shapes.</li>
-  <li><strong>MetaDAO CFMM conditional markets aggregate substantially better than Hanson LMSR conditional markets</strong> on the same metric structure: decision accuracy 0.864 (essentially matching the oracle's 0.875) vs 0.754 for Hanson. The CFMM's bounded initial liquidity creates a strong anchoring effect from the first informed quote, which the LMSR path-independent cost lacks.</li>
+  <li><strong>MetaDAO CFMM conditional markets aggregate substantially better than Hanson LMSR conditional markets</strong> on the same metric structure at the parameters we initially compared: decision accuracy 0.864 (essentially matching the oracle's 0.875) vs 0.754 for Hanson. However the comparison is partly confounded by liquidity (CFMM K = 0.001 is ~4× more liquid than LMSR b = 0.01 per unit price impact). A liquidity-matched re-run is in progress; see Chapter 4 for the test.</li>
   <li>Under manipulator bias, MetaDAO is <strong>more fragile</strong> at small bias than Hanson: even bonus = 0.005 drops accuracy from 0.864 to 0.773 (a 9-point drop). The same anchoring effect that produces strong baseline aggregation also makes the equilibrium sensitive to a small early-round bias.</li>
   <li><strong>Player taxonomy effects are mechanism-dependent and can reverse sign.</strong> A naive flat-prior trader nearly quadruples log error in Galanis single-market LMSR (0.109 → 0.401), but <em>improves</em> decision accuracy in Hanson conditional markets (0.7565 → 0.7985) — the same equilibrium-selection mechanism that produces non-monotonic manipulator response. The insider player (sees all 3 signals) provides no lift in either mechanism because baseline equilibria are bottlenecked by discretisation or coordination, not by information availability.</li>
   <li><strong>The binary-staking Proposal Poker mechanism has a no-information equilibrium.</strong> Without an LMSR-style subsidy or richer payoff structure (wealth, log utility, oracle), all traders abstain at equilibrium and decision accuracy collapses to the prior (0.50) regardless of signal precision. This explains why richer mechanisms in the full MODEL.md are needed.</li>
@@ -397,17 +397,37 @@ The relevant equilibrium question is how the constant-product invariant x·y = K
 </p>
 
 <div class="callout">
-  <strong>MetaDAO CFMM converges to a much better decision rule than Hanson LMSR, under identical traders.</strong> Decision accuracy is <strong>86.4%</strong> — essentially matching the oracle's 87.5% — versus Hanson's 75.4% under the same conditions. The mechanism design itself is doing real work: switching from LMSR to a constant-product market-maker recovers ≈ 11 percentage points of decision accuracy.
+  <strong>MetaDAO CFMM (K = 0.001) converges to a much better decision rule than Hanson LMSR (b = 0.01), under identical traders.</strong> Decision accuracy is <strong>86.4%</strong> — essentially matching the oracle's 87.5% — versus Hanson's 75.4%. The mechanism design difference is real, but the headline understates an important confound: <em>the two markets are not equally liquid at these parameters.</em>
 </div>
 
-<h3>Why CFMM aggregates better in this setup</h3>
+<h3>Liquidity caveat (important)</h3>
 
 <p>
-At baseline (no manipulator) the MetaDAO equilibrium concentrates B-wins to ≈ 95% across states where M(B) = 1 and M(A) = 0 (states d, f, g), whereas Hanson splits decisions across both policies. The mechanism-design intuition: CFMM's bounded initial liquidity (K = 0.001 means small initial reserves) gives early traders a high marginal influence on price, so the first informed quote in pool B sets a strong anchor toward B that subsequent traders cannot easily reverse. LMSR's path-independent cost structure does not produce this anchoring effect, so a single later trader can move the price further in either direction at constant marginal cost.
+The cost to push the price from 0.5 to 0.9 is <code>b · log 5 ≈ 0.016</code> in LMSR (b = 0.01) and <code>2√K ≈ 0.063</code> in CFMM (K = 0.001). The CFMM at this K is ~4× <em>more expensive</em> to manipulate over the same price range — i.e., effectively more liquid. So the 11-point aggregation gap is a mix of two effects: (a) the structurally different cost geometry (anchoring), and (b) the simple fact that the CFMM has more liquidity per dollar of price impact.
 </p>
 
 <p>
-This is a non-trivial finding for futarchy design: <em>conditional market mechanisms with bounded-liquidity AMMs may be strictly preferable to LMSR-based ones when one policy weakly dominates on the metric, even though the per-trade LMSR cost is more favourable to traders.</em>
+To disentangle, we re-run the CFMM at lower K so it is <em>less</em> liquid than the Hanson LMSR. If aggregation is genuinely structural (the "anchoring" story), the CFMM advantage should persist or shrink only modestly. If it is just liquidity, MetaDAO at lower K should fall to or below Hanson.
+</p>
+
+<table id="cfmm-liquidity-check">
+  <thead>
+    <tr>
+      <th>Configuration</th>
+      <th class="num">cost to push 0.5 → 0.9</th>
+      <th class="num">decision accuracy</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Hanson LMSR (b = 0.01)</td><td class="num">0.016</td><td class="num">0.754</td></tr>
+    <tr><td>MetaDAO CFMM (K = 0.001)</td><td class="num">0.063</td><td class="num">0.864</td></tr>
+    <tr><td>MetaDAO CFMM (K = 5 × 10⁻⁵)</td><td class="num">0.014</td><td class="num">tbd (running)</td></tr>
+    <tr><td>MetaDAO CFMM (K = 10⁻⁶)</td><td class="num">0.002</td><td class="num">tbd (running)</td></tr>
+  </tbody>
+</table>
+
+<p>
+The chapter's interpretation is provisional until these match-liquidity runs land. If MetaDAO at K = 10⁻⁶ still beats Hanson on accuracy, the anchoring story is right; if not, the headline overclaims and the right read is "more-liquid markets aggregate better, mechanism-shape doesn't matter much here."
 </p>
 
 <h3>What is in the repo</h3>
