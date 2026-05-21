@@ -164,7 +164,8 @@ This atlas answers that question for several mechanism families. For each (mecha
     <li><a href="#metadao">MetaDAO two-sided conditional CFMM</a> <span class="status-tag status-pending">planned</span></li>
     <li><a href="#proposal-poker">Proposal Poker</a> <span class="status-tag status-pending">planned</span></li>
     <li><a href="#players">Player taxonomy and manipulation surplus</a> <span class="status-tag status-pending">planned</span></li>
-    <li><a href="#comparison">Cross-mechanism comparison</a> <span class="status-tag status-pending">planned</span></li>
+    <li><a href="#comparison">Cross-mechanism comparison</a> <span class="status-tag status-done">done</span></li>
+    <li><a href="#conclusion">Conclusion</a> <span class="status-tag status-done">done</span></li>
     <li><a href="#methods">Appendix: methods</a> <span class="status-tag status-done">done</span></li>
   </ol>
 </div>
@@ -610,6 +611,33 @@ This is the kind of finding that motivates the atlas in the first place: at the 
   <li><strong>Open:</strong> MetaDAO CFMM. The implementation is ready; the CFMM cost geometry should give a third distinct manipulation-response shape, smoother than LMSR's threshold but punishing extremes more severely.</li>
 </ul>
 
+
+<h2 id="conclusion" class="chapter"><span class="chapter-number">Conclusion</span> What this atlas shows</h2>
+
+<p>
+The two findings that survive the most scrutiny so far:
+</p>
+
+<p>
+<strong>(1) The empirical Galanis-style scaling of log error with structural complexity is a capability gap of current LLM traders, not a property of the LMSR mechanism.</strong> Chapter 1 shows that tabular CFR+ converges to the same per-omega price distribution in all four Galanis structures: median price at the discretisation floor when the conditional probability of X = 1 favours yes, and at the floor in the other direction otherwise. The Easy/Medium/Hard/Very Hard hierarchy that Galanis (2026) reports as evidence of LLM aggregation limits does not exist in the equilibrium itself. If you want better aggregation, work on the trader's Bayesian-update fidelity; the mechanism is not the bottleneck.
+</p>
+
+<p>
+<strong>(2) Conditional and unconditional markets respond to manipulator bias in qualitatively different ways.</strong> Chapter 6 shows that single-market LMSR has a sharp threshold: a manipulator with low bias does nothing; with high bias they collapse aggregation on the 4 states where their own signal carries the marginal information, but cannot touch the 4 states where their signal is redundant. Chapter 7 shows that Hanson's conditional structure has a more complex non-monotonic response: small bias acts as a Bayes-Nash equilibrium selector and can <em>improve</em> decision accuracy, while larger bias overrides honest play and forces the wrong policy in states where the manipulator's preference disagrees with the metric.
+</p>
+
+<p>
+The methodological contribution is the framing: every mechanism in this design space can be encoded as a small pyspiel game and solved via off-the-shelf CFR+ in minutes-to-hours, with NashConv as the convergence diagnostic. The CCE-vs-Nash gap is small for LMSR-based mechanisms because the market maker's strict deviation incentive rules out babbling-style CCEs. For mechanisms with bounded liquidity (CFMM, Proposal Poker) the gap is open and the methodology generalises directly.
+</p>
+
+<h3>What is incomplete</h3>
+
+<ul>
+  <li>MetaDAO CFMM: the OpenSpiel game is ready (Chapter 4); the CFR sweep is the obvious next step and would round out the cross-mechanism comparison table.</li>
+  <li>Proposal Poker: the formal model exists and a non-OpenSpiel simulation engine is in the repo; wrapping it for CFR is the natural next step. The wealth heterogeneity and continuous state space will require MCCFR rather than tabular.</li>
+  <li>Player taxonomy beyond manipulator: the framework supports adding insider-with-precise-signal, naive-flat-prior, and LLM-stand-in players. These are not in this draft because the manipulator alone already produces the most legible mechanism-design takeaway.</li>
+  <li>6- and 9-round Galanis games: blocked on MCCFR.</li>
+</ul>
 
 <!-- ===================== METHODS APPENDIX ===================== -->
 
