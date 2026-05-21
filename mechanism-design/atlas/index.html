@@ -144,6 +144,7 @@
   <li>Hanson conditional markets respond <strong>non-monotonically</strong> to manipulator bias: very small bias actually <em>improves</em> decision accuracy (it acts as a Nash-equilibrium selector among coexisting equilibria), while larger bias degrades it. The two LMSR-based mechanisms have qualitatively different manipulation-response shapes.</li>
   <li><strong>MetaDAO CFMM conditional markets aggregate substantially better than Hanson LMSR conditional markets</strong> on the same metric structure: decision accuracy 0.864 (essentially matching the oracle's 0.875) vs 0.754 for Hanson. The CFMM's bounded initial liquidity creates a strong anchoring effect from the first informed quote, which the LMSR path-independent cost lacks.</li>
   <li>Under manipulator bias, MetaDAO is <strong>more fragile</strong> at small bias than Hanson: even bonus = 0.005 drops accuracy from 0.864 to 0.773 (a 9-point drop). The same anchoring effect that produces strong baseline aggregation also makes the equilibrium sensitive to a small early-round bias.</li>
+  <li><strong>Player taxonomy lift is asymmetric.</strong> Replacing one Bayesian with a naive flat-prior trader nearly quadruples mean log error (0.109 → 0.401); replacing one Bayesian with an insider who sees all three signals does not improve accuracy at all (0.108) because the baseline equilibrium already saturates the action-grid floor.</li>
   <li>Tabular CFR+ in this framework reaches NashConv ≤ 5 × 10⁻³ on all converged runs; the CCE/NE gap in these LMSR games is provably small.</li>
 </ul>
 
@@ -542,15 +543,19 @@ The same framework supports two additional non-Bayesian player types. A <em>naiv
     </tr>
   </thead>
   <tbody>
-    <tr><td>3 Bayesian (baseline)</td><td class="num">tbd</td><td class="num">tbd</td><td class="num">tbd</td></tr>
-    <tr><td>Player 0 = naive, others Bayesian</td><td class="num">tbd</td><td class="num">tbd</td><td class="num">tbd</td></tr>
-    <tr><td>Player 0 = insider, others Bayesian</td><td class="num">tbd</td><td class="num">tbd</td><td class="num">tbd</td></tr>
+    <tr><td>3 Bayesian (baseline)</td><td class="num">0.1089</td><td class="num">0.1054</td><td class="num">7.0 × 10⁻⁵</td></tr>
+    <tr><td>Player 0 = naive, others Bayesian</td><td class="num"><strong>0.4009</strong></td><td class="num">0.3993</td><td class="num">3.9 × 10⁻⁵</td></tr>
+    <tr><td>Player 0 = insider, others Bayesian</td><td class="num">0.1083</td><td class="num">0.1054</td><td class="num">1.1 × 10⁻⁴</td></tr>
   </tbody>
 </table>
 
 <p style="font-size: 0.9rem; color: var(--muted)">
-Galanis Easy, 3 rounds, 9-action grid, 40 CFR+ iterations. Numbers filled in when the sweep finishes. Code: <code>mechanism-design/galanis-market/scripts/player_type_sweep.py</code>.
+Galanis Easy, 3 rounds, 9-action grid, 40 CFR+ iterations per config (3 min total). Code: <code>mechanism-design/galanis-market/scripts/player_type_sweep.py</code>.
 </p>
+
+<div class="callout">
+  <strong>Naive damage is severe, insider lift is zero.</strong> Replacing one Bayesian with a naive player who always quotes 0.5 nearly quadruples the mean log error (0.109 → 0.401), because the equilibrium price now reflects only the two remaining traders' signals, with the third quote contributing pure noise. Replacing one Bayesian with an <em>insider</em> who sees all 3 signals leaves accuracy unchanged (0.109 → 0.108). The reason is structural: under the baseline 3-Bayesian-with-own-signal partition, the Galanis Easy equilibrium already saturates at the action-grid floor, so the insider's extra information cannot improve a price that is already at the maximum-precision discretisation. The insider's leverage would emerge in <em>harder</em> structures (Hard, Very Hard) or in <em>multi-market</em> mechanisms (Hanson, MetaDAO) where the baseline equilibrium does not fully aggregate.
+</div>
 
 <h3>LLM stand-in players</h3>
 

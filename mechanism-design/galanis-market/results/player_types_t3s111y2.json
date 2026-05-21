@@ -1,0 +1,156 @@
+{
+  "config": {
+    "iterations": 40,
+    "actions": 9,
+    "structure": "t3s111y2"
+  },
+  "results": {
+    "baseline": {
+      "label": "baseline (3 Bayesian)",
+      "elapsed": 62.993979930877686,
+      "nash_conv": 7.044904186815758e-05,
+      "mean_log_error": 0.10892260609866249,
+      "median_log_error": 0.10536051565782631,
+      "by_omega": {
+        "a": {
+          "x": 1.0,
+          "mean_price": 0.8978664833165869,
+          "median_price": 0.9
+        },
+        "b": {
+          "x": 1.0,
+          "mean_price": 0.8959841081929288,
+          "median_price": 0.9
+        },
+        "c": {
+          "x": 1.0,
+          "mean_price": 0.8965824895624412,
+          "median_price": 0.9
+        },
+        "d": {
+          "x": 0.0,
+          "mean_price": 0.10323276249351394,
+          "median_price": 0.1
+        },
+        "e": {
+          "x": 1.0,
+          "mean_price": 0.8967672375064862,
+          "median_price": 0.9
+        },
+        "f": {
+          "x": 0.0,
+          "mean_price": 0.10341751043755856,
+          "median_price": 0.1
+        },
+        "g": {
+          "x": 0.0,
+          "mean_price": 0.10401589180707045,
+          "median_price": 0.1
+        },
+        "h": {
+          "x": 0.0,
+          "mean_price": 0.10213351668341292,
+          "median_price": 0.1
+        }
+      }
+    },
+    "naive_p0": {
+      "label": "naive p0",
+      "elapsed": 7.148676633834839,
+      "nash_conv": 3.927109376613766e-05,
+      "mean_log_error": 0.4008735254715763,
+      "median_log_error": 0.3992538481088858,
+      "by_omega": {
+        "a": {
+          "x": 1.0,
+          "mean_price": 0.8970898677790279,
+          "median_price": 0.9
+        },
+        "b": {
+          "x": 1.0,
+          "mean_price": 0.49943631316324005,
+          "median_price": 0.5
+        },
+        "c": {
+          "x": 1.0,
+          "mean_price": 0.5005636868367606,
+          "median_price": 0.5
+        },
+        "d": {
+          "x": 0.0,
+          "mean_price": 0.10291013222097216,
+          "median_price": 0.1
+        },
+        "e": {
+          "x": 1.0,
+          "mean_price": 0.8970898677790279,
+          "median_price": 0.9
+        },
+        "f": {
+          "x": 0.0,
+          "mean_price": 0.49943631316324005,
+          "median_price": 0.5
+        },
+        "g": {
+          "x": 0.0,
+          "mean_price": 0.5005636868367606,
+          "median_price": 0.5
+        },
+        "h": {
+          "x": 0.0,
+          "mean_price": 0.10291013222097216,
+          "median_price": 0.1
+        }
+      }
+    },
+    "insider_p0": {
+      "label": "insider p0",
+      "elapsed": 62.46188235282898,
+      "nash_conv": 0.00010582515430334728,
+      "mean_log_error": 0.10833871218538553,
+      "median_log_error": 0.10536051565782631,
+      "by_omega": {
+        "a": {
+          "x": 1.0,
+          "mean_price": 0.897361412811861,
+          "median_price": 0.9
+        },
+        "b": {
+          "x": 1.0,
+          "mean_price": 0.8972682747541365,
+          "median_price": 0.9
+        },
+        "c": {
+          "x": 1.0,
+          "mean_price": 0.8973033451911857,
+          "median_price": 0.9
+        },
+        "d": {
+          "x": 0.0,
+          "mean_price": 0.102638587188139,
+          "median_price": 0.1
+        },
+        "e": {
+          "x": 1.0,
+          "mean_price": 0.897361412811861,
+          "median_price": 0.9
+        },
+        "f": {
+          "x": 0.0,
+          "mean_price": 0.10269665480881413,
+          "median_price": 0.1
+        },
+        "g": {
+          "x": 0.0,
+          "mean_price": 0.1027317252458635,
+          "median_price": 0.1
+        },
+        "h": {
+          "x": 0.0,
+          "mean_price": 0.102638587188139,
+          "median_price": 0.1
+        }
+      }
+    }
+  }
+}
