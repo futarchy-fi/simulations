@@ -79,6 +79,10 @@ class GalanisGame:
     Use `init` to draw a new game state from a PRNG key, `step` to apply
     an action, and `info_state` to extract the input vector for a player's
     network policy.
+
+    Manipulator support: if ``manipulator_player`` is set (default -1 =
+    none), that player's terminal reward includes
+    ``manipulator_bonus * (final_price - 0.5) * manipulator_direction``.
     """
 
     structure: str = "t3s111y2"
@@ -86,6 +90,9 @@ class GalanisGame:
     num_actions: int = 11
     b: float = 0.01
     initial_price: float = 0.5
+    manipulator_player: int = -1
+    manipulator_direction: int = 1  # +1 push up, -1 push down
+    manipulator_bonus: float = 0.0
 
     @property
     def x_table(self) -> jnp.ndarray:
@@ -142,6 +149,20 @@ class GalanisGame:
         new_action_history = state.action_history.at[state.cur_step].set(action)
         new_step = state.cur_step + 1
         finished = new_step >= self.num_rounds
+        # If this step is the final step AND a manipulator is configured,
+        # add the bias bonus to their profit.
+        bonus_active = jnp.logical_and(
+            finished, self.manipulator_player >= 0
+        )
+        if self.manipulator_player in (0, 1, 2) and self.manipulator_bonus != 0.0:
+            shift = (p_to - 0.5) * self.manipulator_direction
+            new_profits = jnp.where(
+                bonus_active,
+                new_profits.at[self.manipulator_player].add(
+                    self.manipulator_bonus * shift
+                ),
+                new_profits,
+            )
         return GalanisState(
             omega=state.omega,
             signals=state.signals,
