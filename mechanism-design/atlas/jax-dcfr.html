@@ -120,10 +120,39 @@ The new sub-project <code>mechanism-design/jax-futarchy/</code> implements:
 Mean log error: DCFR 0.39 vs CFR+ tabular 0.087 (5-action discretisation floor). The DCFR result is approximately right but not yet converged. Four states match the discretisation floor of the action grid exactly (a, c, f, h); four states are stuck at intermediate prices (b, d, e, g). These are precisely the states where the player's signal is the marginal disambiguating information — the same states identified in the main atlas Chapter 6 as "manipulator-breakable." Our DCFR network has insufficient capacity / training to fully resolve them in 100 iterations.
 </p>
 
-<h3>9-round result</h3>
+<h3>Running it on the DGX Spark</h3>
+
+<p>
+We have remote access to a shared NVIDIA DGX Spark (Grace Blackwell GB10, 121 GB unified memory, 20-core ARM CPU) via Tailscale. The CUDA on this machine is version 13 (released August 2025) while JAX's published CUDA wheels are still on CUDA 12 — so for now we run JAX in CPU mode there. Even on CPU the DGX is meaningfully faster than the local farol machine:
+</p>
+
+<table>
+  <thead>
+    <tr><th>Configuration</th><th class="num">per-iter time</th><th class="num">CPU utilisation</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>farol (single-thread CPU)</td><td class="num">1.0 s/iter</td><td class="num">~100% (1 core)</td></tr>
+    <tr><td>DGX Spark (multi-core JAX, no GPU)</td><td class="num">0.4 s/iter</td><td class="num">~330% (3.3 cores)</td></tr>
+  </tbody>
+</table>
+
+<p>
+Once NVIDIA / the JAX team releases CUDA-13 wheels for aarch64, the GPU on this machine should give another 10–100× lift on the SGD step that's currently the bottleneck.
+</p>
+
+<h3>9-round results</h3>
 
 <p style="color: var(--muted); font-style: italic">
-9-round Galanis Easy DCFR is running at the time of this draft; numbers will be filled in. Estimated time: ~10 minutes on a single CPU core.
+Runs in flight on the DGX at the time of this draft:
+</p>
+<ul style="color: var(--muted); font-style: italic">
+  <li>Galanis 4 structures × 9 rounds × 300 DCFR iterations (~24 min total)</li>
+  <li>Galanis Easy 9 rounds × manipulator bonus sweep over {0, 0.005, 0.02, 0.05, 0.2}</li>
+  <li>Hanson conditional 9 rounds × 300 DCFR iterations</li>
+</ul>
+
+<p style="color: var(--muted); font-style: italic">
+Numbers will be filled in here when the runs complete. The qualitative comparison we are most interested in: <em>does the 9-round equilibrium look different from the 3-round one when the manipulator has multi-turn dynamics to exploit?</em>
 </p>
 
 <h2>Honest gap analysis</h2>
