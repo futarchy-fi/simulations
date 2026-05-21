@@ -1,0 +1,310 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A futarchy equilibrium atlas</title>
+<style>
+  :root {
+    --fg: #1a1a1a;
+    --muted: #5a5a5a;
+    --rule: #d6d6d6;
+    --bg: #fafafa;
+    --accent: #b3261e;
+    --accent-soft: #b3261e22;
+    --code-bg: #f0eee6;
+  }
+  html { background: var(--bg); }
+  body {
+    max-width: 760px;
+    margin: 3rem auto;
+    padding: 0 1.25rem 5rem;
+    color: var(--fg);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-size: 17px;
+    line-height: 1.55;
+  }
+  h1 {
+    font-size: 1.9rem;
+    margin: 0 0 0.25rem;
+    line-height: 1.15;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-style: italic;
+    margin: 0 0 1.25rem;
+    font-size: 1.05rem;
+  }
+  .meta {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin: 0 0 2.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  h2 {
+    font-size: 1.3rem;
+    margin: 3rem 0 0.5rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  h2.chapter {
+    margin-top: 4rem;
+    color: var(--accent);
+    border-bottom: 2px solid var(--accent);
+  }
+  h2.chapter .chapter-number {
+    display: inline-block;
+    font-variant: small-caps;
+    color: var(--muted);
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    margin-right: 0.6rem;
+  }
+  h3 { font-size: 1.05rem; margin: 1.5rem 0 0.4rem; }
+  p { margin: 0.6rem 0; }
+  code, pre {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: var(--code-bg);
+    font-size: 0.88em;
+  }
+  code { padding: 0 0.25em; border-radius: 2px; }
+  pre {
+    padding: 0.7rem 0.9rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    line-height: 1.45;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0.75rem 0 1.25rem;
+    font-size: 0.92rem;
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  }
+  th, td {
+    border-bottom: 1px solid var(--rule);
+    padding: 0.4rem 0.55rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { font-weight: 600; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .callout {
+    background: var(--accent-soft);
+    padding: 0.9rem 1.1rem;
+    border-left: 3px solid var(--accent);
+    margin: 1rem 0;
+    font-size: 0.97rem;
+  }
+  ul { margin: 0.5rem 0; padding-left: 1.4rem; }
+  li { margin: 0.2rem 0; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; }
+  a:hover { border-bottom-color: var(--accent); }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 2rem 0; }
+  .footer { color: var(--muted); font-size: 0.85rem; margin-top: 4rem; padding-top: 1rem; border-top: 1px solid var(--rule); }
+  .toc {
+    background: var(--code-bg);
+    padding: 0.7rem 1.1rem;
+    border-radius: 4px;
+    margin: 1.5rem 0;
+    font-size: 0.93rem;
+  }
+  .toc ol { padding-left: 1.2rem; margin: 0.3rem 0; }
+  .status-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-variant: small-caps;
+    letter-spacing: 0.05em;
+    padding: 0.05rem 0.4rem;
+    border-radius: 3px;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+  }
+  .status-done { background: #d4edda; color: #155724; }
+  .status-pending { background: #f8f9fa; color: var(--muted); border: 1px solid var(--rule); }
+</style>
+</head>
+<body>
+
+<h1>A futarchy equilibrium atlas</h1>
+<p class="subtitle">Bayes-Nash equilibria across mechanism variants and player taxonomies, computed via OpenSpiel CFR+/MCCFR.</p>
+<p class="meta">
+  Working draft · May 2026 · Source:
+  <a href="https://github.com/futarchy-fi/simulations/tree/main/mechanism-design" target="_blank" rel="noopener">futarchy-fi/simulations/mechanism-design</a>
+</p>
+
+<h2>Scope</h2>
+
+<p>
+Futarchy proposals have proliferated faster than rigorous analysis of their equilibria. Most arguments for or against a particular mechanism are made informally, anchored on intuition or on small-scale experiments with LLM or human traders. Recent work by Galanis (<a href="https://arxiv.org/abs/2604.20050" target="_blank" rel="noopener">arXiv:2604.20050</a>) is a clean exception: it experimentally tests whether LLM-driven prediction markets aggregate information across four structures of increasing complexity. The empirical finding is that information aggregation degrades sharply with complexity — but the paper does not solve the underlying game, so the source of that degradation is unclear: <em>are the LLM markets failing because the equilibrium itself fails to aggregate, or because the LLMs are far from any equilibrium?</em>
+</p>
+
+<p>
+This atlas answers that question for several mechanism families. For each (mechanism × player mix × complexity) cell, we solve the underlying extensive-form game with OpenSpiel's tabular CFR+ (or MCCFR where state-space size demands it), characterise the equilibrium price/decision distribution, and quantify the surplus available to a capital-rich manipulator. Where comparable empirical data exists, we contrast the equilibrium with what current LLM traders actually do.
+</p>
+
+<div class="toc">
+  <strong>Chapters</strong>
+  <ol>
+    <li><a href="#galanis">The Galanis market</a> <span class="status-tag status-done">done</span></li>
+    <li><a href="#hanson">Hanson outcome-conditional markets</a> <span class="status-tag status-pending">planned</span></li>
+    <li><a href="#amoveo">Amoveo insurance-style futarchy</a> <span class="status-tag status-pending">planned</span></li>
+    <li><a href="#metadao">MetaDAO two-sided conditional CFMM</a> <span class="status-tag status-pending">planned</span></li>
+    <li><a href="#proposal-poker">Proposal Poker</a> <span class="status-tag status-pending">planned</span></li>
+    <li><a href="#players">Player taxonomy and manipulation surplus</a> <span class="status-tag status-pending">planned</span></li>
+    <li><a href="#comparison">Cross-mechanism comparison</a> <span class="status-tag status-pending">planned</span></li>
+  </ol>
+</div>
+
+<h2>Method, in one paragraph</h2>
+
+<p>
+Each mechanism is encoded as a <code>pyspiel.Game</code>: chance nodes draw the private signals, players act sequentially against a market-maker or auctioneer with discretised action spaces, and terminal payoffs are computed from the realised resolution. We solve each game with OpenSpiel's tabular CFR+ and track <strong>NashConv</strong> (sum of per-player best-response improvements over the current average policy) as the convergence signal. NashConv ≤ 2 × 10⁻⁴ is treated as converged; this is below the discretisation noise floor in every game we report. Caveat: for three-or-more-player general-sum games, CFR+ converges formally to a coarse correlated equilibrium, not a Nash equilibrium; we argue per-mechanism that the gap is negligible for the games we consider, because each mechanism provides a strictly positive-EV unilateral deviation that rules out babbling-style CCEs.
+</p>
+
+
+<!-- ===================== CHAPTER 1: GALANIS ===================== -->
+
+<h2 id="galanis" class="chapter"><span class="chapter-number">Chapter 1</span> The Galanis market</h2>
+
+<h3>The question</h3>
+
+<p>
+Galanis (2026) introduces a sequential prediction market with three traders and four information-and-payoff structures of strictly increasing complexity. Each structure is <em>separable</em>: by a theorem of Ostrovsky (2012), there exists a Bayes-Nash equilibrium in which the market price converges to the truth in finitely many rounds. Galanis runs the markets with LLM traders and observes that aggregation degrades sharply with complexity: median final price drops from ≈ 0.98 in the easy structures to ≈ 0.5 (coin toss) in the Very Hard structure, even though every structure admits an aggregating equilibrium in principle.
+</p>
+
+<p>
+The open question Galanis does not resolve: <em>does the equilibrium itself degrade with complexity, or are the LLMs simply not playing the equilibrium?</em> Ostrovsky guarantees existence of <strong>one</strong> aggregating equilibrium — there can be others that fail to aggregate. Without solving the game we cannot disentangle these two hypotheses.
+</p>
+
+<h3>What we did</h3>
+
+<ul>
+  <li>Encoded the Galanis game as a <code>pyspiel.Game</code>: three players in fixed rotation, a uniform-prior chance node over the 8 possible signal triples, partitions implementing each of the four structures, and LMSR pricing (liquidity β = 0.01) with a discretised grid of 11 target prices.</li>
+  <li>Solved with OpenSpiel's tabular CFR+ (50 iterations per structure, ≈ 2 min each on a laptop CPU).</li>
+  <li>Computed NashConv as a convergence diagnostic, then derived the distribution of final prices conditional on each chance outcome under the average policy.</li>
+  <li>Compared against (a) the empirical numbers reported in the paper and (b) a closed-form myopic Bayes-Nash analytical benchmark.</li>
+</ul>
+
+<h3>Results</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Structure</th>
+      <th class="num">NashConv</th>
+      <th class="num">CFR median LE</th>
+      <th class="num">Galanis median LE</th>
+      <th class="num">Empirical price (X=1)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Easy (<code>t3s111y2</code>)</td><td class="num">8.8 × 10⁻⁵</td><td class="num">0.087</td><td class="num">0.018</td><td class="num">≈ 0.98</td></tr>
+    <tr><td>Medium (<code>t3s110</code>)</td><td class="num">1.7 × 10⁻⁴</td><td class="num">0.087</td><td class="num">0.018</td><td class="num">≈ 0.98</td></tr>
+    <tr><td>Hard (<code>t3s111</code>)</td><td class="num">1.7 × 10⁻⁴</td><td class="num">0.087</td><td class="num">0.304</td><td class="num">≈ 0.75</td></tr>
+    <tr><td>Very Hard (<code>t3s111o2ye2</code>)</td><td class="num">7.1 × 10⁻⁵</td><td class="num">0.087</td><td class="num">0.718</td><td class="num">≈ 0.50</td></tr>
+  </tbody>
+</table>
+
+<p>
+CFR+ converges to essentially the same per-ω price distribution in all four structures: median price ≈ 0.917 when X = 1, ≈ 0.083 when X = 0. The 0.083/0.917 figures are the discretisation floor of an 11-action grid (the highest attainable target price is 11/12 ≈ 0.917); a finer grid would lower the floor proportionally. Per-ω detail for the Very Hard structure:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>ω</th><th>(d<sub>a</sub>, d<sub>b</sub>, d<sub>c</sub>)</th><th class="num">X</th>
+      <th class="num">CFR mean p</th><th class="num">CFR median p</th><th class="num">Myopic Bayes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>a</td><td>(1,1,1)</td><td class="num">0</td><td class="num">0.087</td><td class="num">0.083</td><td class="num">0.000</td></tr>
+    <tr><td>b</td><td>(1,1,0)</td><td class="num">1</td><td class="num">0.914</td><td class="num">0.917</td><td class="num">1.000</td></tr>
+    <tr><td>c</td><td>(1,0,1)</td><td class="num">1</td><td class="num">0.914</td><td class="num">0.917</td><td class="num">1.000</td></tr>
+    <tr><td>d</td><td>(1,0,0)</td><td class="num">0</td><td class="num">0.086</td><td class="num">0.083</td><td class="num">0.000</td></tr>
+    <tr><td>e</td><td>(0,1,1)</td><td class="num">1</td><td class="num">0.914</td><td class="num">0.917</td><td class="num">1.000</td></tr>
+    <tr><td>f</td><td>(0,1,0)</td><td class="num">0</td><td class="num">0.086</td><td class="num">0.083</td><td class="num">0.000</td></tr>
+    <tr><td>g</td><td>(0,0,1)</td><td class="num">0</td><td class="num">0.085</td><td class="num">0.083</td><td class="num">0.000</td></tr>
+    <tr><td>h</td><td>(0,0,0)</td><td class="num">0</td><td class="num">0.085</td><td class="num">0.083</td><td class="num">0.000</td></tr>
+  </tbody>
+</table>
+
+<h3>What this means</h3>
+
+<div class="callout">
+  <strong>Headline.</strong> The equilibrium aggregates information in all four structures. The empirical scaling of log error with complexity (0.018 → 0.018 → 0.304 → 0.718) is <strong>not</strong> a property of the equilibrium — it is a capability gap between current LLMs and best-response play.
+</div>
+
+<p>
+Galanis frames the empirical scaling as suggesting that <em>AI agents may suffer the same limitations as humans when reasoning about what others know</em> as complexity grows. The equilibrium computation here shows that this interpretation conflates two distinct claims: (a) the equilibrium of the Very Hard market does not aggregate, versus (b) the LLM markets do not reach the equilibrium. Our result is that (a) is false — best-response play aggregates in every structure, consistent with Ostrovsky's separability theorem — and therefore the empirical scaling is evidence for (b). The path of improvement is in trader capability (correct Bayesian updating, correct higher-order belief reasoning), not in mechanism design: the LMSR mechanism is doing its job.
+</p>
+
+<h3>Why CFR median is larger than empirical median on Easy/Medium</h3>
+
+<p>
+The CFR median log error of 0.087 is <em>larger</em> than the empirical 0.018 on the easy structures. This is a discretisation artefact: our 11-action grid caps target prices at 0.917, imposing a log-error floor of <code>−log(0.917) ≈ 0.087</code>. LLM traders use effectively continuous prices and can reach ≈ 0.99, hence the lower empirical log error on the easy structures. The fair qualitative reading is: both aggregate near-perfectly when the structure admits it.
+</p>
+
+<h3>Caveats specific to this chapter</h3>
+
+<ul>
+  <li><strong>CCE vs Nash.</strong> Tabular CFR+ in a three-player general-sum game converges to a coarse correlated equilibrium, not a Nash equilibrium. For the Galanis game the gap between CCE and NE is small: the LMSR market maker creates a strictly positive-EV unilateral deviation for any non-aggregating profile, which rules out babbling-style CCEs. NashConv ≤ 2 × 10⁻⁴ at termination in every run.</li>
+  <li><strong>Three rounds only.</strong> The Galanis paper studies 3, 6, and 9 rounds. Tabular CFR's information-state count scales as <code>cells × actions<sup>moves_until_player_acts_again</sup></code>; at 9 rounds × 11 actions × Very Hard structure this is ≈ 1.7 × 10⁹ — well outside tabular Python. We solve the 3-round game; MCCFR or a C++ port is required for longer horizons and is left as follow-up.</li>
+  <li><strong>Discretisation grid.</strong> 11 actions is the binding floor on log error. A finer grid (21 or 99 actions) lowers the floor but is heavier to solve; the qualitative aggregation result is unchanged.</li>
+</ul>
+
+<p style="font-size: 0.9rem; color: var(--muted)">
+Reproducibility: <code>mechanism-design/galanis-market/</code> in the source repo. Tests: <code>pytest -q</code> (44 passing). Solver: <code>python scripts/solve_all.py --iterations 50 --num-actions 11 --structures t3s111y2,t3s110,t3s111,t3s111o2ye2 --rounds 3</code>.
+</p>
+
+
+<!-- ===================== PLANNED CHAPTERS ===================== -->
+
+<h2 id="hanson" class="chapter"><span class="chapter-number">Chapter 2</span> Hanson outcome-conditional markets</h2>
+
+<p style="color: var(--muted); font-style: italic">
+In preparation. Two parallel LMSR markets, one conditional on each policy; the metric resolves only in the market conditional on the chosen policy. The equilibrium question: when does each conditional market price converge to E[metric | policy]? How much does it cost a capital-rich manipulator to flip the resulting decision? Empirical anchor: the March 2025 Optimism experiment (21 days, 500k OP-PLAY tokens, TVL-in-USD metric corrupted by ETH price moves).
+</p>
+
+<h2 id="amoveo" class="chapter"><span class="chapter-number">Chapter 3</span> Amoveo insurance-style futarchy</h2>
+
+<p style="color: var(--muted); font-style: italic">
+In preparation. Single binary market on "will X happen", with the decision going to the <em>less-likely</em> side. Designed to flatten manipulation cost across outcomes: if both outcomes are roughly equally likely a priori, moving the price in either direction costs symmetrically. The equilibrium question: what does the equilibrium look like when traders know the decision rule rewards the underdog side?
+</p>
+
+<h2 id="metadao" class="chapter"><span class="chapter-number">Chapter 4</span> MetaDAO two-sided conditional CFMM</h2>
+
+<p style="color: var(--muted); font-style: italic">
+In preparation. Conditional minting with constant-product AMMs rather than LMSR. Different liquidity geometry than LMSR; the manipulator-budget vs price-impact relationship is hyperbolic rather than exponential, which changes the comparative statics materially.
+</p>
+
+<h2 id="proposal-poker" class="chapter"><span class="chapter-number">Chapter 5</span> Proposal Poker</h2>
+
+<p style="color: var(--muted); font-style: italic">
+In preparation. The formal model is already specified in <code>mechanism-design/proposal-evaluation/MODEL.md</code>: proposals (x, y) with quality x and importance y, agents with log-utility over wealth and Gaussian signals of x, and a costly futarchy verification oracle. We will wrap the existing simulation engine in an OpenSpiel game and derive equilibria over the mechanism space.
+</p>
+
+<h2 id="players" class="chapter"><span class="chapter-number">Chapter 6</span> Player taxonomy and manipulation surplus</h2>
+
+<p style="color: var(--muted); font-style: italic">
+In preparation. We hold the mechanism fixed and vary the player population: myopic Bayesian, strategic best-responder, budget-constrained manipulator (with explicit attacker budget B), informed insider with high-precision signal, naive flat-prior trader, and LLM agents instantiated for empirical anchoring. The headline metric is the manipulation surplus M(B): the equilibrium price/decision shift achievable by spending B. We expect this to differ sharply across mechanisms — in particular, Amoveo's insurance design should make M(B) flatter at the cost of weaker aggregation when one side is strongly favoured.
+</p>
+
+<h2 id="comparison" class="chapter"><span class="chapter-number">Chapter 7</span> Cross-mechanism comparison</h2>
+
+<p style="color: var(--muted); font-style: italic">
+In preparation. Tabular comparison of all mechanisms on (i) aggregation quality at equilibrium, (ii) manipulation surplus per dollar at equilibrium, (iii) sensitivity to player composition.
+</p>
+
+
+<!-- ===================== FOOTER ===================== -->
+
+<p class="footer">
+Code and data: <a href="https://github.com/futarchy-fi/simulations/tree/main/mechanism-design" target="_blank" rel="noopener">github.com/futarchy-fi/simulations/mechanism-design</a>.
+OpenSpiel 1.6.3. Tabular CFR+ for the games reported here.
+The Galanis chapter replicates the experimental setup of arXiv:2604.20050v2 modulo the price-grid discretisation and the number of trading rounds.
+</p>
+
+</body>
+</html>
