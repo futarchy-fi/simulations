@@ -285,27 +285,27 @@ To make the equilibrium structure non-trivial we set M(A) = "at least two yes" (
     </tr>
   </thead>
   <tbody>
-    <tr><td>a</td><td>(1,1,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.688</td><td class="num">0.668</td><td class="num">0.536</td><td class="num">1.000</td></tr>
-    <tr><td>b</td><td>(1,1,0)</td><td class="num">1</td><td class="num">1</td><td class="num">0.707</td><td class="num">0.726</td><td class="num">0.859</td><td class="num">1.000</td></tr>
-    <tr><td>c</td><td>(1,0,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.550</td><td class="num">0.859</td><td class="num">0.160</td><td class="num">1.000</td></tr>
-    <tr><td>d</td><td>(1,0,0)</td><td class="num">0</td><td class="num">1</td><td class="num">0.457</td><td class="num">0.602</td><td class="num">0.255</td><td class="num">0.745</td></tr>
-    <tr><td>e</td><td>(0,1,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.793</td><td class="num">0.785</td><td class="num">0.797</td><td class="num">1.000</td></tr>
-    <tr><td>f</td><td>(0,1,0)</td><td class="num">0</td><td class="num">1</td><td class="num">0.566</td><td class="num">0.697</td><td class="num">0.565</td><td class="num">0.435</td></tr>
-    <tr><td>g</td><td>(0,0,1)</td><td class="num">0</td><td class="num">1</td><td class="num">0.406</td><td class="num">0.867</td><td class="num">0.056</td><td class="num">0.944</td></tr>
-    <tr><td>h</td><td>(0,0,0)</td><td class="num">0</td><td class="num">0</td><td class="num">0.361</td><td class="num">0.489</td><td class="num">0.158</td><td class="num">0.000</td></tr>
+    <tr><td>a</td><td>(1,1,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.683</td><td class="num">0.624</td><td class="num">0.600</td><td class="num">1.000</td></tr>
+    <tr><td>b</td><td>(1,1,0)</td><td class="num">1</td><td class="num">1</td><td class="num">0.743</td><td class="num">0.745</td><td class="num">0.981</td><td class="num">1.000</td></tr>
+    <tr><td>c</td><td>(1,0,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.509</td><td class="num">0.872</td><td class="num">0.028</td><td class="num">1.000</td></tr>
+    <tr><td>d</td><td>(1,0,0)</td><td class="num">0</td><td class="num">1</td><td class="num">0.450</td><td class="num">0.586</td><td class="num">0.322</td><td class="num">0.678</td></tr>
+    <tr><td>e</td><td>(0,1,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.789</td><td class="num">0.762</td><td class="num">0.820</td><td class="num">1.000</td></tr>
+    <tr><td>f</td><td>(0,1,0)</td><td class="num">0</td><td class="num">1</td><td class="num">0.590</td><td class="num">0.704</td><td class="num">0.639</td><td class="num">0.361</td></tr>
+    <tr><td>g</td><td>(0,0,1)</td><td class="num">0</td><td class="num">1</td><td class="num">0.399</td><td class="num">0.873</td><td class="num">0.011</td><td class="num">0.989</td></tr>
+    <tr><td>h</td><td>(0,0,0)</td><td class="num">0</td><td class="num">0</td><td class="num">0.364</td><td class="num">0.488</td><td class="num">0.191</td><td class="num">0.000</td></tr>
   </tbody>
 </table>
 
 <p style="font-size: 0.9rem; color: var(--muted)">
-3 rounds, 7-action grid, 30 CFR+ iterations (NashConv 2.4 × 10⁻⁴). Numbers refine with more iterations and a finer action grid; the qualitative story is stable.
+3 rounds, 7-action grid, 80 CFR+ iterations (NashConv 3.9 × 10⁻⁵, t = 514s).
 </p>
 
 <div class="callout">
-  <strong>Headline.</strong> Equilibrium decision accuracy is <strong>76.5%</strong> — meaningfully below the oracle's 87.5%. The Hanson conditional structure does <em>not</em> automatically converge to the dominant-policy decision under symmetric Bayesian play.
+  <strong>Headline.</strong> Equilibrium decision accuracy is <strong>75.4%</strong> — meaningfully below the oracle's 87.5%. The Hanson conditional structure does <em>not</em> automatically converge to the dominant-policy decision under symmetric Bayesian play.
 </div>
 
 <p>
-The mechanism's weakness is visible in state ω = f (one yes signal). Here M(B) = 1 is the right metric to track, but Pr(A wins) = 0.565 — the wrong market wins more often than not. Reason: market A's price-discovery is incomplete (each trader sees only one signal, and trading at state f benefits A's "at-least-2-yes" hypothesis more than B's "at-least-1-yes" hypothesis from a single d<sub>b</sub> = 1 observation). Even though B weakly dominates A as a policy, the price signals from A look stronger here.
+The mechanism's weakness is visible in state ω = f (one yes signal). Here M(B) = 1 is the right metric to track, but Pr(A wins) = 0.639 — the wrong market wins 64% of the time. Reason: market A's price-discovery is incomplete (each trader sees only one signal, and trading at state f benefits A's "at-least-2-yes" hypothesis more than B's "at-least-1-yes" hypothesis from a single d<sub>b</sub> = 1 observation). Even though B weakly dominates A as a policy, the price signals from A look stronger here.
 </p>
 
 <p>
@@ -368,30 +368,71 @@ where <code>direction</code> ∈ {+1, −1} selects which side the manipulator f
 
 <h3>Result (Galanis Easy, player 0 biased upward)</h3>
 
-<p style="color: var(--muted); font-style: italic">
-Run in progress at the time of this draft; numbers in this table will be updated when CFR+ finishes the sweep over bonus values. Code: <code>mechanism-design/galanis-market/scripts/manipulator_sweep.py</code>.
-</p>
-
-<table id="manipulator-table">
+<table>
   <thead>
     <tr>
       <th class="num">bonus</th>
-      <th class="num">E[p | ω = a] (X = 1)</th>
-      <th class="num">E[p | ω = h] (X = 0)</th>
+      <th class="num">NashConv</th>
       <th class="num">mean log error</th>
+      <th class="num">E[p | ω=b, X=1]</th>
+      <th class="num">E[p | ω=f, X=0]</th>
     </tr>
   </thead>
   <tbody>
-    <tr><td class="num">0.00</td><td class="num">⋯</td><td class="num">⋯</td><td class="num">⋯</td></tr>
-    <tr><td class="num">0.01</td><td class="num">⋯</td><td class="num">⋯</td><td class="num">⋯</td></tr>
-    <tr><td class="num">0.05</td><td class="num">⋯</td><td class="num">⋯</td><td class="num">⋯</td></tr>
-    <tr><td class="num">0.20</td><td class="num">⋯</td><td class="num">⋯</td><td class="num">⋯</td></tr>
-    <tr><td class="num">1.00</td><td class="num">⋯</td><td class="num">⋯</td><td class="num">⋯</td></tr>
+    <tr><td class="num">0.00</td><td class="num">7.0 × 10⁻⁵</td><td class="num">0.109</td><td class="num">0.896</td><td class="num">0.103</td></tr>
+    <tr><td class="num">0.01</td><td class="num">8.4 × 10⁻⁵</td><td class="num">0.110</td><td class="num">0.894</td><td class="num">0.104</td></tr>
+    <tr><td class="num">0.05</td><td class="num">3.1 × 10⁻⁴</td><td class="num"><strong>0.358</strong></td><td class="num"><strong>0.592</strong></td><td class="num"><strong>0.496</strong></td></tr>
+    <tr><td class="num">0.20</td><td class="num">9.9 × 10⁻⁴</td><td class="num">0.400</td><td class="num">0.503</td><td class="num">0.500</td></tr>
+    <tr><td class="num">1.00</td><td class="num">4.7 × 10⁻³</td><td class="num">0.399</td><td class="num">0.506</td><td class="num">0.502</td></tr>
+  </tbody>
+</table>
+
+<p style="font-size: 0.9rem; color: var(--muted)">
+Galanis Easy, 3 rounds, 9-action grid, 40 CFR+ iterations per row. Sweep total time: 293 s. NashConv inflates at higher <code>bonus</code> because the manipulator's policy is harder to compute optimally against; the Bayesian players' policies remain well-converged.
+</p>
+
+<div class="callout">
+  <strong>The manipulation curve has a sharp threshold.</strong> For <code>bonus</code> below ≈ 0.04, the manipulator's bias is too weak to overcome LMSR cost and the equilibrium is indistinguishable from the no-manipulator baseline (log error 0.11). Above the threshold, the equilibrium discontinuously jumps to log error ≈ 0.40 and saturates there. Once the manipulator is willing to push, the per-omega prices in states they can plausibly distort collapse to ≈ 0.5 — completely uninformative — while extremal states (ω = a, h, d) where the manipulator's signal alone already disambiguates the truth remain pinned to 0.10 or 0.90.
+</div>
+
+<h3>Which states does the manipulator break, and why</h3>
+
+<p>
+Per-omega effect at <code>bonus = 0.05</code> (the threshold) and <code>bonus = 1.0</code> (saturation):
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>ω</th><th>(d<sub>a</sub>,d<sub>b</sub>,d<sub>c</sub>)</th><th class="num">X</th>
+      <th class="num">E[p] @ 0.00</th>
+      <th class="num">E[p] @ 0.05</th>
+      <th class="num">E[p] @ 1.00</th>
+      <th>Manipulator's effect</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>a</td><td>(1,1,1)</td><td class="num">1</td><td class="num">0.898</td><td class="num">0.897</td><td class="num">0.896</td><td>pinned: floor at grid max</td></tr>
+    <tr><td>b</td><td>(1,1,0)</td><td class="num">1</td><td class="num">0.896</td><td class="num">0.592</td><td class="num">0.506</td><td>broken: 0.90 → 0.50</td></tr>
+    <tr><td>c</td><td>(1,0,1)</td><td class="num">1</td><td class="num">0.897</td><td class="num">0.587</td><td class="num">0.506</td><td>broken: 0.90 → 0.50</td></tr>
+    <tr><td>d</td><td>(1,0,0)</td><td class="num">0</td><td class="num">0.103</td><td class="num">0.105</td><td class="num">0.103</td><td>pinned: signal disambiguates</td></tr>
+    <tr><td>e</td><td>(0,1,1)</td><td class="num">1</td><td class="num">0.897</td><td class="num">0.890</td><td class="num">0.895</td><td>stable: Bayesians correct</td></tr>
+    <tr><td>f</td><td>(0,1,0)</td><td class="num">0</td><td class="num">0.103</td><td class="num">0.496</td><td class="num">0.502</td><td>broken: 0.10 → 0.50</td></tr>
+    <tr><td>g</td><td>(0,0,1)</td><td class="num">0</td><td class="num">0.104</td><td class="num">0.491</td><td class="num">0.502</td><td>broken: 0.10 → 0.50</td></tr>
+    <tr><td>h</td><td>(0,0,0)</td><td class="num">0</td><td class="num">0.102</td><td class="num">0.108</td><td class="num">0.104</td><td>pinned: signal disambiguates</td></tr>
   </tbody>
 </table>
 
 <p>
-The interpretation: at <code>bonus = 0</code> we recover the baseline equilibrium from Chapter 1. As <code>bonus</code> grows, the manipulator is willing to take larger LMSR losses to push the price up, and the equilibrium responds — partly by the manipulator pushing harder, partly by the Bayesian traders adjusting their signal-extraction in light of the manipulator's noise. The mean log error is the diagnostic for how badly the mechanism's information-aggregation degrades.
+The pattern is interpretable. Player 0 observes d<sub>a</sub>. In states a and h, d<sub>a</sub> alone almost determines the answer — d<sub>a</sub> = 1 with both others = 1 forces X = 1; d<sub>a</sub> = 0 with both others = 0 forces X = 0 — so the Bayesian players can <em>fully ignore</em> player 0's quote (it carries no marginal information) and price the security correctly. In state d, d<sub>a</sub> = 1 but the joint result is X = 0; player 0's quote is uninformative but Bayesians know their own d<sub>b</sub>, d<sub>c</sub> = 0 and price accordingly. Symmetric for state e.
+</p>
+
+<p>
+The states the manipulator <em>breaks</em> are exactly those where player 0's quote is supposed to be the decisive signal: ω = b, c (player 0 says yes; X = 1 because two yeses agree) and ω = f, g (player 0 says no; X = 0 because two nos agree). In these states the manipulator can plausibly bluff: a Bayesian player 1 or 2 cannot tell whether player 0 is honestly reporting d<sub>a</sub> or biasing the price. The Bayes-Nash equilibrium response is to price the average over the two interpretations, which sits at 0.5.
+</p>
+
+<p>
+Saturation occurs because beyond <code>bonus</code> ≈ 0.05 the manipulator already plays a fully adversarial strategy in the 4 states they can affect; further bonus increase changes nothing because there is no more aggregation to destroy in those states. The 4 pinned states remain pinned because no manipulation strategy can change them.
 </p>
 
 <h3>Cross-mechanism comparison (preview)</h3>
