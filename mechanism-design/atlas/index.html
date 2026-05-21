@@ -756,7 +756,7 @@ This is the kind of finding that motivates the atlas in the first place: at the 
 <h2 id="conclusion" class="chapter"><span class="chapter-number">Conclusion</span> What this atlas shows</h2>
 
 <p>
-The two findings that survive the most scrutiny so far:
+The three findings that survive the most scrutiny so far:
 </p>
 
 <p>
@@ -764,7 +764,15 @@ The two findings that survive the most scrutiny so far:
 </p>
 
 <p>
-<strong>(2) Conditional and unconditional markets respond to manipulator bias in qualitatively different ways.</strong> Chapter 6 shows that single-market LMSR has a sharp threshold: a manipulator with low bias does nothing; with high bias they collapse aggregation on the 4 states where their own signal carries the marginal information, but cannot touch the 4 states where their signal is redundant. Chapter 7 shows that Hanson's conditional structure has a more complex non-monotonic response: small bias acts as a Bayes-Nash equilibrium selector and can <em>improve</em> decision accuracy, while larger bias overrides honest play and forces the wrong policy in states where the manipulator's preference disagrees with the metric.
+<strong>(2) Conditional-market mechanisms exhibit multiple Bayes-Nash equilibria that perturbations select between, and the selection effect can reverse welfare.</strong> Chapter 6 shows single-market LMSR has a sharp manipulation threshold and pins 4 of 8 states. Chapter 7 shows Hanson conditional has a <em>non-monotonic</em> manipulation response — small bias improves decision accuracy by selecting a better equilibrium; larger bias degrades it. Chapter 6 also shows the naive-player effect reverses sign: a naive flat-prior trader destroys aggregation in single-market Galanis but improves it in conditional Hanson. The unifying mechanism is multiplicity of Bayes-Nash equilibria in conditional markets; any structural perturbation acts as a selector among them.
+</p>
+
+<p>
+<strong>(3) Bounded-liquidity AMMs aggregate substantially better than logarithmic-cost market-makers in conditional designs, but are also more fragile under early-round manipulation.</strong> Chapter 4 shows MetaDAO CFMM conditional markets achieve decision accuracy 0.864 — essentially matching the oracle's 0.875 — vs Hanson LMSR conditional's 0.754 under identical traders. The CFMM's bounded initial liquidity creates a strong anchoring effect from the first informed quote, which LMSR's path-independent cost lacks. The same anchoring makes the equilibrium more sensitive to small bias: a 0.005 bonus drops MetaDAO accuracy 9 points (0.864 → 0.773), where the same bonus barely moves Hanson.
+</p>
+
+<p>
+<strong>(4) The minimal Proposal Poker binary-staking market has a no-information equilibrium under pure pari-mutuel payouts.</strong> Chapter 5 shows that without an LMSR-style subsidy or richer payoff structure (wealth, log utility, oracle), CFR+ converges to all-abstain, decision = REJECT, and decision accuracy collapses to the 0.5 prior even with signal precision 0.7. This is the classical free-rider failure mode and explains why the full MODEL.md needs the additional ingredients to recover a non-trivial equilibrium.
 </p>
 
 <p>
