@@ -17,6 +17,7 @@ import numpy as np
 import pyspiel
 from open_spiel.python.algorithms import cfr
 from open_spiel.python.algorithms import exploitability as expl_mod
+from open_spiel.python.algorithms import external_sampling_mccfr
 
 from galanis_market.game import GalanisMarketGame
 from galanis_market.structures import STATES, STATE_LABELS
@@ -38,6 +39,7 @@ class SolveResult:
     # Overall summary (averaged over omegas, weighted by uniform prior).
     mean_log_error: float = 0.0
     median_log_error: float = 0.0
+    elapsed_seconds_solve: float = 0.0  # solver-only time (excl. stats)
     # CFR average policy (referenced; not serialised by default).
     policy: Optional[pyspiel.Policy] = None
     elapsed_seconds: float = 0.0
@@ -89,6 +91,114 @@ def solve(
     result.policy = solver.average_policy()
     _populate_price_stats(game, result.policy, result)
     return result
+
+
+def mccfr_solve(
+    game: GalanisMarketGame,
+    iterations: int = 20000,
+    nash_conv_every: Optional[int] = None,
+    skip_nash_conv: bool = False,
+    use_mc_stats: bool = False,
+    mc_samples: int = 5000,
+    verbose: bool = False,
+) -> SolveResult:
+    """Solve via OpenSpiel's external-sampling MCCFR.
+
+    MCCFR samples paths through the game tree rather than enumerating
+    all infosets. Per-iteration cost is O(tree depth * actions) rather
+    than O(infosets), so it scales to the 6/9-round Galanis variants
+    that are intractable for tabular CFR+.
+
+    For large games (9 rounds), the NashConv computation and exhaustive
+    tree-walk stats are intractable. Set ``skip_nash_conv=True`` to skip
+    NashConv and ``use_mc_stats=True`` to use Monte Carlo sampling for
+    per-omega price aggregation.
+    """
+    solver = external_sampling_mccfr.ExternalSamplingSolver(game)
+    result = SolveResult(
+        structure=game.structure_name,
+        num_rounds=game.num_rounds,
+        num_actions=game.num_actions,
+        iterations=iterations,
+    )
+    t0 = time.time()
+    for it in range(1, iterations + 1):
+        solver.iteration()
+        if not skip_nash_conv and nash_conv_every and (it % nash_conv_every == 0 or it == iterations):
+            policy = solver.average_policy()
+            nc = float(expl_mod.nash_conv(game, policy))
+            result.nash_conv_trace.append((it, nc))
+            if verbose:
+                print(f"  iter {it:8d}  nash_conv = {nc:.6e}", flush=True)
+    policy = solver.average_policy()
+    if not skip_nash_conv and not result.nash_conv_trace:
+        nc = float(expl_mod.nash_conv(game, policy))
+        result.nash_conv_trace.append((iterations, nc))
+        if verbose:
+            print(f"  final nash_conv = {nc:.6e}", flush=True)
+    result.elapsed_seconds_solve = time.time() - t0
+    result.policy = policy
+    if use_mc_stats:
+        mc_populate_price_stats(game, policy, result, n_samples=mc_samples)
+    else:
+        _populate_price_stats(game, policy, result)
+    result.elapsed_seconds = time.time() - t0
+    return result
+
+
+def mc_populate_price_stats(
+    game: GalanisMarketGame,
+    policy: pyspiel.Policy,
+    result: SolveResult,
+    n_samples: int = 5000,
+    seed: int = 0,
+) -> None:
+    """Monte Carlo per-omega stats for large games where exhaustive tree
+    walks are intractable. For each omega, sample n_samples trajectories
+    from the policy and aggregate final prices.
+    """
+    import random
+    rng = random.Random(seed)
+    eps = 1e-15
+    mean_log_err_accum = 0.0
+    median_log_err_accum = 0.0
+    for omega_idx in range(len(STATES)):
+        prices: List[float] = []
+        x = game.structure.x_of(STATES[omega_idx])
+        for _ in range(n_samples):
+            state = game.new_initial_state()
+            state.apply_action(omega_idx)
+            while not state.is_terminal():
+                if state.is_chance_node():
+                    outcomes = state.chance_outcomes()
+                    actions, probs = zip(*outcomes)
+                    action = rng.choices(actions, weights=probs, k=1)[0]
+                else:
+                    action_probs = policy.action_probabilities(state)
+                    actions = list(action_probs.keys())
+                    probs = list(action_probs.values())
+                    action = rng.choices(actions, weights=probs, k=1)[0]
+                state.apply_action(action)
+            prices.append(float(state.final_price()))
+        prices.sort()
+        mean_price = sum(prices) / len(prices)
+        median_price = prices[len(prices) // 2]
+
+        def _log_err(p_val: float) -> float:
+            p = float(np.clip(p_val, eps, 1 - eps))
+            return -(x * np.log(p) + (1 - x) * np.log(1 - p))
+
+        result.price_by_omega[STATE_LABELS[omega_idx]] = {
+            "x": float(x),
+            "mean_price": mean_price,
+            "median_price": median_price,
+            "log_error": _log_err(mean_price),
+            "median_log_error": _log_err(median_price),
+        }
+        mean_log_err_accum += _log_err(mean_price)
+        median_log_err_accum += _log_err(median_price)
+    result.mean_log_error = mean_log_err_accum / len(STATES)
+    result.median_log_error = median_log_err_accum / len(STATES)
 
 
 def _populate_price_stats(
