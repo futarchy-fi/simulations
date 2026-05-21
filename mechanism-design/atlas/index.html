@@ -145,6 +145,7 @@
   <li><strong>MetaDAO CFMM conditional markets aggregate substantially better than Hanson LMSR conditional markets</strong> on the same metric structure: decision accuracy 0.864 (essentially matching the oracle's 0.875) vs 0.754 for Hanson. The CFMM's bounded initial liquidity creates a strong anchoring effect from the first informed quote, which the LMSR path-independent cost lacks.</li>
   <li>Under manipulator bias, MetaDAO is <strong>more fragile</strong> at small bias than Hanson: even bonus = 0.005 drops accuracy from 0.864 to 0.773 (a 9-point drop). The same anchoring effect that produces strong baseline aggregation also makes the equilibrium sensitive to a small early-round bias.</li>
   <li><strong>Player taxonomy lift is asymmetric.</strong> Replacing one Bayesian with a naive flat-prior trader nearly quadruples mean log error (0.109 → 0.401); replacing one Bayesian with an insider who sees all three signals does not improve accuracy at all (0.108) because the baseline equilibrium already saturates the action-grid floor.</li>
+  <li><strong>The binary-staking Proposal Poker mechanism has a no-information equilibrium.</strong> Without an LMSR-style subsidy or richer payoff structure (wealth, log utility, oracle), all traders abstain at equilibrium and decision accuracy collapses to the prior (0.50) regardless of signal precision. This explains why richer mechanisms in the full MODEL.md are needed.</li>
   <li>Tabular CFR+ in this framework reaches NashConv ≤ 5 × 10⁻³ on all converged runs; the CCE/NE gap in these LMSR games is provably small.</li>
 </ul>
 
@@ -165,7 +166,7 @@ This atlas answers that question for several mechanism families. For each (mecha
     <li><a href="#hanson">Hanson outcome-conditional markets</a> <span class="status-tag status-done">done</span></li>
     <li><a href="#amoveo">Amoveo insurance-style futarchy</a> <span class="status-tag status-done">analytical</span></li>
     <li><a href="#metadao">MetaDAO two-sided conditional CFMM</a> <span class="status-tag status-done">done</span></li>
-    <li><a href="#proposal-poker">Proposal Poker</a> <span class="status-tag status-pending">planned</span></li>
+    <li><a href="#proposal-poker">Proposal Poker</a> <span class="status-tag status-done">tabular subset</span></li>
     <li><a href="#players">Player taxonomy and manipulation surplus</a> <span class="status-tag status-done">done</span></li>
     <li><a href="#comparison">Cross-mechanism comparison</a> <span class="status-tag status-done">done</span></li>
     <li><a href="#conclusion">Conclusion</a> <span class="status-tag status-done">done</span></li>
@@ -441,7 +442,37 @@ For each mechanism in the Proposal Poker family, two questions:
 <h3>Status</h3>
 
 <p>
-A non-OpenSpiel simulation engine for Proposal Poker already exists in this repo (see Chapter 4 of <code>simulations/README.md</code>). Wrapping it in OpenSpiel so we can run CFR+ over the mechanism tree is the natural next step; the wealth heterogeneity and continuous state space will probably push us from tabular CFR to MCCFR or deep CFR. Left as follow-up.
+A non-OpenSpiel simulation engine for the full Proposal Poker model exists at <code>src/proposal_poker/</code>. We also implemented a <strong>minimal tabular OpenSpiel slice</strong> at <code>mechanism-design/proposal-poker-tabular/</code> that captures the binary-staking mechanism subset: three traders, binary quality <em>x</em> ∈ {0, 1}, noisy binary signals (precision 0.7), and a sequential vote with three actions per trader (stake YES, stake NO, abstain). Majority of stakes determines the decision; ties break to REJECT.
+</p>
+
+<h3>Equilibrium result (binary staking mechanism)</h3>
+
+<div class="callout">
+  <strong>The binary staking market does not aggregate signals at equilibrium.</strong> CFR+ converges to a strategy in which all traders abstain almost-always, producing a decision of REJECT regardless of signals. Decision accuracy collapses to 0.50 — the prior probability of <em>x</em> = 0 — even though signal precision is 0.7 and aggregating three signals by majority vote could in principle achieve 0.78.
+</div>
+
+<p>
+The mechanism's failure mode is a classic free-rider problem made sharp by the pari-mutuel payoff structure. Consider trader 0 with signal <em>s</em><sub>0</sub> = 1, expecting the others to play honestly:
+</p>
+
+<ul>
+  <li>If the other two also see <em>s</em> = 1 (probability ≈ 0.42 unconditional, ≈ 0.55 conditional on <em>x</em> = 1), all three vote YES, the decision is APPROVE, and trader 0 gains nothing — no losing-side stake to share.</li>
+  <li>If the others split (one YES, one NO), trader 0's YES vote breaks the tie, and they win the loser's 1-unit stake but trader 1 / 2 wins 0.5 each from trader 0's vote — net for trader 0 is +0.5 in expectation conditional on this sub-case.</li>
+  <li>If both others vote NO, trader 0's lone YES loses against majority NO; trader 0 loses 1 unit.</li>
+</ul>
+
+<p>
+Working through the expected utility against any specific strategy profile, abstaining strictly dominates voting under common-prior Bayesian play: the expected gain from being right is offset by the expected loss from being wrong, and the gains accrue mostly to the majority position which everyone tries to free-ride into. The CFR equilibrium is essentially <em>all abstain</em>, decision = REJECT, accuracy 0.50.
+</p>
+
+<p>
+This is a real mechanism-design failure mode and aligns with the well-known critique of binary majority votes for proposal evaluation: there is no individual incentive to truthfully reveal one's signal when the cost of being on the losing side is symmetric. Hanson-style market designs add the LMSR subsidy specifically to fix this. The full Proposal Poker MODEL.md considers richer payoffs (log-utility-over-wealth, stake-disutility, futarchy verification oracle) that recover non-trivial equilibria; the tabular subset here demonstrates why those additions are needed.
+</p>
+
+<h3>Code</h3>
+
+<p>
+Sub-project at <code>mechanism-design/proposal-poker-tabular/</code>: ≈ 300 LoC, 9 passing tests. Supports the same manipulator / naive / insider player-type parameters as the other mechanisms. CFR+ converges in seconds on this small game (50 iterations, NashConv 2.6 × 10⁻⁴, ≈ 5 s).
 </p>
 
 <h2 id="players" class="chapter"><span class="chapter-number">Chapter 6</span> Player taxonomy and manipulation surplus</h2>
