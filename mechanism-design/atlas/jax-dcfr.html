@@ -193,8 +193,45 @@ Once NVIDIA / the JAX team releases CUDA-13 wheels for aarch64, the GPU on this 
 
 <h3>9-round Hanson conditional</h3>
 
-<p style="color: var(--muted); font-style: italic">
-Running on DGX at the time of this draft; numbers fill in when complete.
+<table>
+  <thead>
+    <tr>
+      <th>ω</th>
+      <th class="num">M(A)</th><th class="num">M(B)</th>
+      <th class="num">Pr(A wins)</th>
+      <th class="num">Pr(metric = 1)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>a (1,1,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.940</td><td class="num">1.000</td></tr>
+    <tr><td>b (1,1,0)</td><td class="num">1</td><td class="num">1</td><td class="num">0.829</td><td class="num">1.000</td></tr>
+    <tr><td>c (1,0,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.831</td><td class="num">1.000</td></tr>
+    <tr><td>d (1,0,0)</td><td class="num">0</td><td class="num">1</td><td class="num">0.669</td><td class="num">0.331</td></tr>
+    <tr><td>e (0,1,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.782</td><td class="num">1.000</td></tr>
+    <tr><td>f (0,1,0)</td><td class="num">0</td><td class="num">1</td><td class="num">0.887</td><td class="num">0.113</td></tr>
+    <tr><td>g (0,0,1)</td><td class="num">0</td><td class="num">1</td><td class="num">0.405</td><td class="num">0.595</td></tr>
+    <tr><td>h (0,0,0)</td><td class="num">0</td><td class="num">0</td><td class="num">0.756</td><td class="num">0.000</td></tr>
+  </tbody>
+</table>
+
+<p style="font-size: 0.9rem; color: var(--muted)">
+Decision accuracy: 0.630 vs oracle 0.875 vs 3-round CFR+ baseline 0.754.
+9 rounds, 5-action grid, 300 DCFR iterations, 512 traversals/iter.
+Trained on DGX in 179 s.
+</p>
+
+<div class="callout">
+  <strong>Hanson 9-round DCFR is biased toward A.</strong> Across all 8 ω the equilibrium gives Pr(A wins) > 0.5 except at state g. This is worse than the 3-round CFR+ baseline (0.754 vs 0.630). The likely cause is the same convergence-quality gap visible in Galanis: with our small (64×2 MLP) network and 300 iterations, the network has not yet found the right per-info-state regret structure for a deep-tree game with 8 different ω. Scaling to a larger network and 10×+ iterations (which the DGX with GPU should make feasible once the JAX CUDA-13 wheels land) is the next investment.
+</div>
+
+<h3>Honest summary</h3>
+
+<p>
+What the 9-round runs <em>do</em> establish: (i) JAX rollouts and DCFR loops are 50× faster than the Python OpenSpiel MCCFR on the same game; (ii) the JAX game definition admits all three mechanisms (Galanis, Hanson, MetaDAO) with identical step semantics; (iii) the manipulator equilibrium-selection phenomenon survives going from 3 to 9 rounds, replicating Chapter 6's qualitative finding under genuine multi-turn dynamics.
+</p>
+
+<p>
+What they <em>do not</em> establish: that the 9-round numerical equilibria are correct. The DCFR convergence quality is worse than CFR+ tabular at 3 rounds, and significantly worse for the Very Hard structure (4-cell partition). This is a network-capacity and iteration-count problem, not a mechanism-design one. Closing the gap to publication-quality numbers needs (a) GPU-enabled JAX (waiting on CUDA-13 wheels), (b) larger networks, (c) 10×+ training iterations, and ideally (d) a separate strategy network as in canonical Deep CFR.
 </p>
 
 <h2>Honest gap analysis</h2>
