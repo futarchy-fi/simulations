@@ -263,8 +263,57 @@ Reproducibility: <code>mechanism-design/galanis-market/</code> in the source rep
 
 <h2 id="hanson" class="chapter"><span class="chapter-number">Chapter 2</span> Hanson outcome-conditional markets</h2>
 
-<p style="color: var(--muted); font-style: italic">
-In preparation. Two parallel LMSR markets, one conditional on each policy; the metric resolves only in the market conditional on the chosen policy. The equilibrium question: when does each conditional market price converge to E[metric | policy]? How much does it cost a capital-rich manipulator to flip the resulting decision? Empirical anchor: the March 2025 Optimism experiment (21 days, 500k OP-PLAY tokens, TVL-in-USD metric corrupted by ETH price moves).
+<h3>Setup</h3>
+
+<p>
+Two policies, A and B. For each, a separate LMSR binary market predicts a metric M ∈ {0, 1}. The decision is the policy with the higher final implied probability of M = 1. Crucially, only the winning market resolves: trades in the losing market are refunded their cost (no LMSR payout). Three traders rotate in fixed order; on each turn the active player picks one of the two markets and a target price on the discretised grid.
+</p>
+
+<p>
+To make the equilibrium structure non-trivial we set M(A) = "at least two yes" (Galanis Easy rule) and M(B) = "at least one yes" — so policy B weakly dominates policy A on the metric in every state of the world. The oracle decision is "always B" with expected accuracy 7/8 = 0.875.
+</p>
+
+<h3>Result</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>ω</th><th>(d<sub>a</sub>, d<sub>b</sub>, d<sub>c</sub>)</th>
+      <th class="num">M(A)</th><th class="num">M(B)</th>
+      <th class="num">E[p<sub>A</sub>]</th><th class="num">E[p<sub>B</sub>]</th>
+      <th class="num">Pr(A wins)</th><th class="num">Pr(M=1)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>a</td><td>(1,1,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.688</td><td class="num">0.668</td><td class="num">0.536</td><td class="num">1.000</td></tr>
+    <tr><td>b</td><td>(1,1,0)</td><td class="num">1</td><td class="num">1</td><td class="num">0.707</td><td class="num">0.726</td><td class="num">0.859</td><td class="num">1.000</td></tr>
+    <tr><td>c</td><td>(1,0,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.550</td><td class="num">0.859</td><td class="num">0.160</td><td class="num">1.000</td></tr>
+    <tr><td>d</td><td>(1,0,0)</td><td class="num">0</td><td class="num">1</td><td class="num">0.457</td><td class="num">0.602</td><td class="num">0.255</td><td class="num">0.745</td></tr>
+    <tr><td>e</td><td>(0,1,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.793</td><td class="num">0.785</td><td class="num">0.797</td><td class="num">1.000</td></tr>
+    <tr><td>f</td><td>(0,1,0)</td><td class="num">0</td><td class="num">1</td><td class="num">0.566</td><td class="num">0.697</td><td class="num">0.565</td><td class="num">0.435</td></tr>
+    <tr><td>g</td><td>(0,0,1)</td><td class="num">0</td><td class="num">1</td><td class="num">0.406</td><td class="num">0.867</td><td class="num">0.056</td><td class="num">0.944</td></tr>
+    <tr><td>h</td><td>(0,0,0)</td><td class="num">0</td><td class="num">0</td><td class="num">0.361</td><td class="num">0.489</td><td class="num">0.158</td><td class="num">0.000</td></tr>
+  </tbody>
+</table>
+
+<p style="font-size: 0.9rem; color: var(--muted)">
+3 rounds, 7-action grid, 30 CFR+ iterations (NashConv 2.4 × 10⁻⁴). Numbers refine with more iterations and a finer action grid; the qualitative story is stable.
+</p>
+
+<div class="callout">
+  <strong>Headline.</strong> Equilibrium decision accuracy is <strong>76.5%</strong> — meaningfully below the oracle's 87.5%. The Hanson conditional structure does <em>not</em> automatically converge to the dominant-policy decision under symmetric Bayesian play.
+</div>
+
+<p>
+The mechanism's weakness is visible in state ω = f (one yes signal). Here M(B) = 1 is the right metric to track, but Pr(A wins) = 0.565 — the wrong market wins more often than not. Reason: market A's price-discovery is incomplete (each trader sees only one signal, and trading at state f benefits A's "at-least-2-yes" hypothesis more than B's "at-least-1-yes" hypothesis from a single d<sub>b</sub> = 1 observation). Even though B weakly dominates A as a policy, the price signals from A look stronger here.
+</p>
+
+<p>
+This is a known weakness of conditional-market futarchy when the two conditional metrics are correlated. The Hanson rule "decide by which conditional market closes higher" assumes that the prices reflect E[M | policy] — but when traders allocate attention across two markets and signals are coarse, the rule mis-assigns weight. The decision accuracy gap is the price of the conditional structure relative to a single oracle on M(B).
+</p>
+
+<p>
+The next chapters (Amoveo, MetaDAO) ask whether different mechanism designs close this gap; Chapter 6 quantifies how much worse it gets when one trader manipulates.
 </p>
 
 <h2 id="amoveo" class="chapter"><span class="chapter-number">Chapter 3</span> Amoveo insurance-style futarchy</h2>

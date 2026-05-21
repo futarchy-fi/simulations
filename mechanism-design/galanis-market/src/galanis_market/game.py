@@ -87,7 +87,24 @@ def _build_game_info(num_actions: int, num_rounds: int) -> pyspiel.GameInfo:
 
 
 class GalanisMarketGame(pyspiel.Game):
-    """pyspiel.Game wrapper for the Galanis prediction-market game."""
+    """pyspiel.Game wrapper for the Galanis prediction-market game.
+
+    Optional manipulator support. If ``manipulator_player`` is set
+    (default ``-1`` = none), that player's utility becomes
+
+        u_manipulator = lmsr_profit
+                      + manipulator_bonus * (final_price - 0.5)
+                          (if manipulator_direction == +1, push price up)
+                      - manipulator_bonus * (final_price - 0.5)
+                          (if manipulator_direction == -1, push price down)
+
+    Bayesian best-responders see the manipulator's actions and may adjust;
+    CFR finds the equilibrium where the manipulator's strategy maximises
+    its biased utility. ``manipulator_bonus`` is the per-unit price-shift
+    payoff to the manipulator -- e.g., 1.0 means moving the final price
+    by 0.1 yields a bias gain of 0.1 utility units, on top of any LMSR
+    profit/loss incurred.
+    """
 
     def __init__(self, params: Optional[dict] = None):
         params = dict(params or {})
@@ -96,6 +113,9 @@ class GalanisMarketGame(pyspiel.Game):
         self.num_actions: int = int(params.get("num_actions", 9))
         self.b: float = float(params.get("b", 0.01))
         self.initial_price: float = float(params.get("initial_price", 0.5))
+        self.manipulator_player: int = int(params.get("manipulator_player", -1))
+        self.manipulator_direction: int = int(params.get("manipulator_direction", 1))
+        self.manipulator_bonus: float = float(params.get("manipulator_bonus", 0.0))
 
         if self.structure_name not in STRUCTURES:
             raise ValueError(
@@ -106,6 +126,10 @@ class GalanisMarketGame(pyspiel.Game):
             raise ValueError("num_rounds must be 3, 6, or 9")
         if not 0.0 < self.initial_price < 1.0:
             raise ValueError("initial_price must lie strictly in (0, 1)")
+        if self.manipulator_player not in (-1, 0, 1, 2):
+            raise ValueError("manipulator_player must be -1, 0, 1, or 2")
+        if self.manipulator_direction not in (-1, 1):
+            raise ValueError("manipulator_direction must be -1 or +1")
 
         self.structure: Structure = STRUCTURES[self.structure_name]
         self.price_grid: List[float] = _default_price_grid(self.num_actions)
@@ -139,6 +163,9 @@ class GalanisMarketState(pyspiel.State):
         self._num_actions = game.num_actions
         self._price_grid = list(game.price_grid)
         self._lmsr = game.lmsr
+        self._manipulator_player = game.manipulator_player
+        self._manipulator_direction = game.manipulator_direction
+        self._manipulator_bonus = game.manipulator_bonus
         # Mutable state.
         self._omega_idx: Optional[int] = None
         self._price_history: List[float] = [game.initial_price]
@@ -200,7 +227,11 @@ class GalanisMarketState(pyspiel.State):
     def returns(self) -> List[float]:
         if not self.is_terminal():
             return [0.0, 0.0, 0.0]
-        return list(self._trader_profit)
+        out = list(self._trader_profit)
+        if 0 <= self._manipulator_player <= 2 and self._manipulator_bonus != 0.0:
+            shift = (self._price_history[-1] - 0.5) * self._manipulator_direction
+            out[self._manipulator_player] += self._manipulator_bonus * shift
+        return out
 
     # ---- Information state ---------------------------------------------
 
@@ -233,7 +264,7 @@ class GalanisMarketState(pyspiel.State):
     def true_outcome(self) -> Optional[int]:
         if self._omega_idx is None:
             return None
-        return self._game.structure.x_of(STATES[self._omega_idx])
+        return self._structure.x_of(STATES[self._omega_idx])
 
     def __str__(self) -> str:
         omega = self._omega_idx
