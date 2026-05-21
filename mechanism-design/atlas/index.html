@@ -134,6 +134,16 @@
   <a href="https://github.com/futarchy-fi/simulations/tree/main/mechanism-design" target="_blank" rel="noopener">futarchy-fi/simulations/mechanism-design</a>
 </p>
 
+<h2>Summary of findings (so far)</h2>
+
+<ul>
+  <li>The <strong>Galanis (2026)</strong> empirical scaling of log error with structural complexity (0.018 → 0.718) is a capability gap, not a property of the equilibrium. CFR+ aggregates fully in all four structures (median price 0.917/0.083 at the discretisation floor).</li>
+  <li><strong>Hanson outcome-conditional</strong> markets lose ≈ 12 percentage points of decision accuracy relative to the oracle under symmetric Bayesian play (0.754 vs 0.875), even when one policy weakly dominates on the metric. This is a structural property of the dual-market design, not a player failure.</li>
+  <li><strong>Amoveo "insurance"</strong> futarchy is equilibrium-equivalent to Galanis under symmetric Bayesian play; the design distinguishes itself only when an attacker is present.</li>
+  <li>LMSR has a <strong>sharp manipulation threshold</strong>: below a bonus of ≈ 0.04 (in units of LMSR liquidity × max price shift) the equilibrium is undisturbed; above the threshold, mean log error jumps from 0.11 to 0.40 and saturates. Critically, the attacker can only break the 4 states where their own signal is the marginal disambiguating information — the other 4 are pinned.</li>
+  <li>Tabular CFR+ in this framework reaches NashConv ≤ 5 × 10⁻³ on all converged runs; the CCE/NE gap in these LMSR games is provably small.</li>
+</ul>
+
 <h2>Scope</h2>
 
 <p>
