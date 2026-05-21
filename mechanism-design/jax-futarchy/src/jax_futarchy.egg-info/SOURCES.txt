@@ -1,0 +1,9 @@
+pyproject.toml
+src/jax_futarchy/__init__.py
+src/jax_futarchy/game.py
+src/jax_futarchy/lmsr.py
+src/jax_futarchy.egg-info/PKG-INFO
+src/jax_futarchy.egg-info/SOURCES.txt
+src/jax_futarchy.egg-info/dependency_links.txt
+src/jax_futarchy.egg-info/requires.txt
+src/jax_futarchy.egg-info/top_level.txt

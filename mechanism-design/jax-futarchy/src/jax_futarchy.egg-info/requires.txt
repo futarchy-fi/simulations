@@ -1,0 +1,7 @@
+jax>=0.4.30
+flax>=0.8
+optax>=0.2
+numpy>=1.24
+
+[dev]
+pytest>=7

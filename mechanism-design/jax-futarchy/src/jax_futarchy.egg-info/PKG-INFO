@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: jax-futarchy
+Version: 0.1.0
+Summary: JAX-native implementation of futarchy mechanisms with Deep CFR for large game spaces.
+Requires-Python: >=3.9
+Requires-Dist: jax>=0.4.30
+Requires-Dist: flax>=0.8
+Requires-Dist: optax>=0.2
+Requires-Dist: numpy>=1.24
+Provides-Extra: dev
+Requires-Dist: pytest>=7; extra == "dev"
