@@ -140,7 +140,8 @@
   <li>The <strong>Galanis (2026)</strong> empirical scaling of log error with structural complexity (0.018 → 0.718) is a capability gap, not a property of the equilibrium. CFR+ aggregates fully in all four structures (median price 0.917/0.083 at the discretisation floor).</li>
   <li><strong>Hanson outcome-conditional</strong> markets lose ≈ 12 percentage points of decision accuracy relative to the oracle under symmetric Bayesian play (0.754 vs 0.875), even when one policy weakly dominates on the metric. This is a structural property of the dual-market design, not a player failure.</li>
   <li><strong>Amoveo "insurance"</strong> futarchy is equilibrium-equivalent to Galanis under symmetric Bayesian play; the design distinguishes itself only when an attacker is present.</li>
-  <li>LMSR has a <strong>sharp manipulation threshold</strong>: below a bonus of ≈ 0.04 (in units of LMSR liquidity × max price shift) the equilibrium is undisturbed; above the threshold, mean log error jumps from 0.11 to 0.40 and saturates. Critically, the attacker can only break the 4 states where their own signal is the marginal disambiguating information — the other 4 are pinned.</li>
+  <li>LMSR has a <strong>sharp manipulation threshold</strong>: below a bonus of ≈ 0.04 (in units of LMSR liquidity × max price shift) the equilibrium is undisturbed; above the threshold, mean log error jumps from 0.11 to 0.40 and saturates. The attacker can only break the 4 states where their own signal is the marginal disambiguating information — the other 4 are pinned.</li>
+  <li>Hanson conditional markets respond <strong>non-monotonically</strong> to manipulator bias: very small bias actually <em>improves</em> decision accuracy (it acts as a Nash-equilibrium selector among coexisting equilibria), while larger bias degrades it. The two LMSR-based mechanisms have qualitatively different manipulation-response shapes.</li>
   <li>Tabular CFR+ in this framework reaches NashConv ≤ 5 × 10⁻³ on all converged runs; the CCE/NE gap in these LMSR games is provably small.</li>
 </ul>
 
@@ -524,36 +525,89 @@ Will be filled in once the manipulator framework is ported to Hanson and Proposa
 <h3>Manipulation surplus</h3>
 
 <p>
-Three traders, player 0 is the manipulator (LMSR loss + bias bonus for shifting outcome). The "M(b)" column reports the equilibrium mean log error at manipulator bonus <em>b</em> on a fixed structure (Galanis Easy or Hanson default); the baseline column is the no-manipulator equilibrium.
+Three traders, player 0 is the manipulator with a directional bias. For Galanis the bias rewards higher final price; for Hanson it rewards policy A winning. Two different metrics are tabulated below because the mechanisms have different natural diagnostics: Galanis uses mean log error of the price, Hanson uses decision accuracy (probability that the chosen policy yields M = 1).
 </p>
 
 <table>
   <thead>
     <tr>
       <th>Mechanism</th>
-      <th class="num">baseline LE</th>
-      <th class="num">M(b=0.01)</th>
-      <th class="num">M(b=0.05)</th>
-      <th class="num">M(b=0.20)</th>
-      <th class="num">M(b=1.00)</th>
+      <th>Metric</th>
+      <th class="num">baseline</th>
+      <th class="num">b ≈ 0.005</th>
+      <th class="num">b ≈ 0.02</th>
+      <th class="num">b ≈ 0.05</th>
+      <th class="num">b ≈ 0.20</th>
+      <th class="num">b ≈ 1.00</th>
     </tr>
   </thead>
   <tbody>
-    <tr><td>Galanis Easy (LMSR)</td><td class="num">0.109</td><td class="num">0.110</td><td class="num"><strong>0.358</strong></td><td class="num">0.400</td><td class="num">0.399</td></tr>
-    <tr><td>Hanson (cond. LMSR)</td><td class="num">tbd</td><td class="num">tbd</td><td class="num">tbd</td><td class="num">tbd</td><td class="num">tbd</td></tr>
+    <tr>
+      <td>Galanis Easy (LMSR)</td>
+      <td>mean log error ↓</td>
+      <td class="num">0.109</td><td class="num">—</td><td class="num">—</td>
+      <td class="num"><strong>0.358</strong></td><td class="num">0.400</td><td class="num">0.399</td>
+    </tr>
+    <tr>
+      <td>Hanson (cond. LMSR)</td>
+      <td>decision accuracy ↑</td>
+      <td class="num">0.7565</td><td class="num">0.7551</td><td class="num"><strong>0.7998</strong></td>
+      <td class="num">0.6851</td><td class="num">0.6812</td><td class="num">—</td>
+    </tr>
+    <tr>
+      <td>MetaDAO (CFMM)</td>
+      <td>—</td>
+      <td class="num">tbd</td><td colspan="5" class="num">implementation ready, sweep pending</td>
+    </tr>
   </tbody>
 </table>
 
-<p style="font-size: 0.9rem; color: var(--muted)">
-Hanson manipulator sweep running at the time of this draft; numbers will be filled in. MetaDAO and Proposal Poker rows blocked on the implementations described in Chapters 4 and 5.
+<div class="callout">
+  <strong>The two mechanisms respond completely differently to manipulator bias.</strong> LMSR (Galanis) has a sharp threshold — below it the equilibrium is undisturbed, above it the manipulator collapses aggregation on the states where they have leverage. Hanson is non-monotonic — small bias actually <em>improves</em> decision accuracy (the bias acts as an equilibrium selector among multiple Nash); larger bias degrades accuracy because the manipulator can force the wrong market to win in states where it disagrees with the metric.
+</div>
+
+<h3>Non-monotonicity in Hanson, decomposed</h3>
+
+<p>
+Per-omega Pr(A wins) for the Hanson sweep:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>ω</th><th>(d<sub>a</sub>,d<sub>b</sub>,d<sub>c</sub>)</th>
+      <th class="num">M(A)</th><th class="num">M(B)</th>
+      <th class="num">b=0</th><th class="num">b=0.005</th><th class="num">b=0.02</th><th class="num">b=0.05</th><th class="num">b=0.2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>a</td><td>(1,1,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.56</td><td class="num">0.99</td><td class="num">0.99</td><td class="num">0.58</td><td class="num">0.58</td></tr>
+    <tr><td>b</td><td>(1,1,0)</td><td class="num">1</td><td class="num">1</td><td class="num">0.92</td><td class="num">0.50</td><td class="num">0.46</td><td class="num">0.57</td><td class="num">0.57</td></tr>
+    <tr><td>c</td><td>(1,0,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.10</td><td class="num">0.99</td><td class="num">0.36</td><td class="num">0.00</td><td class="num">0.00</td></tr>
+    <tr><td>d</td><td>(1,0,0)</td><td class="num">0</td><td class="num">1</td><td class="num">0.31</td><td class="num">0.35</td><td class="num">0.02</td><td class="num">0.95</td><td class="num">0.98</td></tr>
+    <tr><td>e</td><td>(0,1,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.81</td><td class="num">0.99</td><td class="num">0.99</td><td class="num">0.59</td><td class="num">0.58</td></tr>
+    <tr><td>f</td><td>(0,1,0)</td><td class="num">0</td><td class="num">1</td><td class="num">0.60</td><td class="num">0.38</td><td class="num">0.40</td><td class="num">0.56</td><td class="num">0.57</td></tr>
+    <tr><td>g</td><td>(0,0,1)</td><td class="num">0</td><td class="num">1</td><td class="num">0.04</td><td class="num">0.22</td><td class="num">0.18</td><td class="num">0.01</td><td class="num">0.00</td></tr>
+    <tr><td>h</td><td>(0,0,0)</td><td class="num">0</td><td class="num">0</td><td class="num">0.18</td><td class="num">0.15</td><td class="num">0.06</td><td class="num">0.93</td><td class="num">0.98</td></tr>
+  </tbody>
+</table>
+
+<p>
+The decomposition explains the non-monotonicity. At b = 0.02 (the "helpful" point), the manipulator pushes A to win in states a, e (both correct with M(A) = 1) and away in states d, f, g, h (M(A) = 0). Net: A wins in correct-for-A states, B wins in correct-for-B states — paradoxically <em>improving</em> accuracy. At b ≥ 0.05 the manipulator overshoots, forcing A to win in states d and h where M(A) = 0, which costs accuracy.
+</p>
+
+<p>
+This is the kind of finding that motivates the atlas in the first place: at the level of summary statistics, the two mechanisms appear comparable; at the per-omega level the equilibrium structures differ qualitatively. The bias-as-equilibrium-selector phenomenon in Hanson is genuinely new and deserves a paper of its own.
 </p>
 
 <h3>Provisional take</h3>
 
 <ul>
   <li><strong>Baseline aggregation:</strong> Single-market LMSR (Galanis) aggregates well across all four complexity levels, with the discretisation floor as the binding constraint. The mechanism is not the bottleneck for these structures.</li>
-  <li><strong>Multi-market aggregation:</strong> Hanson's two-conditional-market design loses ~12 percentage points of decision accuracy under symmetric Bayesian play, because traders cannot perfectly co-ordinate price-discovery across two markets. This is structural and not a capability gap.</li>
-  <li><strong>Manipulation resistance:</strong> LMSR has a sharp threshold response — below ≈ 0.04 in bonus units the equilibrium is undisturbed; above the threshold, aggregation collapses on 4 of 8 states. The "pinned" states (where the manipulator's own signal already disambiguates the truth) are immune, which is a partial mechanism guarantee.</li>
+  <li><strong>Multi-market aggregation:</strong> Hanson's two-conditional-market design loses ~12 percentage points of decision accuracy relative to the oracle under symmetric Bayesian play, because traders cannot perfectly co-ordinate price-discovery across two markets. This is structural, not a capability gap.</li>
+  <li><strong>Galanis under manipulator:</strong> Sharp threshold response — undisturbed below b ≈ 0.04, mean log error collapses on 4 of 8 states above. The "pinned" states (where the manipulator's own signal already disambiguates the truth) are immune, which is a partial mechanism guarantee.</li>
+  <li><strong>Hanson under manipulator:</strong> Non-monotonic. Small bias selects a Nash that happens to improve accuracy; medium and large bias degrade it. Suggests multiple Bayes-Nash equilibria coexist in the unbiased case, and bias acts as a tiebreaker.</li>
+  <li><strong>Open:</strong> MetaDAO CFMM. The implementation is ready; the CFMM cost geometry should give a third distinct manipulation-response shape, smoother than LMSR's threshold but punishing extremes more severely.</li>
 </ul>
 
 
