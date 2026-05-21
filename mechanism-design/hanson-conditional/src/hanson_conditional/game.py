@@ -83,6 +83,8 @@ _GAME_TYPE = pyspiel.GameType(
         "manipulator_player": -1,
         "manipulator_prefers_A": 1,
         "manipulator_bonus": 0.0,
+        "naive_player": -1,
+        "insider_player": -1,
     },
 )
 
@@ -115,6 +117,10 @@ class HansonConditionalGame(pyspiel.Game):
         self.manipulator_player: int = int(params.get("manipulator_player", -1))
         self.manipulator_prefers_A: int = int(params.get("manipulator_prefers_A", 1))
         self.manipulator_bonus: float = float(params.get("manipulator_bonus", 0.0))
+        # Naive: action restricted to (any market, price = 0.5).
+        # Insider: information state includes the full omega.
+        self.naive_player: int = int(params.get("naive_player", -1))
+        self.insider_player: int = int(params.get("insider_player", -1))
 
         if self.num_rounds not in (3, 6, 9):
             raise ValueError("num_rounds must be 3, 6, or 9")
@@ -124,6 +130,10 @@ class HansonConditionalGame(pyspiel.Game):
             raise ValueError("manipulator_player must be -1, 0, 1, or 2")
         if self.manipulator_prefers_A not in (0, 1):
             raise ValueError("manipulator_prefers_A must be 0 or 1")
+        if self.naive_player not in (-1, 0, 1, 2):
+            raise ValueError("naive_player must be -1, 0, 1, or 2")
+        if self.insider_player not in (-1, 0, 1, 2):
+            raise ValueError("insider_player must be -1, 0, 1, or 2")
 
         self.price_grid: List[float] = _default_price_grid(self.num_actions)
         self.lmsr: LMSR = LMSR(b=self.b)
@@ -147,6 +157,14 @@ class HansonConditionalState(pyspiel.State):
         self._manipulator_player = game.manipulator_player
         self._manipulator_prefers_A = game.manipulator_prefers_A
         self._manipulator_bonus = game.manipulator_bonus
+        self._naive_player = game.naive_player
+        self._insider_player = game.insider_player
+        # Naive: actions restricted to {pool A @ 0.5, pool B @ 0.5}.
+        mid_idx = min(
+            range(len(game.price_grid)),
+            key=lambda i: abs(game.price_grid[i] - 0.5),
+        )
+        self._naive_actions = [mid_idx, game.num_actions + mid_idx]
 
         self._omega_idx: Optional[int] = None
         # Per-market price history. Market 0 = policy A, market 1 = policy B.
@@ -188,6 +206,8 @@ class HansonConditionalState(pyspiel.State):
 
     def _legal_actions(self, player: int) -> List[int]:
         assert player >= 0
+        if player == self._naive_player:
+            return list(self._naive_actions)
         return list(range(self._num_actions * NUM_POLICIES))
 
     def _decode_action(self, action: int) -> Tuple[int, int]:
@@ -262,6 +282,8 @@ class HansonConditionalState(pyspiel.State):
             player = self.current_player()
         if self._omega_idx is None:
             cell = "?"
+        elif player == self._insider_player:
+            cell = f"omega{self._omega_idx}"
         else:
             cell = str(STATES[self._omega_idx][player])
         public = ",".join(f"{m}:{p}" for m, p in self._action_history)
