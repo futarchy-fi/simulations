@@ -342,14 +342,55 @@ The Amoveo equilibrium is uninteresting without an attacker — it is just Galan
 
 <h2 id="metadao" class="chapter"><span class="chapter-number">Chapter 4</span> MetaDAO two-sided conditional CFMM</h2>
 
-<p style="color: var(--muted); font-style: italic">
-In preparation. Conditional minting with constant-product AMMs rather than LMSR. Different liquidity geometry than LMSR; the manipulator-budget vs price-impact relationship is hyperbolic rather than exponential, which changes the comparative statics materially.
+<h3>Setup (planned)</h3>
+
+<p>
+The MetaDAO design (deployed on Solana) replaces LMSR with two conditional constant-product market-makers (CFMMs). Concretely: a depositor mints conditional tokens by locking the base asset (USDC); the mint produces (USDC-cond-A, USDC-cond-B) and (Outcome-cond-A, Outcome-cond-B) tokens. Each conditional pair trades in its own constant-product pool. Only the chosen policy's tokens resolve; the other side's tokens are burned.
+</p>
+
+<p>
+The relevant equilibrium question is how the constant-product invariant x·y = k changes the trader-versus-attacker geometry compared to LMSR's exponential cost function. With LMSR, the cost to move price from p to p+δ scales as <code>b · log((1−p+δ)/(1−p))</code> — roughly linear in δ at midprices, blowing up exponentially near the endpoints. With CFMM, the cost scales as <code>k · δ / (1−p−δ)</code> — hyperbolic in δ, with finite cost even at endpoints. This makes the manipulator's marginal cost curve very different: it is cheap to move CFMM prices across the middle and expensive to push them to extremes, whereas LMSR is expensive everywhere and especially so at extremes.
+</p>
+
+<h3>Why this is not yet solved here</h3>
+
+<p>
+Tabular CFR on a CFMM-based futarchy needs an OpenSpiel implementation of (a) the conditional minting accounting, (b) the constant-product swap math with sensible discretisation, and (c) the dual-pool state. The same player taxonomy and manipulator framework would then apply directly. Roughly 300 LoC of new game code; left as follow-up.
+</p>
+
+<h3>What we expect</h3>
+
+<p>
+A priori prediction, to be tested when the implementation lands: the CFMM design's manipulation curve will <em>not</em> show the sharp threshold of LMSR. Because CFMM marginal cost is bounded for any single trade, the manipulator can dribble in budget continuously, and the equilibrium price-shift-per-dollar should be smoother and monotonic in the attacker's budget — gentler than LMSR's flat-then-cliff pattern shown in Chapter 6.
 </p>
 
 <h2 id="proposal-poker" class="chapter"><span class="chapter-number">Chapter 5</span> Proposal Poker</h2>
 
-<p style="color: var(--muted); font-style: italic">
-In preparation. The formal model is already specified in <code>mechanism-design/proposal-evaluation/MODEL.md</code>: proposals (x, y) with quality x and importance y, agents with log-utility over wealth and Gaussian signals of x, and a costly futarchy verification oracle. We will wrap the existing simulation engine in an OpenSpiel game and derive equilibria over the mechanism space.
+<h3>The model</h3>
+
+<p>
+Proposal Poker (specified in detail at <a href="https://github.com/futarchy-fi/simulations/blob/main/mechanism-design/proposal-evaluation/MODEL.md" target="_blank" rel="noopener"><code>mechanism-design/proposal-evaluation/MODEL.md</code></a>) is a richer environment than the binary markets above: proposals have a quality <em>x</em> ~ N(0, 1) and an importance <em>y</em> ~ LogNormal(0, 2); the social objective is <code>sum_i x_i · y_i · D_i</code> where <code>D_i</code> is the approval decision. Agents have log-utility over wealth and observe noisy Gaussian signals of <em>x</em> whose precision scales linearly with their wealth. A futarchy verification oracle is available at a fixed cost <em>C</em> with finite-precision noise.
+</p>
+
+<p>
+Mechanism space is the abstract <code>(init, publish, on_contribution, on_round_end, outcome)</code> tuple defined in the MODEL spec. The mechanism never observes <em>x</em>, <em>y</em>, or agent wealth directly — only the contributions agents make. Different mechanisms in this family (vote, futarchy, hybrid) differ in how they aggregate contributions into decisions and payouts.
+</p>
+
+<h3>What we want to know</h3>
+
+<p>
+For each mechanism in the Proposal Poker family, two questions:
+</p>
+
+<ul>
+  <li><strong>Equilibrium decision quality.</strong> Under best-response play, what fraction of <code>x · y</code> social value does the mechanism capture relative to the oracle (which knows <em>x</em> directly)?</li>
+  <li><strong>Wealth-weighted manipulation.</strong> When a single wealthy agent has decision-aligned utility (i.e., wants a specific outcome regardless of <em>x</em>), how much do equilibrium decisions distort? The wealth-precision coupling here is significant: a wealthy manipulator both has the budget to manipulate and the high-precision signal that anchors honest players' beliefs, so manipulation cost trades off against signalling fidelity in a way the binary mechanisms cannot capture.</li>
+</ul>
+
+<h3>Status</h3>
+
+<p>
+A non-OpenSpiel simulation engine for Proposal Poker already exists in this repo (see Chapter 4 of <code>simulations/README.md</code>). Wrapping it in OpenSpiel so we can run CFR+ over the mechanism tree is the natural next step; the wealth heterogeneity and continuous state space will probably push us from tabular CFR to MCCFR or deep CFR. Left as follow-up.
 </p>
 
 <h2 id="players" class="chapter"><span class="chapter-number">Chapter 6</span> Player taxonomy and manipulation surplus</h2>
@@ -443,9 +484,64 @@ Will be filled in once the manipulator framework is ported to Hanson and Proposa
 
 <h2 id="comparison" class="chapter"><span class="chapter-number">Chapter 7</span> Cross-mechanism comparison</h2>
 
-<p style="color: var(--muted); font-style: italic">
-In preparation. Tabular comparison of all mechanisms on (i) aggregation quality at equilibrium, (ii) manipulation surplus per dollar at equilibrium, (iii) sensitivity to player composition.
+<h3>Baseline aggregation</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Mechanism</th>
+      <th>Players</th>
+      <th class="num">mean log error</th>
+      <th class="num">NashConv (final)</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Galanis Easy (LMSR)</td><td>3 Bayesian</td><td class="num">0.090</td><td class="num">8.8 × 10⁻⁵</td><td>discretisation floor 0.087</td></tr>
+    <tr><td>Galanis Medium</td><td>3 Bayesian</td><td class="num">0.097</td><td class="num">1.7 × 10⁻⁴</td><td>≈ floor</td></tr>
+    <tr><td>Galanis Hard</td><td>3 Bayesian</td><td class="num">0.097</td><td class="num">1.7 × 10⁻⁴</td><td>≈ floor</td></tr>
+    <tr><td>Galanis Very Hard</td><td>3 Bayesian</td><td class="num">0.090</td><td class="num">7.1 × 10⁻⁵</td><td>≈ floor; <strong>aggregates fully</strong></td></tr>
+    <tr><td>Hanson (cond. LMSR)</td><td>3 Bayesian</td><td>—</td><td class="num">3.9 × 10⁻⁵</td><td>decision accuracy 0.75 vs oracle 0.875</td></tr>
+    <tr><td>Amoveo (insurance)</td><td>3 Bayesian</td><td>—</td><td>—</td><td>same as Galanis Easy modulo decision relabel</td></tr>
+    <tr><td>MetaDAO (CFMM)</td><td>3 Bayesian</td><td>—</td><td>—</td><td>not yet implemented</td></tr>
+    <tr><td>Proposal Poker</td><td>N Bayesian</td><td>—</td><td>—</td><td>not yet implemented</td></tr>
+  </tbody>
+</table>
+
+<h3>Manipulation surplus</h3>
+
+<p>
+Three traders, player 0 is the manipulator (LMSR loss + bias bonus for shifting outcome). The "M(b)" column reports the equilibrium mean log error at manipulator bonus <em>b</em> on a fixed structure (Galanis Easy or Hanson default); the baseline column is the no-manipulator equilibrium.
 </p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Mechanism</th>
+      <th class="num">baseline LE</th>
+      <th class="num">M(b=0.01)</th>
+      <th class="num">M(b=0.05)</th>
+      <th class="num">M(b=0.20)</th>
+      <th class="num">M(b=1.00)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Galanis Easy (LMSR)</td><td class="num">0.109</td><td class="num">0.110</td><td class="num"><strong>0.358</strong></td><td class="num">0.400</td><td class="num">0.399</td></tr>
+    <tr><td>Hanson (cond. LMSR)</td><td class="num">tbd</td><td class="num">tbd</td><td class="num">tbd</td><td class="num">tbd</td><td class="num">tbd</td></tr>
+  </tbody>
+</table>
+
+<p style="font-size: 0.9rem; color: var(--muted)">
+Hanson manipulator sweep running at the time of this draft; numbers will be filled in. MetaDAO and Proposal Poker rows blocked on the implementations described in Chapters 4 and 5.
+</p>
+
+<h3>Provisional take</h3>
+
+<ul>
+  <li><strong>Baseline aggregation:</strong> Single-market LMSR (Galanis) aggregates well across all four complexity levels, with the discretisation floor as the binding constraint. The mechanism is not the bottleneck for these structures.</li>
+  <li><strong>Multi-market aggregation:</strong> Hanson's two-conditional-market design loses ~12 percentage points of decision accuracy under symmetric Bayesian play, because traders cannot perfectly co-ordinate price-discovery across two markets. This is structural and not a capability gap.</li>
+  <li><strong>Manipulation resistance:</strong> LMSR has a sharp threshold response — below ≈ 0.04 in bonus units the equilibrium is undisturbed; above the threshold, aggregation collapses on 4 of 8 states. The "pinned" states (where the manipulator's own signal already disambiguates the truth) are immune, which is a partial mechanism guarantee.</li>
+</ul>
 
 
 <!-- ===================== FOOTER ===================== -->
