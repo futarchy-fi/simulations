@@ -143,6 +143,7 @@
   <li>LMSR has a <strong>sharp manipulation threshold</strong>: below a bonus of ≈ 0.04 (in units of LMSR liquidity × max price shift) the equilibrium is undisturbed; above the threshold, mean log error jumps from 0.11 to 0.40 and saturates. The attacker can only break the 4 states where their own signal is the marginal disambiguating information — the other 4 are pinned.</li>
   <li>Hanson conditional markets respond <strong>non-monotonically</strong> to manipulator bias: very small bias actually <em>improves</em> decision accuracy (it acts as a Nash-equilibrium selector among coexisting equilibria), while larger bias degrades it. The two LMSR-based mechanisms have qualitatively different manipulation-response shapes.</li>
   <li><strong>MetaDAO CFMM conditional markets aggregate substantially better than Hanson LMSR conditional markets</strong> on the same metric structure: decision accuracy 0.864 (essentially matching the oracle's 0.875) vs 0.754 for Hanson. The CFMM's bounded initial liquidity creates a strong anchoring effect from the first informed quote, which the LMSR path-independent cost lacks.</li>
+  <li>Under manipulator bias, MetaDAO is <strong>more fragile</strong> at small bias than Hanson: even bonus = 0.005 drops accuracy from 0.864 to 0.773 (a 9-point drop). The same anchoring effect that produces strong baseline aggregation also makes the equilibrium sensitive to a small early-round bias.</li>
   <li>Tabular CFR+ in this framework reaches NashConv ≤ 5 × 10⁻³ on all converged runs; the CCE/NE gap in these LMSR games is provably small.</li>
 </ul>
 
@@ -592,13 +593,14 @@ Three traders, player 0 is the manipulator with a directional bias. For Galanis 
     <tr>
       <td>MetaDAO (CFMM)</td>
       <td>decision accuracy ↑</td>
-      <td class="num"><strong>0.864</strong></td><td colspan="5" class="num" style="text-align: left; padding-left: 1rem">manipulator sweep pending (baseline only)</td>
+      <td class="num"><strong>0.864</strong></td><td class="num">0.773</td><td class="num">0.756</td>
+      <td class="num">0.807</td><td class="num">0.713</td><td class="num">—</td>
     </tr>
   </tbody>
 </table>
 
 <div class="callout">
-  <strong>The two mechanisms respond completely differently to manipulator bias.</strong> LMSR (Galanis) has a sharp threshold — below it the equilibrium is undisturbed, above it the manipulator collapses aggregation on the states where they have leverage. Hanson is non-monotonic — small bias actually <em>improves</em> decision accuracy (the bias acts as an equilibrium selector among multiple Nash); larger bias degrades accuracy because the manipulator can force the wrong market to win in states where it disagrees with the metric.
+  <strong>The three mechanisms respond completely differently to manipulator bias.</strong> Galanis LMSR has a sharp threshold — below it the equilibrium is undisturbed, above it the manipulator collapses aggregation on the states where they have leverage. Hanson is non-monotonic with a single-peaked recovery — small bias <em>improves</em> decision accuracy by selecting a more-aggregating equilibrium, then larger bias degrades it. MetaDAO CFMM is non-monotonic with a different shape — even tiny bias hurts (the bounded-liquidity anchoring effect that gives MetaDAO its strong baseline is also what makes it fragile under early-game manipulation), but middling bias partially recovers, then large bias degrades again. All three mechanisms exhibit multiple Bayes-Nash equilibria selected by manipulator bias.
 </div>
 
 <h3>Non-monotonicity in Hanson, decomposed</h3>
@@ -642,7 +644,7 @@ This is the kind of finding that motivates the atlas in the first place: at the 
   <li><strong>Multi-market aggregation:</strong> Hanson's two-conditional-market design loses ~12 percentage points of decision accuracy relative to the oracle under symmetric Bayesian play, because traders cannot perfectly co-ordinate price-discovery across two markets. This is structural, not a capability gap.</li>
   <li><strong>Galanis under manipulator:</strong> Sharp threshold response — undisturbed below b ≈ 0.04, mean log error collapses on 4 of 8 states above. The "pinned" states (where the manipulator's own signal already disambiguates the truth) are immune, which is a partial mechanism guarantee.</li>
   <li><strong>Hanson under manipulator:</strong> Non-monotonic. Small bias selects a Nash that happens to improve accuracy; medium and large bias degrade it. Suggests multiple Bayes-Nash equilibria coexist in the unbiased case, and bias acts as a tiebreaker.</li>
-  <li><strong>Open:</strong> MetaDAO CFMM. The implementation is ready; the CFMM cost geometry should give a third distinct manipulation-response shape, smoother than LMSR's threshold but punishing extremes more severely.</li>
+  <li><strong>MetaDAO under manipulator:</strong> Different non-monotonic shape from Hanson. Baseline accuracy is highest of the three (0.864), but even very small bias (b = 0.005) drops it to 0.773; medium bias (0.05) partially recovers to 0.807; large bias (0.20) degrades to 0.713. The CFMM's bounded-liquidity anchoring that produces strong baseline aggregation is also what makes the equilibrium fragile under early-round price-pushing.</li>
 </ul>
 
 
