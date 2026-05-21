@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scaling the atlas: JAX games + Deep CFR</title>
+<style>
+  :root {
+    --fg: #1a1a1a; --muted: #5a5a5a; --rule: #d6d6d6; --bg: #fafafa;
+    --accent: #b3261e; --accent-soft: #b3261e22; --code-bg: #f0eee6;
+  }
+  html { background: var(--bg); }
+  body {
+    max-width: 760px; margin: 3rem auto; padding: 0 1.25rem 5rem;
+    color: var(--fg);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-size: 17px; line-height: 1.55;
+  }
+  h1 { font-size: 1.9rem; margin: 0 0 0.25rem; }
+  .subtitle { color: var(--muted); font-style: italic; margin: 0 0 1.25rem; font-size: 1.05rem; }
+  .meta { color: var(--muted); font-size: 0.85rem; margin: 0 0 2rem; padding-bottom: 1rem; border-bottom: 1px solid var(--rule); }
+  h2 { font-size: 1.3rem; margin: 2.5rem 0 0.5rem; padding-bottom: 0.3rem; border-bottom: 1px solid var(--rule); }
+  h3 { font-size: 1.05rem; margin: 1.5rem 0 0.4rem; }
+  p { margin: 0.6rem 0; }
+  code, pre { font-family: "SF Mono", Menlo, Consolas, monospace; background: var(--code-bg); font-size: 0.88em; }
+  code { padding: 0 0.25em; border-radius: 2px; }
+  pre { padding: 0.7rem 0.9rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; }
+  table { border-collapse: collapse; width: 100%; margin: 0.75rem 0 1.25rem; font-size: 0.92rem; }
+  th, td { border-bottom: 1px solid var(--rule); padding: 0.4rem 0.55rem; text-align: left; vertical-align: top; }
+  th { font-weight: 600; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .callout {
+    background: var(--accent-soft); padding: 0.9rem 1.1rem; border-left: 3px solid var(--accent);
+    margin: 1rem 0; font-size: 0.97rem;
+  }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; }
+  a:hover { border-bottom-color: var(--accent); }
+  ul { margin: 0.5rem 0; padding-left: 1.4rem; }
+  li { margin: 0.2rem 0; }
+  .nav { background: var(--code-bg); padding: 0.7rem 1.1rem; border-radius: 4px; margin: 1.5rem 0 2rem; font-size: 0.93rem; }
+</style>
+</head>
+<body>
+
+<h1>Scaling the atlas: JAX games + Deep CFR</h1>
+<p class="subtitle">Moving the futarchy equilibrium atlas to 9-round games via JAX-native simulation and neural Deep CFR.</p>
+<p class="meta">May 2026 · Companion to the <a href="index.html">main atlas</a>.</p>
+
+<div class="nav">
+  <strong>Why this page exists:</strong> the main atlas reports tabular CFR+ at <strong>3 rounds</strong> because the info-state count blows up at 6 / 9 rounds. With each trader acting only once at 3 rounds, "strategic vs myopic" collapses to nothing, and there is no room for the sawtooth deception, manipulator cheap-talk, or anything else that makes sequential markets interesting. This page documents the next-generation tooling that fixes this — and where it currently stands.
+</div>
+
+<h2>The bottleneck</h2>
+
+<p>
+OpenSpiel's Python MCCFR walks the game tree per-iteration, calling <code>state.child(action)</code> at every node. For a Python-defined game, <code>state.child()</code> invokes Python's <code>__copy__</code> machinery, which is orders of magnitude slower than the actual regret arithmetic. Empirically: <strong>22 MCCFR iterations/sec on a 9-round Python game</strong>. At ~50K iterations to converge, that's three hours of wall clock. The bottleneck is not arithmetic — it's Python state cloning.
+</p>
+
+<p>
+GPU does not directly help, because the bottleneck is Python overhead, not parallel arithmetic. CFR is also irregular and recursive, a poor fit for SIMD/SIMT. To unlock GPU acceleration we have to (a) write the game in a JIT-able, vmap-able framework like JAX, and (b) use a neural-network approximation of regrets (Deep CFR) since the info-state space is far too large to enumerate.
+</p>
+
+<h2>What we built</h2>
+
+<p>
+The new sub-project <code>mechanism-design/jax-futarchy/</code> implements:
+</p>
+
+<ul>
+  <li><strong>JAX-native Galanis market.</strong> Game state is a <code>NamedTuple</code> of JAX arrays (omega, signals, price history, action history, profits, terminal flag). <code>step(state, action)</code> is a pure function — JIT-compiles, vmaps over batches, no Python state cloning.</li>
+  <li><strong>Flax regret network.</strong> Per-player MLP that maps info-state vectors to per-action regret estimates. Regret-matching converts those into a strategy.</li>
+  <li><strong>External-sampling Deep CFR.</strong> At each traverser node we enumerate all K actions and roll the rest of the trajectory by sampling from the current regret-matching strategies. Per-iteration regrets are appended to a replay buffer; the network is trained on the buffer between iterations.</li>
+</ul>
+
+<h3>Performance</h3>
+
+<table>
+  <thead>
+    <tr><th>Configuration</th><th class="num">throughput</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Python MCCFR, 9-round Galanis Easy, OpenSpiel</td><td class="num">~ 22 iter/s (660 step/s)</td></tr>
+    <tr><td>JAX rollout, 9-round Galanis Easy, batch 1024, single CPU core</td><td class="num">~ 250 000 games/s</td></tr>
+    <tr><td>JAX DCFR with neural training, 9-round, batch 512</td><td class="num">~ 0.5 iter/s solver-bound (limited by Adam SGD steps, not env)</td></tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <strong>JAX gives ~1000× speed-up on the pure environment.</strong> The neural training (Adam SGD on the regret network) is now the bottleneck, which is what GPU is good at — moving to a CUDA-equipped device (DGX Spark, etc.) should give the next 10–100×.
+</div>
+
+<h2>Results (preliminary)</h2>
+
+<p>
+3-round Galanis Easy, 5-action grid, Deep CFR with 100 iterations, 512 traversals each, replay buffer cap 50K, training batch 512 for 16 Adam steps per iteration:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>ω</th><th>(d<sub>a</sub>, d<sub>b</sub>, d<sub>c</sub>)</th><th class="num">X</th>
+      <th class="num">DCFR E[p]</th>
+      <th class="num">DCFR median</th>
+      <th class="num">CFR+ tabular</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>a</td><td>(1,1,1)</td><td class="num">1</td><td class="num">0.833</td><td class="num">0.833</td><td class="num">0.917</td></tr>
+    <tr><td>b</td><td>(1,1,0)</td><td class="num">1</td><td class="num">0.501</td><td class="num">0.500</td><td class="num">0.917</td></tr>
+    <tr><td>c</td><td>(1,0,1)</td><td class="num">1</td><td class="num">0.833</td><td class="num">0.833</td><td class="num">0.917</td></tr>
+    <tr><td>d</td><td>(1,0,0)</td><td class="num">0</td><td class="num">0.384</td><td class="num">0.333</td><td class="num">0.083</td></tr>
+    <tr><td>e</td><td>(0,1,1)</td><td class="num">1</td><td class="num">0.648</td><td class="num">0.833</td><td class="num">0.917</td></tr>
+    <tr><td>f</td><td>(0,1,0)</td><td class="num">0</td><td class="num">0.174</td><td class="num">0.167</td><td class="num">0.083</td></tr>
+    <tr><td>g</td><td>(0,0,1)</td><td class="num">0</td><td class="num">0.536</td><td class="num">0.500</td><td class="num">0.083</td></tr>
+    <tr><td>h</td><td>(0,0,0)</td><td class="num">0</td><td class="num">0.167</td><td class="num">0.167</td><td class="num">0.083</td></tr>
+  </tbody>
+</table>
+
+<p>
+Mean log error: DCFR 0.39 vs CFR+ tabular 0.087 (5-action discretisation floor). The DCFR result is approximately right but not yet converged. Four states match the discretisation floor of the action grid exactly (a, c, f, h); four states are stuck at intermediate prices (b, d, e, g). These are precisely the states where the player's signal is the marginal disambiguating information — the same states identified in the main atlas Chapter 6 as "manipulator-breakable." Our DCFR network has insufficient capacity / training to fully resolve them in 100 iterations.
+</p>
+
+<h3>9-round result</h3>
+
+<p style="color: var(--muted); font-style: italic">
+9-round Galanis Easy DCFR is running at the time of this draft; numbers will be filled in. Estimated time: ~10 minutes on a single CPU core.
+</p>
+
+<h2>Honest gap analysis</h2>
+
+<p>
+The JAX-Deep-CFR scaffolding is the substantive contribution of this iteration: a JIT/vmap-able game environment and a working Deep CFR trainer. The quantitative results are not yet competitive with tabular CFR+ at 3 rounds. To close that gap requires several known improvements that we have not yet implemented:
+</p>
+
+<ul>
+  <li><strong>Separate strategy network.</strong> Standard Deep CFR maintains a second network trained on the average policy across iterations. Without it we use the final-iteration policy, which is only an approximate Nash. Adding it is mechanical.</li>
+  <li><strong>Larger / wider networks.</strong> Our MLPs are 64 × 2. For richer info states (longer histories, finer action grids), 128 × 3 or attention-based encoders should help.</li>
+  <li><strong>More iterations + larger buffer.</strong> 100 iterations × 50K buffer is small for Deep CFR. The TF2 reference uses ~10⁶ iterations with reservoir sampling.</li>
+  <li><strong>GPU.</strong> JAX is CPU-only here; moving to a CUDA device (DGX Spark, A100, etc.) should give 10–100× on the SGD step that's currently the bottleneck.</li>
+  <li><strong>Port other mechanisms.</strong> Hanson, MetaDAO, Proposal Poker are still in their Python OpenSpiel form. Porting to JAX is straightforward once the Galanis pattern is established.</li>
+</ul>
+
+<p>
+We document this gap explicitly rather than overselling early results. The framework is the deliverable; tuning Deep CFR to match tabular CFR+ quality is a meaningful follow-up project — measured in days, not hours — and may need GPU hardware to be practical.
+</p>
+
+<p style="color: var(--muted); font-size: 0.85rem; margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--rule)">
+Source: <a href="https://github.com/futarchy-fi/simulations/tree/main/mechanism-design/jax-futarchy" target="_blank" rel="noopener">github.com/futarchy-fi/simulations/mechanism-design/jax-futarchy</a>.
+JAX 0.4.30, Flax 0.8.5, Optax 0.2.4. CPU-only at the time of this draft.
+</p>
+
+</body>
+</html>
