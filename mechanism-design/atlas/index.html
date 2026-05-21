@@ -873,6 +873,17 @@ cd metadao-cfmm
 pip install -e .
 pytest -q                                              # 13 tests
 python scripts/manipulator_sweep.py                     # baseline + 4 bonus levels
+cd ..
+
+# 4. Proposal Poker (Chapter 5, tabular subset)
+cd proposal-poker-tabular
+pip install -e .
+pytest -q                                              #  9 tests
+# Single CFR+ run shows all-abstain equilibrium; see Ch 5 for explanation.
+
+# 5. Player-type sweeps (Chapter 6)
+cd ../galanis-market && python scripts/player_type_sweep.py
+cd ../hanson-conditional && python scripts/player_type_sweep.py
 cd ..</pre>
 
 <p>
@@ -886,9 +897,10 @@ Total CFR+ runtime for the data in this draft: ≈ 50 minutes on a laptop CPU (s
     <tr><th>Sub-project</th><th>Files</th><th>Tests</th><th>CFR runs done</th></tr>
   </thead>
   <tbody>
-    <tr><td>galanis-market</td><td>≈ 1000 LoC</td><td>44</td><td>4 structures × baseline + manipulator sweep (5 bonus levels)</td></tr>
-    <tr><td>hanson-conditional</td><td>≈ 500 LoC</td><td>8</td><td>baseline (30 + 80 iter) + manipulator sweep (5 bonus levels)</td></tr>
-    <tr><td>metadao-cfmm</td><td>≈ 500 LoC</td><td>13</td><td>baseline; manipulator sweep in flight</td></tr>
+    <tr><td>galanis-market</td><td>≈ 1000 LoC</td><td>44</td><td>4 structures × baseline + manipulator sweep (5 bonus levels) + player-type sweep (naive, insider)</td></tr>
+    <tr><td>hanson-conditional</td><td>≈ 550 LoC</td><td>8</td><td>baseline (30 + 80 iter) + manipulator sweep (5 bonus levels) + player-type sweep (naive, insider)</td></tr>
+    <tr><td>metadao-cfmm</td><td>≈ 550 LoC</td><td>13</td><td>baseline + manipulator sweep (5 bonus levels)</td></tr>
+    <tr><td>proposal-poker-tabular</td><td>≈ 300 LoC</td><td>9</td><td>baseline (50 iters)</td></tr>
   </tbody>
 </table>
 
