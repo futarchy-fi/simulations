@@ -366,7 +366,15 @@ The relevant equilibrium question is how the constant-product invariant x·y = K
 <h3>What is in the repo</h3>
 
 <p>
-The CFMM pricing primitives are implemented in <code>mechanism-design/metadao-cfmm/src/metadao_cfmm/cfmm.py</code> with passing tests (<code>pytest -q</code>). Specifically: cost-to-move between two prices, shares-to-move, and trade payoff at resolution. The remaining work is the OpenSpiel game wrapper (conditional minting accounting, dual-pool state, discretised action space) — roughly 300 LoC analogous to the Hanson implementation in Chapter 2. We left this stub-complete so the manipulator analysis from Chapter 6 can be re-run on a CFMM-based mechanism once the wrapper lands.
+The full sub-project is at <code>mechanism-design/metadao-cfmm/</code>:
+</p>
+<ul>
+  <li><code>src/metadao_cfmm/cfmm.py</code> — binary CFMM primitives (reserves-at-price, cost-to-move, shares-to-move, trade-payoff).</li>
+  <li><code>src/metadao_cfmm/game.py</code> — <code>pyspiel.Game</code> wrapper that mirrors the Hanson conditional structure exactly but swaps the LMSR market-maker for two binary CFMM pools (one per policy). Decision rule and manipulator support are identical to Hanson.</li>
+  <li><code>tests/</code> — 13 passing tests covering both layers.</li>
+</ul>
+<p>
+The next step is to run CFR+ over this game and produce the analogue of Chapter 2's per-omega result table. Once that lands we can include MetaDAO in the manipulation-surplus sweep alongside Galanis and Hanson, and quantify the CFMM-vs-LMSR cost-curve difference predicted above.
 </p>
 
 <h2 id="proposal-poker" class="chapter"><span class="chapter-number">Chapter 5</span> Proposal Poker</h2>
