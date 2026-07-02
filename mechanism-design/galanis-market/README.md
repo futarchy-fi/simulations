@@ -2,6 +2,13 @@
 
 OpenSpiel formulation of the Galanis (2026) prediction-market game.
 
+> Galanis, Spyros (2026). *Information Aggregation with AI Agents.* arXiv:2604.20050.
+> [arXiv](https://arxiv.org/abs/2604.20050) · [RePEc](https://d.repec.org/n?u=RePEc:arx:papers:2604.20050)
+>
+> The empirical baselines in [`src/galanis_market/galanis_empirics.py`](src/galanis_market/galanis_empirics.py) and
+> [`results/equilibria.md`](results/equilibria.md) ("paper mean/median LE") are the paper's LLM-agent results
+> (Tables 5–6); our CFR+ equilibria provide the rational benchmark alongside them.
+
 ## Goal
 
 Derive Bayes-Nash equilibria of the 4 information structures (Easy → Very Hard) using tabular CFR+, and compare the equilibrium price distributions to the empirical LLM behaviour reported in the paper.

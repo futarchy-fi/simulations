@@ -109,3 +109,13 @@ A framework for studying how agents with private signals can collectively evalua
 The model separates the **environment** (proposals, agents, signals, utilities) from the **mechanism** (rules of the game), enabling systematic search over both agent strategies and mechanism designs.
 
 See [mechanism-design/proposal-evaluation/MODEL.md](mechanism-design/proposal-evaluation/MODEL.md) for the formal specification.
+
+## References
+
+- Galanis, Spyros (2026). **Information Aggregation with AI Agents.** arXiv:2604.20050. [arXiv](https://arxiv.org/abs/2604.20050) · [RePEc](https://d.repec.org/n?u=RePEc:arx:papers:2604.20050)
+  LLM agents trade in a prediction market after receiving private signals; aggregation (log error of last price) is good on easy information structures but degrades sharply with complexity, suggesting LLMs share human limits in reasoning about others' knowledge. Aggregation is robust to cheap talk, market duration, initial price, and strategic prompting; smarter models aggregate better and profit more; past-performance feedback makes agents *worse*. This paper is the source of the empirical baselines in [`galanis-market`](mechanism-design/galanis-market/) (`galanis_empirics.py`, `results/equilibria.md`) — our CFR+ equilibria give the rational-benchmark column against the paper's LLM columns.
+
+- Ouyang, Shumiao and Pengfei Sui (2026). **Dissecting AI Trading: Behavioral Finance and Market Bubbles.** arXiv:2604.18373. [arXiv](https://arxiv.org/abs/2604.18373) · [RePEc](https://d.repec.org/n?u=RePEc:arx:papers:2604.18373)
+  LLM agents in experimental asset markets exhibit classic behavioral patterns — disposition effect, recency-weighted extrapolative beliefs — which aggregate into Smith-et-al.-(1988)-style bubbles; targeted prompt interventions causally amplify or suppress specific mechanisms. Relevant here as an empirical *trader model*: multi-round / price-path-dependent futarchy designs (e.g. TWAP-settled decision markets) should be stress-tested against behavioral LLM trader populations, not only rational-equilibrium play.
+
+- Galanis (2026) is also the game specification for the four information structures (`t3s111y2`, `t3s110`, `t3s111`, `t3s111o2ye2`) solved in [`galanis-market`](mechanism-design/galanis-market/) and reused by [`jax-futarchy`](mechanism-design/jax-futarchy/).
