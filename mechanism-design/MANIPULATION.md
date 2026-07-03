@@ -108,8 +108,46 @@ For an oversight market for agent collectives, these results suggest: (i) measur
 * **Equilibrium ≠ behavior.** Real (human or LLM) traders do not play best responses — Galanis 2026 shows LLM traders degrade with structural complexity where the equilibrium does not, and Ouyang & Sui 2026 show LLM traders carry human behavioral biases. Behavioral traders may fail to discount the manipulator (worse than these results) or overreact (different failure). The behavioral-LLM version of this sweep is the planned companion experiment.
 * The manipulator's bonus is common knowledge (built into the game the CFR solver sees). A *covert* manipulator — traders uncertain whether player 0 is bribed — is a strictly harder and more realistic threat model, and an obvious next game to solve.
 
+## Phase 2a: entry — is a bribed trader worse than no trader at all?
+
+The sweeps above *replaced* an informed trader with a manipulator, so the manipulator's seat came bundled with a third of the evidence. The sharper design question for an oversight market is about **entry**: given an honest 2-trader market, does *admitting* a possibly-bribed third participant ever leave you worse off than never admitting them (and their information) at all?
+
+Setup (Galanis LMSR, `t3s111y2`, b = 0.01, 9-point grid, CFR+ 300 iters, NashConv ≤ 2×10⁻⁵ every row; script `galanis-market/scripts/entry_sweep.py`, raw results `galanis-market/results/entry_sweep_{BASE-2,T1,T2,T3}.json`):
+
+* **BASE-2** — 2 honest traders observing bits *b*, *c*. Bit *a* still exists in nature (X depends on it) but nobody observes it. This is "the entrant and their information never existed." Decision acc **0.750**, the no-bit-*a* ceiling: pivotal states park at the 0.5 posterior.
+* **BASE-3** — 3 honest informed traders (= T2 at bonus 0): acc **1.000**.
+* **T1** — BASE-2 + an entrant with **no private information** + price bounty (Hanson's pure noise trader).
+* **T2** — BASE-2 + an entrant who **uniquely observes bit *a*** + bounty. The key comparison: can bribed entry take the market *below* BASE-2?
+* **T3** — BASE-2 + an entrant with a **redundant** signal (bit *b*, same as incumbent 1) + bounty.
+
+Because the decision rule reads the **final** price, the entrant's seat in the rotation matters; each treatment is solved with the entrant moving **first** (both honest traders can correct afterwards) and **last** (nobody corrects).
+
+**Decision accuracy** (final-price rule; BASE-2 = 0.750, BASE-3 = 1.000):
+
+| bounty | T1-first | T1-last | T2-first | T2-last | T3-first | T3-last |
+|---|---|---|---|---|---|---|
+| 0.00 | 0.750 | 0.750 | **1.000** | **1.000** | 0.750 | 0.750 |
+| 0.02 | 0.750 | 0.500 | 0.999 | 0.500 | 0.750 | 0.500 |
+| 0.05 | 0.750 | 0.500 | 0.796 | 0.500 | 0.750 | 0.500 |
+| 0.20 | 0.750 | 0.500 | 0.750 | 0.500 | 0.750 | 0.500 |
+
+Three clean answers:
+
+1. **When the entrant moves first (or anywhere the honest traders can answer), entry never hurts.** T1-first and T3-first are pinned at exactly the BASE-2 equilibrium for every bounty — the market simply ignores the entrant (T1's uninformed entrant doesn't even trade; T3's redundant entrant is out-inferred by the incumbent holding the same bit). T2-first degrades with the bounty but **bottoms out exactly at BASE-2**: per-state final prices at bounty 0.2 are identical to BASE-2's (0.9/0.5/0.1 pattern), i.e. full information exclusion, "as if bit *a* never existed" — never worse. The phase-1 exclusion result is therefore also the *floor* for entry, provided the honest side gets the last word.
+2. **A bribed last-mover breaks the floor — and information has nothing to do with it.** With the entrant in the last seat, accuracy collapses to 0.500 < 0.750 at every positive bounty, *identically for T1, T2 and T3* — an entrant with zero information (T1) does exactly as much damage as one holding the pivotal bit. The channel is mechanical: the decision rule reads a price nobody can correct. At bounty 0.02 the bribed last-mover pushes the price to exactly the 0.5 decision threshold in the down states (any further is not worth the LMSR cost); at 0.2 they slam every state to 0.9. The equilibrium "defence" of discounting the manipulator still works — informed traders' prices *before* the last move are exactly the honest posteriors — but the decision rule never sees them.
+3. **The subsidy dies in the last seat too.** For first-seat entry, informed profits rise with the bounty as in phase 1 (BASE-2 informed total 0.0029 → 0.0072 at T2-first's transition point). For last-seat entry the informed traders' profit is **unchanged at 0.0029 for every bounty**: they never get to trade against the manipulator's push, so the manipulator's losses (−0.008 at bounty 0.2) flow entirely to the market maker. Hanson's manipulation-as-subsidy transfer requires someone to *take the other side*; a last-mover manipulator has no counterparty except the AMM.
+
+**Verdict on the open question:** admitting an informed-but-bribable entrant is worse than their information never existing **only through the last-mover/decision-reading channel**, not through any information channel. Equivalently: the danger of entry is not *who they are* or *what they know* but *when they trade relative to when the decision rule reads the price*. That immediately suggests the fix tested next: read something no single last move can own.
+
+## Phase 2b: TWAP decision rules
+
+*(section pending — solves running: same treatments re-solved with the decision statistic and the manipulator's price-target bonus computed on the time-averaged post-trade price instead of the final price)*
+
+## Phase 2c: type uncertainty (T2u)
+
+*(section pending — solves running: nature draws the T2 entrant bribed with probability q ∈ {0.25, 0.5}, privately observed by the entrant only)*
+
 ## Next steps
 
-1. **Covert manipulation:** add a chance node drawing "player 0 is bribed" with probability q, unobserved by players 1–2. Sweep (q, bonus) to map how uncertainty about *who* is corrupt spreads the damage from the pivotal states to all states — this is the more realistic oversight-layer threat model.
-2. **Redundancy as a defence:** re-run with 4–5 traders holding overlapping/correlated signals (or one insider seat) to find the redundancy level at which Hanson's subsidy mechanism starts repairing prices instead of merely compensating traders — i.e., where does the small-market result hand over to Hanson's large-market intuition?
-3. **Behavioral companion experiment:** replace CFR+ traders with LLM agents (Galanis-style harness) under identical bonus schedules, and compare the empirical corruption threshold and subsidy-capture share against these equilibrium curves. Divergence in either direction is informative: equilibrium play is the rationality ceiling, and the gap is the additional fragility an agent-collective oversight market would actually exhibit.
+1. **Redundancy as a defence:** re-run with 4–5 traders holding overlapping/correlated signals (or one insider seat) to find the redundancy level at which Hanson's subsidy mechanism starts repairing prices instead of merely compensating traders — i.e., where does the small-market result hand over to Hanson's large-market intuition?
+2. **Behavioral companion experiment:** replace CFR+ traders with LLM agents (Galanis-style harness) under identical bonus schedules, and compare the empirical corruption threshold and subsidy-capture share against these equilibrium curves. Divergence in either direction is informative: equilibrium play is the rationality ceiling, and the gap is the additional fragility an agent-collective oversight market would actually exhibit.
