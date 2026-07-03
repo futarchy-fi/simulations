@@ -62,8 +62,13 @@ def run_simulation(
     proposal_rows: list[ProposalReport] = []
 
     for proposal_idx in range(config.num_proposals):
-        x = float(rng.normal(0.0, 1.0))
-        y = float(rng.lognormal(0.0, 2.0))
+        global_idx = config.proposal_offset + proposal_idx
+        if config.deterministic_env:
+            prop_rng = np.random.default_rng([config.seed or 0, global_idx])
+        else:
+            prop_rng = rng
+        x = float(prop_rng.normal(0.0, 1.0))
+        y = float(prop_rng.lognormal(0.0, 2.0))
 
         mechanism = registry.create_mechanism(config.mechanism.id, config.mechanism.params)
         state = mechanism.init()
@@ -78,7 +83,7 @@ def run_simulation(
 
         if len(runtimes) > 0:
             signal_std = np.array([1.0 / math.sqrt(agent.precision) for agent in runtimes], dtype=float)
-            signals = x + rng.normal(0.0, signal_std)
+            signals = x + prop_rng.normal(0.0, signal_std)
         else:
             signals = np.array([], dtype=float)
 
@@ -87,7 +92,7 @@ def run_simulation(
         receipt_counter = 0
 
         for _round in range(config.round_cap):
-            for agent_index in rng.permutation(len(runtimes)):
+            for agent_index in prop_rng.permutation(len(runtimes)):
                 runtime = runtimes[agent_index]
 
                 # Participation constraint from the model.
@@ -204,7 +209,7 @@ def run_simulation(
         oracle_signal: float | None = None
         final_decision = decision_pre_oracle
         if use_futarchy:
-            oracle_signal = float(x + rng.normal(0.0, 1.0 / math.sqrt(config.environment.tau_F)))
+            oracle_signal = float(x + prop_rng.normal(0.0, 1.0 / math.sqrt(config.environment.tau_F)))
             final_decision = "approve" if oracle_signal > 0.0 else "reject"
 
         settlement = SettlementContext(
@@ -269,7 +274,7 @@ def run_simulation(
 
         proposal_rows.append(
             ProposalReport(
-                index=proposal_idx,
+                index=global_idx,
                 x=x,
                 y=y,
                 decision_pre_oracle=decision_pre_oracle,

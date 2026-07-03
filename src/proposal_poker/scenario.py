@@ -51,6 +51,14 @@ class ScenarioConfig(BaseModel):
     seed: int | None = None
     num_proposals: int = Field(default=500, ge=1)
     round_cap: int = Field(default=20, ge=1)
+    # When true, each proposal's environment draws (x, y, signals, agent
+    # ordering, oracle noise) come from an independent substream seeded by
+    # (seed, proposal_offset + index). This makes environment draws identical
+    # across mechanisms/agent populations and across sharded runs, regardless
+    # of how many rounds execute or whether the oracle fires earlier.
+    deterministic_env: bool = False
+    # Global index of the first proposal in this run (for sharded runs).
+    proposal_offset: int = Field(default=0, ge=0)
     environment: EnvironmentConfig = Field(default_factory=EnvironmentConfig)
     mechanism: MechanismSelection
     agents: list[AgentSelection] = Field(min_length=1)
