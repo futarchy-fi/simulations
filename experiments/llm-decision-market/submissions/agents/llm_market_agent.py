@@ -98,6 +98,7 @@ class LLMMarketAgent(AgentBase):
         parsed, raw, latency, error = self._call_llm(prompt)
         record = {
             "ts": time.time(),
+            **self._log_extra(),
             "shard_id": self.shard_id,
             "instance_uid": self.instance_uid,
             "model": self.model,
@@ -125,6 +126,9 @@ class LLMMarketAgent(AgentBase):
         return contribution
 
     # -------------------------------------------------------------- helpers
+
+    def _log_extra(self) -> dict:
+        return {"agent_type": self.agent_id}
 
     def _round_index(self, public_history: list[object]) -> int:
         if not public_history:
