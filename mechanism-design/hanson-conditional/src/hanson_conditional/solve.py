@@ -35,6 +35,8 @@ class HansonSolveResult:
     by_omega: Dict[str, Dict[str, float]] = field(default_factory=dict)
     decision_accuracy: float = 0.0  # P[chosen policy yields M=1] averaged over omega
     elapsed_seconds: float = 0.0
+    # CFR average policy (referenced; not serialised by default).
+    policy: Optional[pyspiel.Policy] = None
 
 
 def _walk(state: pyspiel.State, policy: pyspiel.Policy, weight: float = 1.0):
@@ -83,6 +85,7 @@ def solve(
             print(f"  final nash_conv = {nc:.6e}")
     result.elapsed_seconds = time.time() - t0
     avg_policy = solver.average_policy()
+    result.policy = avg_policy
 
     # Per-omega aggregation under the equilibrium policy.
     correct_total = 0.0
@@ -111,6 +114,82 @@ def solve(
         correct_total += correct_prob / total_weight
     result.decision_accuracy = correct_total / len(STATES)
     return result
+
+
+def expected_profits(
+    game: HansonConditionalGame,
+    policy: pyspiel.Policy,
+) -> Dict[str, Dict[str, object]]:
+    """Expected per-player payoffs per omega under `policy`.
+
+    For each omega records:
+
+    * ``returns``     -- expected terminal returns per player, INCLUDING
+                         the manipulator's decision bonus;
+    * ``market_pnl``  -- expected pure market P&L per player (the
+                         manipulator's bonus is stripped out);
+    * ``decision_A_prob`` -- probability policy A is implemented.
+
+    ``__aggregate__`` averages over the uniform prior and includes
+    ``decision_accuracy`` = P[metric realised under the chosen policy].
+    """
+    import numpy as np
+
+    mp = game.manipulator_player
+    bonus = game.manipulator_bonus
+    preferred = 0 if game.manipulator_prefers_A == 1 else 1
+    out: Dict[str, Dict[str, object]] = {}
+    agg_returns = np.zeros(3)
+    agg_market = np.zeros(3)
+    acc = 0.0
+    for omega_idx, label in enumerate(STATE_LABELS):
+        root = game.new_initial_state()
+        root.apply_action(omega_idx)
+        returns_acc = np.zeros(3)
+        market_acc = np.zeros(3)
+        a_prob = 0.0
+        metric_prob = 0.0
+        total_w = 0.0
+
+        def _walk(state, weight):
+            nonlocal returns_acc, market_acc, a_prob, metric_prob, total_w
+            if state.is_terminal():
+                ret = np.asarray(state.returns())
+                market = ret.copy()
+                winning = state._winning_market()
+                if 0 <= mp <= 2 and bonus != 0.0 and winning == preferred:
+                    market[mp] -= bonus
+                returns_acc += weight * ret
+                market_acc += weight * market
+                if winning == 0:
+                    a_prob += weight
+                metric_prob += weight * metric_under_policy(winning, omega_idx)
+                total_w += weight
+                return
+            for action, prob in policy.action_probabilities(state).items():
+                if prob > 0.0:
+                    _walk(state.child(action), weight * prob)
+
+        _walk(root, 1.0)
+        returns_acc /= total_w
+        market_acc /= total_w
+        a_prob /= total_w
+        metric_prob /= total_w
+        out[label] = {
+            "returns": returns_acc.tolist(),
+            "market_pnl": market_acc.tolist(),
+            "decision_A_prob": float(a_prob),
+            "metric_realised_prob": float(metric_prob),
+        }
+        agg_returns += returns_acc / len(STATES)
+        agg_market += market_acc / len(STATES)
+        acc += metric_prob / len(STATES)
+    out["__aggregate__"] = {
+        "returns": agg_returns.tolist(),
+        "market_pnl": agg_market.tolist(),
+        "decision_accuracy": float(acc),
+    }
+    return out
 
 
 def _mc_per_omega_stats(game, policy, n_samples: int, seed: int = 0) -> dict:
@@ -182,10 +261,11 @@ def mccfr_solve(
         if verbose:
             print(f"  final nash_conv = {nc:.6e}", flush=True)
     result.elapsed_seconds = time.time() - t0
+    result.policy = policy
     mc = _mc_per_omega_stats(game, policy, n_samples=mc_samples)
     result.by_omega = mc["by_omega"]
     result.decision_accuracy = mc["decision_accuracy"]
     return result
 
 
-__all__ = ["HansonSolveResult", "solve", "mccfr_solve"]
+__all__ = ["HansonSolveResult", "solve", "mccfr_solve", "expected_profits"]

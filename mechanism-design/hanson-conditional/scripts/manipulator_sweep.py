@@ -16,11 +16,11 @@ _REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(_REPO / "src"))
 
 from hanson_conditional.game import HansonConditionalGame  # noqa: E402
-from hanson_conditional.solve import solve  # noqa: E402
+from hanson_conditional.solve import expected_profits, solve  # noqa: E402
 
 
-BONUSES = [0.0, 0.005, 0.02, 0.05, 0.2]
-ITERATIONS = 40
+BONUSES = [0.0, 0.005, 0.02, 0.05, 0.1, 0.2]
+ITERATIONS = 200
 ACTIONS = 7
 ROUNDS = 3
 
@@ -42,13 +42,23 @@ def main() -> None:
         res = solve(game, iterations=ITERATIONS, verbose=False)
         elapsed = time.time() - t0
         nc = res.nash_conv_trace[-1][1] if res.nash_conv_trace else float("nan")
+        profits = expected_profits(game, res.policy)
+        agg = profits["__aggregate__"]
         print(f"  done in {elapsed:.1f}s  nash_conv={nc:.3e}  "
-              f"decision_accuracy={res.decision_accuracy:.4f}", flush=True)
+              f"decision_accuracy={res.decision_accuracy:.4f}  "
+              f"manip market pnl={agg['market_pnl'][0]:+.5f}", flush=True)
         results[bonus] = {
             "elapsed": elapsed,
             "nash_conv": nc,
             "decision_accuracy": res.decision_accuracy,
-            "by_omega": {label: dict(stats) for label, stats in res.by_omega.items()},
+            "aggregate": agg,
+            "by_omega": {
+                label: dict(stats, **{
+                    "returns": profits[label]["returns"],
+                    "market_pnl": profits[label]["market_pnl"],
+                })
+                for label, stats in res.by_omega.items()
+            },
         }
 
     out_path = _REPO / "results" / "hanson_manipulator_sweep.json"
@@ -60,12 +70,15 @@ def main() -> None:
 
     print()
     print("=== Hanson manipulation surplus ===")
-    print(f"bonus   |  decision_accuracy  |  P(A wins | ω=f)  |  P(A wins | ω=g)")
+    print("bonus   | dec_acc | P(A|ω=f) | P(A|ω=g) | manip mkt pnl | informed pnl")
     for bonus in BONUSES:
         r = results[bonus]
         f_p = r["by_omega"]["f"]["decision_A_prob"]
         g_p = r["by_omega"]["g"]["decision_A_prob"]
-        print(f"{bonus:6.3f}  |       {r['decision_accuracy']:.4f}      |     {f_p:.4f}       |     {g_p:.4f}")
+        agg = r["aggregate"]
+        informed = agg["market_pnl"][1] + agg["market_pnl"][2]
+        print(f"{bonus:6.3f}  | {r['decision_accuracy']:.4f}  |  {f_p:.4f}  |  {g_p:.4f}  |"
+              f"   {agg['market_pnl'][0]:+.5f}    |  {informed:+.5f}")
     print()
     print(f"Total elapsed: {time.time() - t_start:.1f}s")
     print(f"Wrote {out_path}")

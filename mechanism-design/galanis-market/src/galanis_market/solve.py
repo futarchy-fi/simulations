@@ -241,6 +241,75 @@ def _populate_price_stats(
     result.median_log_error = median_log_err_accum / len(STATES)
 
 
+def expected_profits(
+    game: GalanisMarketGame,
+    policy: pyspiel.Policy,
+    decision_threshold: float = 0.5,
+) -> Dict[str, Dict[str, object]]:
+    """Expected per-player payoffs and a decision proxy, per omega.
+
+    Walks the full game tree under `policy` and records, for each chance
+    outcome omega:
+
+    * ``returns``      -- expected terminal returns per player, INCLUDING
+                          any manipulator bonus term;
+    * ``market_pnl``   -- expected pure LMSR trading profit per player
+                          (excludes the manipulator's out-of-market bonus);
+    * ``p_high``       -- probability that the final price is at or above
+                          ``decision_threshold`` (a decision proxy for a
+                          would-be sponsor who acts iff the market says
+                          the event is more likely than not).
+
+    Also returns an ``__aggregate__`` entry averaging over the uniform
+    prior, including ``decision_accuracy`` = P[1{p >= thr} == X].
+    """
+    out: Dict[str, Dict[str, object]] = {}
+    agg_returns = np.zeros(3)
+    agg_market = np.zeros(3)
+    acc = 0.0
+    for omega_idx in range(len(STATES)):
+        root = game.new_initial_state()
+        root.apply_action(omega_idx)
+        x = game.structure.x_of(STATES[omega_idx])
+        returns_acc = np.zeros(3)
+        market_acc = np.zeros(3)
+        p_high = 0.0
+        total_w = 0.0
+
+        def _walk(state, weight):
+            nonlocal p_high, total_w, returns_acc, market_acc
+            if state.is_terminal():
+                returns_acc += weight * np.asarray(state.returns())
+                market_acc += weight * np.asarray(state._trader_profit)
+                if state.final_price() >= decision_threshold:
+                    p_high += weight
+                total_w += weight
+                return
+            for action, prob in policy.action_probabilities(state).items():
+                if prob > 0.0:
+                    _walk(state.child(action), weight * prob)
+
+        _walk(root, 1.0)
+        returns_acc /= total_w
+        market_acc /= total_w
+        p_high /= total_w
+        out[STATE_LABELS[omega_idx]] = {
+            "x": float(x),
+            "returns": returns_acc.tolist(),
+            "market_pnl": market_acc.tolist(),
+            "p_high": float(p_high),
+        }
+        agg_returns += returns_acc / len(STATES)
+        agg_market += market_acc / len(STATES)
+        acc += (p_high if x == 1 else 1.0 - p_high) / len(STATES)
+    out["__aggregate__"] = {
+        "returns": agg_returns.tolist(),
+        "market_pnl": agg_market.tolist(),
+        "decision_accuracy": float(acc),
+    }
+    return out
+
+
 def _final_price_distribution(
     state: pyspiel.State,
     policy: pyspiel.Policy,
@@ -311,4 +380,4 @@ def solve_all(
     return results
 
 
-__all__ = ["SolveResult", "solve", "solve_all"]
+__all__ = ["SolveResult", "solve", "solve_all", "expected_profits"]
