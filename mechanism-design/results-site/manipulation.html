@@ -1,0 +1,802 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bribed markets go blind, not biased</title>
+<style>
+  :root {
+    --fg: #1a1a1a;
+    --muted: #5a5a5a;
+    --rule: #d6d6d6;
+    --bg: #fafafa;
+    --accent: #b3261e;
+    --code-bg: #f0eee6;
+    /* chart chrome + validated series palette (light) */
+    --surface-1: #fcfcfb;
+    --ink-1: #0b0b0b;
+    --ink-2: #52514e;
+    --ink-3: #898781;
+    --grid: #e1e0d9;
+    --axis: #c3c2b7;
+    --s-blue: #2a78d6;
+    --s-aqua: #1baf7a;
+    --s-yellow: #eda100;
+    --s-red: #e34948;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --fg: #e8e6e0;
+      --muted: #a8a69e;
+      --rule: #3a3a38;
+      --bg: #141413;
+      --accent: #e66767;
+      --code-bg: #242422;
+      --surface-1: #1a1a19;
+      --ink-1: #ffffff;
+      --ink-2: #c3c2b7;
+      --ink-3: #898781;
+      --grid: #2c2c2a;
+      --axis: #383835;
+      --s-blue: #3987e5;
+      --s-aqua: #199e70;
+      --s-yellow: #c98500;
+      --s-red: #e66767;
+    }
+  }
+  html { background: var(--bg); }
+  body {
+    max-width: 720px;
+    margin: 3rem auto;
+    padding: 0 1.25rem;
+    color: var(--fg);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-size: 17px;
+    line-height: 1.55;
+  }
+  h1 { font-size: 1.7rem; margin: 0 0 0.25rem; line-height: 1.2; }
+  .subtitle { color: var(--muted); font-style: italic; margin: 0 0 1.5rem; }
+  .meta {
+    color: var(--muted); font-size: 0.85rem; margin: 0 0 2rem;
+    padding-bottom: 1rem; border-bottom: 1px solid var(--rule);
+  }
+  h2 { font-size: 1.15rem; margin: 2rem 0 0.5rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.25rem; }
+  h3 { font-size: 1rem; margin: 1.25rem 0 0.25rem; }
+  p { margin: 0.6rem 0; }
+  code, pre {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: var(--code-bg); font-size: 0.88em;
+  }
+  code { padding: 0 0.25em; border-radius: 2px; }
+  pre { padding: 0.7rem 0.9rem; border-radius: 4px; overflow-x: auto; line-height: 1.45; }
+  table {
+    border-collapse: collapse; width: 100%; margin: 0.5rem 0 1rem;
+    font-size: 0.9rem;
+  }
+  th, td { border-bottom: 1px solid var(--rule); padding: 0.35rem 0.5rem; text-align: left; vertical-align: top; }
+  th { font-weight: 600; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.bad { color: var(--accent); font-weight: 600; }
+  .callout {
+    background: var(--code-bg); padding: 0.8rem 1rem;
+    border-left: 3px solid var(--accent); margin: 1rem 0; font-size: 0.95rem;
+  }
+  ul, ol { margin: 0.5rem 0; padding-left: 1.4rem; }
+  li { margin: 0.2rem 0; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; }
+  a:hover { border-bottom-color: var(--accent); }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 2rem 0; }
+  .footer { color: var(--muted); font-size: 0.85rem; margin-top: 3rem; }
+
+  /* chart blocks: sans chrome on a card surface */
+  .fig {
+    background: var(--surface-1);
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 1rem 1rem 0.6rem;
+    margin: 1rem 0;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .fig-title { font-size: 0.85rem; font-weight: 600; color: var(--ink-1); margin: 0 0 0.1rem; }
+  .fig-sub { font-size: 0.78rem; color: var(--ink-2); margin: 0 0 0.5rem; }
+  .legend { display: flex; flex-wrap: wrap; gap: 0.9rem; font-size: 0.75rem; color: var(--ink-2); margin: 0.2rem 0 0.3rem; }
+  .legend .key { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .legend .swatch { width: 16px; height: 0; border-top: 2.5px solid; border-radius: 2px; }
+  .legend .swatch.dot { width: 9px; height: 9px; border: 0; border-radius: 50%; }
+  .legend .swatch.dashed { border-top-style: dashed; }
+  svg text { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .chart-wrap { position: relative; }
+  #tooltip {
+    position: fixed; pointer-events: none; z-index: 10; display: none;
+    background: var(--surface-1); color: var(--ink-1);
+    border: 1px solid var(--rule); border-radius: 5px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 0.75rem; padding: 0.4rem 0.6rem; line-height: 1.5;
+    max-width: 240px;
+  }
+  #tooltip .tt-x { color: var(--ink-2); margin-bottom: 2px; }
+  #tooltip .row { display: flex; align-items: center; gap: 0.4rem; }
+  #tooltip .row .k { width: 12px; border-top: 2.5px solid; border-radius: 1px; flex: none; }
+  #tooltip .row .v { font-weight: 600; }
+  #tooltip .row .n { color: var(--ink-2); }
+</style>
+</head>
+<body>
+
+<h1>Bribed markets go blind, not biased</h1>
+<p class="subtitle">Equilibrium corruption-resistance of small decision markets: what a bounty actually buys, solved with tabular CFR+.</p>
+<p class="meta">July 2026 · <code>mechanism-design/</code> in futarchy-fi/simulations · OpenSpiel CFR+ · companion to <a href="../MANIPULATION.md">MANIPULATION.md</a></p>
+
+<h2>The question</h2>
+
+<p>
+Suppose a small prediction market is the oversight layer for a collective of agents: a handful of traders, each holding a private piece of the evidence, an automated market maker, and an explicit decision rule that reads the price and acts on it. The first-order attack on such a market is a <strong>bounty</strong>: someone outside the market gains from decision D and offers one trader a side payment conditional on D.
+</p>
+
+<p>
+Robin Hanson's classic answer (<a href="https://hanson.gmu.edu/biashelp.pdf">manipulation-as-subsidy</a>) says don't worry: a trader pushing prices for non-informational reasons is a predictable noise trader, and their expected losses become a subsidy that pays informed traders to correct the price. Manipulation should make prices <em>more</em> accurate.
+</p>
+
+<p>
+We test that claim <em>at equilibrium</em> — every trader, including the bribed one, plays a best response, and everyone knows the bounty exists. Games are solved with tabular CFR+ (OpenSpiel), NashConv ≤ 6×10⁻⁴ on every reported row, usually ≤ 3×10⁻⁵. Equilibrium play is the <em>ceiling</em> on trader rationality: real (human or LLM) traders will do worse, so whatever fragility appears here is a lower bound on the fragility of a deployed market.
+</p>
+
+<h2>The game</h2>
+
+<ul>
+  <li>Nature draws a state ω = (d<sub>a</sub>, d<sub>b</sub>, d<sub>c</sub>) uniformly from {0,1}³ — eight states, labeled <em>a</em>…<em>h</em>.</li>
+  <li>Three traders; trader <em>i</em> privately observes one bit, plus the full public trade history. Three rounds, fixed rotation, one quote each.</li>
+  <li>The market is an LMSR (b = 0.01) on the security X = 1{at least 2 of the 3 bits are 1}. Traders pick a target price from a 9-point grid; the market maker takes the other side.</li>
+  <li>A proxy decision rule acts iff the final price ≥ 0.5. <strong>Decision accuracy</strong> = P[the action matches the truth], averaged over ω. With all information aggregated it is 1.0 here.</li>
+  <li>The <strong>manipulator</strong>'s utility = market P&amp;L + bounty · (final price − 0.5): they are paid to push the price up, whatever the truth. Everyone's strategy — including how the others <em>discount</em> the manipulator — is solved jointly.</li>
+</ul>
+
+<p>
+For scale: an honest seat's expected profit per market is ≈ 0.001–0.007 (payout notional = 1), and pushing the LMSR price from 0.5 to 0.9 against the truth costs ≈ 0.016. Bounties are swept from 0 to 0.2 (≈ 30–170× a seat's honest profit). Two sibling mechanisms — Hanson-style paired conditional markets and a MetaDAO-style constant-product AMM — were solved under the same information structure with a flat bounty on "policy A implemented."
+</p>
+
+<h2>Phase 1 — replace an informed trader with a manipulator</h2>
+
+<p>
+In the first sweep the bribed player is one of the three informed traders. The pattern is the same in all three mechanisms: below a threshold bounty, nothing happens — literally the same equilibrium. Above it, decisions degrade and stay degraded. The subsidy is real; the accuracy is not recovered.
+</p>
+
+<div class="fig">
+  <div class="fig-title">Decision accuracy vs. bounty — three mechanisms, bribed insider</div>
+  <div class="fig-sub">Each point is a separately solved equilibrium. Full-information optimum is 0.875 for the two conditional-decision mechanisms, 1.0 for the single LMSR market.</div>
+  <div class="legend" id="legend-phase1"></div>
+  <div class="chart-wrap" id="chart-phase1"></div>
+</div>
+
+<table>
+  <thead><tr><th>bounty</th><th class="num">Galanis LMSR</th><th class="num">Hanson conditional</th><th class="num">MetaDAO CFMM</th></tr></thead>
+  <tbody>
+    <tr><td>0</td><td class="num">1.000</td><td class="num">0.752</td><td class="num">0.875</td></tr>
+    <tr><td>0.005</td><td class="num">—</td><td class="num">0.753</td><td class="num bad">0.776</td></tr>
+    <tr><td>0.01</td><td class="num">1.000</td><td class="num">—</td><td class="num">—</td></tr>
+    <tr><td>0.02</td><td class="num">0.999</td><td class="num">0.803</td><td class="num">0.756</td></tr>
+    <tr><td>0.05</td><td class="num bad">0.796</td><td class="num bad">0.679</td><td class="num">0.799</td></tr>
+    <tr><td>0.10</td><td class="num">0.750</td><td class="num">0.679</td><td class="num">0.810</td></tr>
+    <tr><td>0.20</td><td class="num">0.750</td><td class="num">0.679</td><td class="num bad">0.685</td></tr>
+  </tbody>
+</table>
+
+<p>
+Headline numbers at the saturating bounty: the manipulator loses money in the market (−0.002 to −0.018), the informed traders' profits rise, and in the two decision-market mechanisms the informed side captures <strong>77–91%</strong> of the manipulator's trading losses. Hanson's <em>transfer</em> is exactly right. But accuracy falls anyway: 1.00 → 0.75 (LMSR), 0.752 → 0.679 (Hanson), 0.875 → 0.685 (MetaDAO). The subsidy pays the honest traders; it does not buy back the decisions.
+</p>
+
+<div class="callout">
+<strong>Bribed markets go blind, not biased.</strong> The equilibrium defence against a known manipulator is not "trade against them harder" — it is <em>stop believing their trades</em>. But in a small market the manipulator holds a real piece of the evidence, so discounting them deletes that piece from the aggregate. Prices in the states where their bit was pivotal park at exactly the posterior-without-their-signal (0.5) — not at 0.9 in the bribed direction. A monitor watching for suspiciously favourable prices sees nothing; the corruption shows up as <em>lost resolution</em>, precisely in the states where the bribed seat's evidence was decisive.
+</div>
+
+<div class="fig">
+  <div class="fig-title">Equilibrium mean price by state — Galanis LMSR, honest vs. bribed insider</div>
+  <div class="fig-sub">States b, c, f, g are the ones where the bribed trader's bit is pivotal: their price collapses to the no-signal posterior 0.5. Nothing moves toward 0.9.</div>
+  <div class="legend" id="legend-states"></div>
+  <div class="chart-wrap" id="chart-states"></div>
+</div>
+
+<table>
+  <thead><tr><th>state ω</th><th>(d<sub>a</sub>,d<sub>b</sub>,d<sub>c</sub>)</th><th class="num">truth X</th><th class="num">price, honest</th><th class="num">price, bounty 0.2</th></tr></thead>
+  <tbody>
+    <tr><td>a</td><td>(1,1,1)</td><td class="num">1</td><td class="num">0.90</td><td class="num">0.90</td></tr>
+    <tr><td>b</td><td>(1,1,0)</td><td class="num">1</td><td class="num">0.90</td><td class="num bad">0.50</td></tr>
+    <tr><td>c</td><td>(1,0,1)</td><td class="num">1</td><td class="num">0.90</td><td class="num bad">0.50</td></tr>
+    <tr><td>d</td><td>(1,0,0)</td><td class="num">0</td><td class="num">0.10</td><td class="num">0.10</td></tr>
+    <tr><td>e</td><td>(0,1,1)</td><td class="num">1</td><td class="num">0.90</td><td class="num">0.90</td></tr>
+    <tr><td>f</td><td>(0,1,0)</td><td class="num">0</td><td class="num">0.10</td><td class="num bad">0.50</td></tr>
+    <tr><td>g</td><td>(0,0,1)</td><td class="num">0</td><td class="num">0.10</td><td class="num bad">0.50</td></tr>
+    <tr><td>h</td><td>(0,0,0)</td><td class="num">0</td><td class="num">0.10</td><td class="num">0.10</td></tr>
+  </tbody>
+</table>
+
+<p>
+Two corollaries. First, <strong>the briber never actually buys the decision</strong>: even at a bounty ≈ 170× the bribed seat's honest profit, the probability the favoured policy is implemented moves to roughly a coin flip, never to certainty. What the briber gets cheaply is <em>degradation</em> — an adversary who wants to blind the oversight layer, rather than steer it, gets excellent value. Second, the bribed trader comes out ahead overall (bounty receipts exceed market losses), so "manipulators lose money" is true only of their market book.
+</p>
+
+<h2>Phase 2a — entry: is a bribed trader worse than no trader at all?</h2>
+
+<p>
+Phase 1 replaced an informed trader, so the manipulator's seat came bundled with a third of the evidence. The sharper question for market design is about <strong>entry</strong>: you run an honest 2-trader market (bits <em>b</em>, <em>c</em> observed; bit <em>a</em> exists but nobody sees it — decision accuracy 0.750). Someone shows up offering to trade. Do you let them in?
+</p>
+
+<ul>
+  <li><strong>T1</strong> — entrant with <em>no</em> private information, possibly bribed (Hanson's pure noise trader).</li>
+  <li><strong>T2</strong> — entrant who <em>uniquely observes bit a</em>, possibly bribed. Honest T2 entry takes the market to accuracy 1.0.</li>
+  <li><strong>T3</strong> — entrant with a <em>redundant</em> signal (bit <em>b</em>, already held by an incumbent), possibly bribed.</li>
+</ul>
+
+<p>
+Because the decision rule reads the <em>final</em> price, we solve each treatment twice: entrant moving <strong>first</strong> (both honest traders can answer) and <strong>last</strong> (nobody can).
+</p>
+
+<div class="fig">
+  <div class="fig-title">Decision accuracy vs. bounty — entrant first vs. entrant last</div>
+  <div class="fig-sub">Gray references: honest 2-trader baseline BASE-2 = 0.75; full 3-trader honest market = 1.0. Final-price decision rule.</div>
+  <div class="legend" id="legend-entry"></div>
+  <div class="chart-wrap" id="chart-entry"></div>
+</div>
+
+<table>
+  <thead><tr><th>bounty</th><th class="num">T1 first</th><th class="num">T1 last</th><th class="num">T2 first</th><th class="num">T2 last</th><th class="num">T3 first</th><th class="num">T3 last</th></tr></thead>
+  <tbody>
+    <tr><td>0</td><td class="num">0.750</td><td class="num">0.750</td><td class="num">1.000</td><td class="num">1.000</td><td class="num">0.750</td><td class="num">0.750</td></tr>
+    <tr><td>0.02</td><td class="num">0.750</td><td class="num bad">0.500</td><td class="num">0.999</td><td class="num bad">0.500</td><td class="num">0.750</td><td class="num bad">0.500</td></tr>
+    <tr><td>0.05</td><td class="num">0.750</td><td class="num bad">0.500</td><td class="num">0.796</td><td class="num bad">0.500</td><td class="num">0.750</td><td class="num bad">0.500</td></tr>
+    <tr><td>0.20</td><td class="num">0.750</td><td class="num bad">0.500</td><td class="num">0.750</td><td class="num bad">0.500</td><td class="num">0.750</td><td class="num bad">0.500</td></tr>
+  </tbody>
+</table>
+
+<p>Three clean answers:</p>
+
+<ol>
+  <li><strong>If the honest side gets the last word, entry never hurts.</strong> T1-first and T3-first sit at exactly the BASE-2 equilibrium for every bounty — the market simply ignores the entrant. T2-first degrades as the bounty grows but bottoms out <em>exactly</em> at BASE-2: per-state prices at bounty 0.2 are identical to the 2-trader market's. Information exclusion is the floor: the worst a bribed-but-answerable entrant can do is make things as if their information never existed.</li>
+  <li><strong>A bribed last-mover breaks the floor — and information has nothing to do with it.</strong> With the entrant in the last seat, accuracy collapses to 0.500 &lt; 0.750 at every positive bounty, identically for T1, T2 and T3. An entrant with <em>zero information</em> does exactly as much damage as one holding the pivotal bit. The channel is mechanical: the decision rule reads a price nobody can correct. At bounty 0.02 the bribed last-mover pushes just to the 0.5 decision threshold (any further isn't worth the LMSR cost); at 0.2 they slam every state to 0.9.</li>
+  <li><strong>The Hanson subsidy dies in the last seat.</strong> First-seat manipulation transfers the manipulator's losses to the informed traders, as in phase 1. Last-seat manipulation transfers nothing: informed profits are unchanged at every bounty, because nobody gets to trade against the final push. The manipulator's losses flow to the market maker. Manipulation-as-subsidy requires a counterparty; a last mover's only counterparty is the AMM.</li>
+</ol>
+
+<h2>Phase 2b — a TWAP decision rule</h2>
+
+<p>
+The last-mover result says the vulnerability is not in the market but in <em>what the decision rule reads</em>. So change it: act iff the <strong>time-averaged</strong> price across all trades (TWAP) ≥ 0.5, and let the manipulator's bounty also pay on the time-average. This changes payoffs, so every game is re-solved from scratch.
+</p>
+
+<div class="fig">
+  <div class="fig-title">Final-price rule vs. TWAP rule — accuracy under the worst entrant positions</div>
+  <div class="fig-sub">Same games, different decision statistic; each point a fresh equilibrium. TWAP-TABLE-SUB</div>
+  <div class="legend" id="legend-twap"></div>
+  <div class="chart-wrap" id="chart-twap"></div>
+</div>
+
+<table id="twap-table">
+  <thead><tr><th rowspan="2">bounty</th><th colspan="2" style="text-align:center">T2 last (unique info)</th><th colspan="2" style="text-align:center">T1 last (no info)</th><th colspan="2" style="text-align:center">T2 first</th><th colspan="2" style="text-align:center">replacement (phase 1)</th></tr>
+  <tr><th class="num">final</th><th class="num">TWAP</th><th class="num">final</th><th class="num">TWAP</th><th class="num">final</th><th class="num">TWAP</th><th class="num">final</th><th class="num">TWAP</th></tr></thead>
+  <tbody id="twap-tbody">
+  </tbody>
+</table>
+
+<p id="twap-verdict">
+</p>
+
+<h2>Phase 2c — type uncertainty: can a manipulator hide?</h2>
+
+<p>
+Everything above makes the bounty common knowledge. The realistic threat is covert: traders know an entrant <em>might</em> be bribed but not whether this one is. We add a chance move — with probability q the T2 entrant is bribed (saturation bounty 0.2), with 1−q honest — observed by the entrant alone, and solve at q ∈ {0.25, 0.5}. Does the bribed type hide in the honest pool and keep influence he loses under common knowledge? Does suspicion degrade the honest type's usefulness?
+</p>
+
+<table id="t2u-table">
+  <thead><tr><th>config</th><th class="num">acc | honest type</th><th class="num">acc | bribed type</th><th class="num">expected acc</th><th class="num">known-type mixture</th></tr></thead>
+  <tbody id="t2u-tbody">
+  </tbody>
+</table>
+
+<p id="t2u-verdict">
+</p>
+
+<h2>What this means for market design</h2>
+
+<ul>
+  <li><strong>Measure corruption resistance as the bounty at which decisions change</strong>, in units of a seat's honest profit. Here: ~15–40× for LMSR mechanisms, &lt;1× for the CFMM at comparable liquidity. Manipulator losses are far too small (≈0.3–1.8% of notional) to deter a briber who values the decision.</li>
+  <li><strong>Watch for information exclusion, not price bias.</strong> The observable symptom of equilibrium corruption is pivotal-state prices parking at the no-signal posterior — lost resolution, not favourable prices.</li>
+  <li><strong>Never let a single trade own the statistic the decision reads.</strong> The cheapest corruption in every sweep was the last-mover attack on a final-price rule — and it required no information at all. Time-averaging fixes exactly that channel, at the cost of letting early pollution linger in the average: the decision statistic should be chosen jointly with who can trade when.</li>
+  <li><strong>Openness is cheap when order is right.</strong> Letting possibly-bribed entrants in cost nothing (vs. excluding them and their information) as long as honest traders could answer them before the decision reads.</li>
+</ul>
+
+<h2>Honest limitations</h2>
+
+<ul>
+  <li><strong>Three traders, one bit each.</strong> This is the thin-market extreme, where excluding one trader deletes a third of the evidence. With many partially-redundant traders Hanson's subsidy has room to repair prices; these results establish the thin end, not the general case.</li>
+  <li><strong>Tabular discretisation.</strong> 9-point price grid, 3 rounds, one quote per trader. The 0.9/0.1 price floor is a grid artifact; threshold locations (0.02–0.05) are specific to b = 0.01 liquidity and should be read as "a few multiples of the honest cost to move the price," not absolutes. The tie-goes-to-act rule interacts with the 0.5 grid point.</li>
+  <li><strong>CFR+ in 3-player general-sum games converges to a coarse correlated equilibrium</strong>, not necessarily Nash; the non-monotonicities (Hanson's improvement at bounty 0.02, MetaDAO's partial recovery) are equilibrium-selection phenomena. NashConv ≤ 6×10⁻⁴ everywhere, so each profile is at least a near-equilibrium.</li>
+  <li><strong>Equilibrium ≠ behaviour.</strong> Real traders — human or LLM — do not play best responses. Galanis (2026, <a href="https://arxiv.org/abs/2604.20050">arXiv:2604.20050</a>) shows LLM traders degrade with structural complexity where the equilibrium does not; Ouyang &amp; Sui (2026, <a href="https://arxiv.org/abs/2604.18373">arXiv:2604.18373</a>) show they carry human behavioural biases. Behavioural traders may fail to discount a manipulator (worse than here) or over-discount honest trades (differently bad). The behavioural companion experiment is planned.</li>
+</ul>
+
+<h2>Reproduce</h2>
+
+<pre>cd mechanism-design/galanis-market && pip install -e . && pytest -q
+python scripts/manipulator_sweep.py            # phase 1 (Galanis LMSR)
+python scripts/entry_sweep.py                  # phase 2a (final-price rule)
+python scripts/entry_sweep.py --twap           # phase 2b (TWAP re-solves)
+python scripts/t2u_sweep.py --qs 0.25,0.5      # phase 2c (type uncertainty)
+# siblings: ../hanson-conditional and ../metadao-cfmm, scripts/manipulator_sweep.py</pre>
+
+<hr>
+
+<p class="footer">
+Code and raw equilibria in <code>mechanism-design/</code> (galanis-market, hanson-conditional, metadao-cfmm) ·
+OpenSpiel tabular CFR+ · full writeup with per-state tables in <a href="../MANIPULATION.md">MANIPULATION.md</a>.
+</p>
+
+<div id="tooltip" role="status"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var css = getComputedStyle(document.documentElement);
+  function C(name) { return css.getPropertyValue(name).trim(); }
+
+  // ---------- data ----------
+  var PHASE1 = {
+    xs: ["0", "0.005", "0.01", "0.02", "0.05", "0.1", "0.2"],
+    series: [
+      { name: "Galanis LMSR", color: "--s-blue",
+        ys: [1.000, null, 1.000, 0.999, 0.796, 0.750, 0.750] },
+      { name: "Hanson conditional", color: "--s-aqua",
+        ys: [0.752, 0.753, null, 0.803, 0.679, 0.679, 0.679] },
+      { name: "MetaDAO CFMM", color: "--s-yellow",
+        ys: [0.875, 0.776, null, 0.756, 0.799, 0.810, 0.685] }
+    ]
+  };
+
+  var STATES = {
+    xs: ["a 1", "b 1", "c 1", "d 0", "e 1", "f 0", "g 0", "h 0"],
+    series: [
+      { name: "honest (bounty 0)", color: "--s-blue",
+        ys: [0.90, 0.90, 0.90, 0.10, 0.90, 0.10, 0.10, 0.10] },
+      { name: "bribed insider (bounty 0.2)", color: "--s-red",
+        ys: [0.90, 0.50, 0.50, 0.10, 0.90, 0.50, 0.50, 0.10] }
+    ]
+  };
+
+  var ENTRY_PANELS = [
+    { title: "T1 · no info", first: [0.750, 0.750, 0.750, 0.750], last: [0.750, 0.500, 0.500, 0.500] },
+    { title: "T2 · unique bit a", first: [1.000, 0.999, 0.796, 0.750], last: [1.000, 0.500, 0.500, 0.500] },
+    { title: "T3 · redundant bit", first: [0.750, 0.750, 0.750, 0.750], last: [0.750, 0.500, 0.500, 0.500] }
+  ];
+  var ENTRY_XS = ["0", "0.02", "0.05", "0.2"];
+
+  // Filled in by the TWAP results block below (patched from solved JSONs).
+  var TWAP = window.__TWAP_DATA__;
+
+  // ---------- shared helpers ----------
+  var tooltip = document.getElementById("tooltip");
+
+  function showTooltip(evt, xlabel, rows) {
+    tooltip.innerHTML = "";
+    var tx = document.createElement("div");
+    tx.className = "tt-x";
+    tx.textContent = xlabel;
+    tooltip.appendChild(tx);
+    rows.forEach(function (r) {
+      if (r.value == null) return;
+      var row = document.createElement("div");
+      row.className = "row";
+      var k = document.createElement("span");
+      k.className = "k";
+      k.style.borderTopColor = C(r.color);
+      var v = document.createElement("span");
+      v.className = "v";
+      v.textContent = r.value.toFixed(3);
+      var n = document.createElement("span");
+      n.className = "n";
+      n.textContent = r.name;
+      row.appendChild(k); row.appendChild(v); row.appendChild(n);
+      tooltip.appendChild(row);
+    });
+    tooltip.style.display = "block";
+    var pad = 14;
+    var w = tooltip.offsetWidth, h = tooltip.offsetHeight;
+    var x = evt.clientX + pad, y = evt.clientY - h - pad;
+    if (x + w > window.innerWidth - 8) x = evt.clientX - w - pad;
+    if (y < 8) y = evt.clientY + pad;
+    tooltip.style.left = x + "px";
+    tooltip.style.top = y + "px";
+  }
+  function hideTooltip() { tooltip.style.display = "none"; }
+
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function el(name, attrs, parent) {
+    var e = document.createElementNS(SVGNS, name);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+
+  function legend(id, items) {
+    var box = document.getElementById(id);
+    if (!box) return;
+    items.forEach(function (it) {
+      var key = document.createElement("span");
+      key.className = "key";
+      var sw = document.createElement("span");
+      sw.className = "swatch" + (it.dot ? " dot" : "") + (it.dashed ? " dashed" : "");
+      if (it.dot) sw.style.background = C(it.color);
+      else sw.style.borderTopColor = C(it.color);
+      var t = document.createElement("span");
+      t.textContent = it.name;
+      key.appendChild(sw); key.appendChild(t);
+      box.appendChild(key);
+    });
+  }
+
+  // Ordinal-x line/dot chart with per-x hover columns and reference lines.
+  function lineChart(containerId, data, opts) {
+    opts = opts || {};
+    var wrap = document.getElementById(containerId);
+    if (!wrap) return;
+    var W = opts.width || 640, H = opts.height || 260;
+    var m = { top: 14, right: opts.rightPad || 96, bottom: 34, left: 44 };
+    var y0 = opts.yMin != null ? opts.yMin : 0.45;
+    var y1 = opts.yMax != null ? opts.yMax : 1.02;
+    var svg = el("svg", { viewBox: "0 0 " + W + " " + H, width: "100%", role: "img" }, wrap);
+    if (opts.desc) {
+      var d = el("desc", {}, svg);
+      d.textContent = opts.desc;
+    }
+    var iw = W - m.left - m.right, ih = H - m.top - m.bottom;
+    var n = data.xs.length;
+    function px(i) { return m.left + (n === 1 ? iw / 2 : i * iw / (n - 1)); }
+    function py(v) { return m.top + (y1 - v) / (y1 - y0) * ih; }
+
+    // gridlines + y ticks
+    (opts.yTicks || [0.5, 0.75, 1.0]).forEach(function (t) {
+      el("line", { x1: m.left, x2: m.left + iw, y1: py(t), y2: py(t),
+                   stroke: C("--grid"), "stroke-width": 1 }, svg);
+      var txt = el("text", { x: m.left - 8, y: py(t) + 3.5, "text-anchor": "end",
+                             "font-size": 11, fill: C("--ink-3") }, svg);
+      txt.textContent = t.toFixed(2);
+    });
+    // baseline + x ticks
+    el("line", { x1: m.left, x2: m.left + iw, y1: m.top + ih, y2: m.top + ih,
+                 stroke: C("--axis"), "stroke-width": 1 }, svg);
+    data.xs.forEach(function (x, i) {
+      var txt = el("text", { x: px(i), y: m.top + ih + 16, "text-anchor": "middle",
+                             "font-size": 11, fill: C("--ink-3") }, svg);
+      txt.textContent = x;
+    });
+    if (opts.xTitle) {
+      var xt = el("text", { x: m.left + iw / 2, y: H - 4, "text-anchor": "middle",
+                            "font-size": 11, fill: C("--ink-2") }, svg);
+      xt.textContent = opts.xTitle;
+    }
+    // reference lines
+    (opts.refs || []).forEach(function (r) {
+      el("line", { x1: m.left, x2: m.left + iw, y1: py(r.y), y2: py(r.y),
+                   stroke: C("--ink-3"), "stroke-width": 1, "stroke-dasharray": "4 4" }, svg);
+      var txt = el("text", { x: m.left + iw + 6, y: py(r.y) + 3.5,
+                             "font-size": 10.5, fill: C("--ink-3") }, svg);
+      txt.textContent = r.label;
+    });
+
+    // series lines
+    data.series.forEach(function (s) {
+      var dPath = "", started = false;
+      s.ys.forEach(function (v, i) {
+        if (v == null) return;
+        dPath += (started ? " L " : "M ") + px(i) + " " + py(v);
+        started = true;
+      });
+      el("path", { d: dPath, fill: "none", stroke: C(s.color), "stroke-width": 2,
+                   "stroke-linejoin": "round", "stroke-linecap": "round" }, svg);
+    });
+    // markers (surface ring under dot)
+    data.series.forEach(function (s) {
+      s.ys.forEach(function (v, i) {
+        if (v == null) return;
+        el("circle", { cx: px(i), cy: py(v), r: 6, fill: C("--surface-1") }, svg);
+        el("circle", { cx: px(i), cy: py(v), r: 4, fill: C(s.color) }, svg);
+      });
+    });
+    // selective direct end-labels
+    if (opts.endLabels !== false) {
+      var used = [];
+      data.series.forEach(function (s) {
+        var li = null;
+        for (var i = s.ys.length - 1; i >= 0; i--) if (s.ys[i] != null) { li = i; break; }
+        if (li == null) return;
+        var y = py(s.ys[li]);
+        while (used.some(function (u) { return Math.abs(u - y) < 13; })) y += 13;
+        used.push(y);
+        var txt = el("text", { x: px(li) + 10, y: y + 3.5, "font-size": 11,
+                               "font-weight": 600, fill: C("--ink-2") }, svg);
+        txt.textContent = s.name;
+      });
+    }
+    // hover columns: one per x, tooltip lists every series (keyboard focusable)
+    data.xs.forEach(function (x, i) {
+      var colW = n === 1 ? iw : iw / (n - 1);
+      var hit = el("rect", {
+        x: px(i) - colW / 2, y: m.top, width: colW, height: ih,
+        fill: "transparent", tabindex: 0
+      }, svg);
+      function rows() {
+        return data.series.map(function (s) {
+          return { name: s.name, color: s.color, value: s.ys[i] };
+        });
+      }
+      hit.addEventListener("pointermove", function (evt) {
+        showTooltip(evt, (opts.xTitle ? opts.xTitle + " " : "") + x, rows());
+      });
+      hit.addEventListener("pointerleave", hideTooltip);
+      hit.addEventListener("focus", function () {
+        var r = hit.getBoundingClientRect();
+        showTooltip({ clientX: r.left + r.width / 2, clientY: r.top + 30 },
+                    (opts.xTitle ? opts.xTitle + " " : "") + x, rows());
+      });
+      hit.addEventListener("blur", hideTooltip);
+    });
+  }
+
+  // Small multiples: shared y-axis, panels of 2 series + refs.
+  function smallMultiples(containerId, panels, xs, opts) {
+    var wrap = document.getElementById(containerId);
+    if (!wrap) return;
+    var W = 640, H = 240, gap = 26;
+    var m = { top: 24, right: 8, bottom: 34, left: 44 };
+    var svg = el("svg", { viewBox: "0 0 " + W + " " + H, width: "100%", role: "img" }, svg && null || wrap);
+    var pw = (W - m.left - m.right - gap * (panels.length - 1)) / panels.length;
+    var ih = H - m.top - m.bottom;
+    var y0 = 0.45, y1 = 1.03;
+    function py(v) { return m.top + (y1 - v) / (y1 - y0) * ih; }
+    // y ticks once
+    [0.5, 0.75, 1.0].forEach(function (t) {
+      var txt = el("text", { x: m.left - 8, y: py(t) + 3.5, "text-anchor": "end",
+                             "font-size": 11, fill: C("--ink-3") }, svg);
+      txt.textContent = t.toFixed(2);
+    });
+    panels.forEach(function (p, pi) {
+      var x0 = m.left + pi * (pw + gap);
+      function px(i) { return x0 + i * pw / (xs.length - 1); }
+      // grid + refs
+      [0.5, 0.75, 1.0].forEach(function (t) {
+        el("line", { x1: x0, x2: x0 + pw, y1: py(t), y2: py(t),
+                     stroke: C("--grid"), "stroke-width": 1 }, svg);
+      });
+      (opts.refs || []).forEach(function (r) {
+        el("line", { x1: x0, x2: x0 + pw, y1: py(r.y), y2: py(r.y),
+                     stroke: C("--ink-3"), "stroke-width": 1, "stroke-dasharray": "4 4" }, svg);
+      });
+      el("line", { x1: x0, x2: x0 + pw, y1: m.top + ih, y2: m.top + ih,
+                   stroke: C("--axis"), "stroke-width": 1 }, svg);
+      xs.forEach(function (x, i) {
+        var txt = el("text", { x: px(i), y: m.top + ih + 15, "text-anchor": "middle",
+                               "font-size": 10, fill: C("--ink-3") }, svg);
+        txt.textContent = x;
+      });
+      var title = el("text", { x: x0 + pw / 2, y: m.top - 9, "text-anchor": "middle",
+                               "font-size": 11.5, "font-weight": 600, fill: C("--ink-1") }, svg);
+      title.textContent = p.title;
+      var series = [
+        { name: "entrant first", color: "--s-blue", ys: p.first },
+        { name: "entrant last", color: "--s-red", ys: p.last }
+      ];
+      series.forEach(function (s) {
+        var dPath = "";
+        s.ys.forEach(function (v, i) { dPath += (i ? " L " : "M ") + px(i) + " " + py(v); });
+        el("path", { d: dPath, fill: "none", stroke: C(s.color), "stroke-width": 2,
+                     "stroke-linejoin": "round", "stroke-linecap": "round" }, svg);
+      });
+      series.forEach(function (s) {
+        s.ys.forEach(function (v, i) {
+          el("circle", { cx: px(i), cy: py(v), r: 5.5, fill: C("--surface-1") }, svg);
+          el("circle", { cx: px(i), cy: py(v), r: 3.5, fill: C(s.color) }, svg);
+        });
+      });
+      xs.forEach(function (x, i) {
+        var colW = pw / (xs.length - 1);
+        var hit = el("rect", { x: px(i) - colW / 2, y: m.top, width: colW, height: ih,
+                               fill: "transparent", tabindex: 0 }, svg);
+        function rows() {
+          return series.map(function (s) {
+            return { name: s.name, color: s.color, value: s.ys[i] };
+          });
+        }
+        hit.addEventListener("pointermove", function (evt) {
+          showTooltip(evt, p.title + " · bounty " + x, rows());
+        });
+        hit.addEventListener("pointerleave", hideTooltip);
+        hit.addEventListener("focus", function () {
+          var r = hit.getBoundingClientRect();
+          showTooltip({ clientX: r.left + r.width / 2, clientY: r.top + 30 },
+                      p.title + " · bounty " + x, rows());
+        });
+        hit.addEventListener("blur", hideTooltip);
+      });
+    });
+    var xt = el("text", { x: W / 2, y: H - 4, "text-anchor": "middle",
+                          "font-size": 11, fill: C("--ink-2") }, svg);
+    xt.textContent = "bounty";
+  }
+
+  // Dot chart (per-state prices), ordinal x, two series of dots.
+  function dotChart(containerId, data, opts) {
+    var wrap = document.getElementById(containerId);
+    if (!wrap) return;
+    var W = 640, H = 240;
+    var m = { top: 14, right: 16, bottom: 40, left: 44 };
+    var svg = el("svg", { viewBox: "0 0 " + W + " " + H, width: "100%", role: "img" }, wrap);
+    var iw = W - m.left - m.right, ih = H - m.top - m.bottom;
+    var n = data.xs.length;
+    function px(i) { return m.left + (i + 0.5) * iw / n; }
+    function py(v) { return m.top + (1.05 - v) / 1.1 * ih; }
+    [0, 0.25, 0.5, 0.75, 1.0].forEach(function (t) {
+      el("line", { x1: m.left, x2: m.left + iw, y1: py(t), y2: py(t),
+                   stroke: C("--grid"), "stroke-width": 1 }, svg);
+      var txt = el("text", { x: m.left - 8, y: py(t) + 3.5, "text-anchor": "end",
+                             "font-size": 11, fill: C("--ink-3") }, svg);
+      txt.textContent = t.toFixed(2);
+    });
+    data.xs.forEach(function (x, i) {
+      var parts = x.split(" ");
+      var txt = el("text", { x: px(i), y: m.top + ih + 18, "text-anchor": "middle",
+                             "font-size": 12, fill: C("--ink-2"), "font-weight": 600 }, svg);
+      txt.textContent = parts[0];
+      var sub = el("text", { x: px(i), y: m.top + ih + 32, "text-anchor": "middle",
+                             "font-size": 10, fill: C("--ink-3") }, svg);
+      sub.textContent = "X=" + parts[1];
+    });
+    // connector showing the collapse, drawn first (recessive)
+    data.xs.forEach(function (x, i) {
+      var v0 = data.series[0].ys[i], v1 = data.series[1].ys[i];
+      if (v0 !== v1) {
+        el("line", { x1: px(i), x2: px(i), y1: py(v0), y2: py(v1),
+                     stroke: C("--ink-3"), "stroke-width": 1 }, svg);
+      }
+    });
+    data.series.forEach(function (s) {
+      s.ys.forEach(function (v, i) {
+        el("circle", { cx: px(i), cy: py(v), r: 7, fill: C("--surface-1") }, svg);
+        el("circle", { cx: px(i), cy: py(v), r: 5, fill: C(s.color) }, svg);
+      });
+    });
+    data.xs.forEach(function (x, i) {
+      var hit = el("rect", { x: px(i) - iw / n / 2, y: m.top, width: iw / n, height: ih,
+                             fill: "transparent", tabindex: 0 }, svg);
+      function rows() {
+        return data.series.map(function (s) {
+          return { name: s.name, color: s.color, value: s.ys[i] };
+        });
+      }
+      hit.addEventListener("pointermove", function (evt) {
+        showTooltip(evt, "state " + x.replace(" ", " · truth X="), rows());
+      });
+      hit.addEventListener("pointerleave", hideTooltip);
+      hit.addEventListener("focus", function () {
+        var r = hit.getBoundingClientRect();
+        showTooltip({ clientX: r.left + r.width / 2, clientY: r.top + 30 },
+                    "state " + x.replace(" ", " · truth X="), rows());
+      });
+      hit.addEventListener("blur", hideTooltip);
+    });
+  }
+
+  // ---------- render ----------
+  legend("legend-phase1", [
+    { name: "Galanis LMSR", color: "--s-blue" },
+    { name: "Hanson conditional", color: "--s-aqua" },
+    { name: "MetaDAO CFMM", color: "--s-yellow" }
+  ]);
+  lineChart("chart-phase1", PHASE1, {
+    xTitle: "bounty", yMin: 0.6, yMax: 1.03, yTicks: [0.65, 0.75, 0.875, 1.0],
+    rightPad: 8, endLabels: false,
+    desc: "Decision accuracy versus bounty for three mechanisms; values in the adjacent table."
+  });
+
+  legend("legend-states", [
+    { name: "honest (bounty 0)", color: "--s-blue", dot: true },
+    { name: "bribed insider (bounty 0.2)", color: "--s-red", dot: true }
+  ]);
+  dotChart("chart-states", STATES, {});
+
+  legend("legend-entry", [
+    { name: "entrant first", color: "--s-blue" },
+    { name: "entrant last", color: "--s-red" },
+    { name: "BASE-2 (0.75) / honest 3-trader (1.0)", color: "--ink-3", dashed: true }
+  ]);
+  smallMultiples("chart-entry", ENTRY_PANELS, ENTRY_XS,
+                 { refs: [{ y: 0.75 }, { y: 1.0 }] });
+
+  if (TWAP) {
+    legend("legend-twap", [
+      { name: "final-price rule", color: "--s-red" },
+      { name: "TWAP rule", color: "--s-blue" }
+    ]);
+    smallMultiplesTwap();
+  }
+
+  function smallMultiplesTwap() {
+    var panels = TWAP.panels.map(function (p) {
+      return { title: p.title, first: p.twap, last: p.final };
+    });
+    // reuse smallMultiples but with renamed series via a shim: draw directly
+    var wrap = document.getElementById("chart-twap");
+    if (!wrap) return;
+    var W = 640, H = 240, gap = 26;
+    var m = { top: 24, right: 8, bottom: 34, left: 44 };
+    var svg = el("svg", { viewBox: "0 0 " + W + " " + H, width: "100%", role: "img" }, wrap);
+    var xs = TWAP.xs;
+    var pw = (W - m.left - m.right - gap * (panels.length - 1)) / panels.length;
+    var ih = H - m.top - m.bottom;
+    var y0 = 0.45, y1 = 1.03;
+    function py(v) { return m.top + (y1 - v) / (y1 - y0) * ih; }
+    [0.5, 0.75, 1.0].forEach(function (t) {
+      var txt = el("text", { x: m.left - 8, y: py(t) + 3.5, "text-anchor": "end",
+                             "font-size": 11, fill: C("--ink-3") }, svg);
+      txt.textContent = t.toFixed(2);
+    });
+    panels.forEach(function (p, pi) {
+      var x0 = m.left + pi * (pw + gap);
+      function px(i) { return x0 + i * pw / (xs.length - 1); }
+      [0.5, 0.75, 1.0].forEach(function (t) {
+        el("line", { x1: x0, x2: x0 + pw, y1: py(t), y2: py(t),
+                     stroke: C("--grid"), "stroke-width": 1 }, svg);
+      });
+      el("line", { x1: x0, x2: x0 + pw, y1: py(0.75), y2: py(0.75),
+                   stroke: C("--ink-3"), "stroke-width": 1, "stroke-dasharray": "4 4" }, svg);
+      el("line", { x1: x0, x2: x0 + pw, y1: m.top + ih, y2: m.top + ih,
+                   stroke: C("--axis"), "stroke-width": 1 }, svg);
+      xs.forEach(function (x, i) {
+        var txt = el("text", { x: px(i), y: m.top + ih + 15, "text-anchor": "middle",
+                               "font-size": 10, fill: C("--ink-3") }, svg);
+        txt.textContent = x;
+      });
+      var title = el("text", { x: x0 + pw / 2, y: m.top - 9, "text-anchor": "middle",
+                               "font-size": 11.5, "font-weight": 600, fill: C("--ink-1") }, svg);
+      title.textContent = p.title;
+      var series = [
+        { name: "final-price rule", color: "--s-red", ys: p.last },
+        { name: "TWAP rule", color: "--s-blue", ys: p.first }
+      ];
+      series.forEach(function (s) {
+        var dPath = "";
+        s.ys.forEach(function (v, i) { dPath += (i ? " L " : "M ") + px(i) + " " + py(v); });
+        el("path", { d: dPath, fill: "none", stroke: C(s.color), "stroke-width": 2,
+                     "stroke-linejoin": "round", "stroke-linecap": "round" }, svg);
+      });
+      series.forEach(function (s) {
+        s.ys.forEach(function (v, i) {
+          el("circle", { cx: px(i), cy: py(v), r: 5.5, fill: C("--surface-1") }, svg);
+          el("circle", { cx: px(i), cy: py(v), r: 3.5, fill: C(s.color) }, svg);
+        });
+      });
+      xs.forEach(function (x, i) {
+        var colW = pw / (xs.length - 1);
+        var hit = el("rect", { x: px(i) - colW / 2, y: m.top, width: colW, height: ih,
+                               fill: "transparent", tabindex: 0 }, svg);
+        function rows() {
+          return series.map(function (s) {
+            return { name: s.name, color: s.color, value: s.ys[i] };
+          });
+        }
+        hit.addEventListener("pointermove", function (evt) {
+          showTooltip(evt, p.title + " · bounty " + x, rows());
+        });
+        hit.addEventListener("pointerleave", hideTooltip);
+        hit.addEventListener("focus", function () {
+          var r = hit.getBoundingClientRect();
+          showTooltip({ clientX: r.left + r.width / 2, clientY: r.top + 30 },
+                      p.title + " · bounty " + x, rows());
+        });
+        hit.addEventListener("blur", hideTooltip);
+      });
+    });
+    var xt = el("text", { x: W / 2, y: H - 4, "text-anchor": "middle",
+                          "font-size": 11, fill: C("--ink-2") }, svg);
+    xt.textContent = "bounty";
+  }
+})();
+</script>
+</body>
+</html>

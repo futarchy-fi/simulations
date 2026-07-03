@@ -23,6 +23,19 @@ Each config ~3-5 min; full runs ~25-40 min. If dead, rerun same commands.
   (bonus 0.2 saturation; type node implemented in game.py, sanity-tested: bonus only to bribed type,
   type private to entrant, prob=1 backward compatible, pytest green, walkers handle mid-game chance nodes)
 
+## Progress notes (~16:55)
+- MANIPULATION.md phase-2a section committed (e783012).
+- results-site/manipulation.html drafted: phase 1 + 2a complete with validated-palette SVG charts,
+  hover tooltips, dark mode; TWAP chart reads window.__TWAP_DATA__ (to inject), T2u/TWAP tables + verdict
+  paragraphs are empty placeholders (ids: twap-tbody, twap-verdict, t2u-tbody, t2u-verdict, TWAP-TABLE-SUB token).
+- TWAP so far: REPL 0/0.05/0.2 -> 1.0/0.750/0.750 (vs final 1.0/0.796/0.750 -- threshold NOT raised);
+  T2-first 0.02 -> 0.875 (WORSE than final 0.999: early pollution baked into average);
+  T2-last 0.02 -> 0.9999, 0.05 -> 0.875 (vs final 0.500 -- last-mover attack killed);
+  T1-last 0.02/0.05 -> 0.750 (floor held). T1-first/T3-first all 0.750 flat.
+- T2u q=0.25: first acc_honest=1.0 acc_bribed=0.75, last acc_honest=1.0 acc_bribed=0.5 --
+  exactly the known-type mixture; no hiding effect at q=0.25. q=0.5 solving.
+- local preview server: python3 -m http.server 8931 in results-site (PID 22946, kill when done).
+
 ## Next steps in order
 3. When TWAP results land: comparison tables, extend mechanism-design/MANIPULATION.md with entry/TWAP/T2u sections.
 4. mechanism-design/results-site/manipulation.html self-contained explainer (phase 1 + phase 2), tone of galanis-market/results/index.html.
