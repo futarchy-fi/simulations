@@ -26,6 +26,27 @@
     "oracle_invocations": 11,
     "total_agent_utility": 47.335086905123
   },
+  "patched_proposals": [
+    12,
+    13,
+    31,
+    32,
+    49,
+    50,
+    51,
+    69,
+    70,
+    87,
+    88,
+    89,
+    107,
+    108,
+    125,
+    126,
+    127,
+    145,
+    146
+  ],
   "arm_B_llm_market": {
     "n": 150,
     "accuracy": 0.9,
@@ -33,13 +54,13 @@
     "value_star": 368.24008447593684,
     "regret": 9.0197200630152,
     "value_ratio": 0.9755058711876745,
-    "mechanism_net_profit": -2160.0,
+    "mechanism_net_profit": -2200.0,
     "oracle_invocations": 14,
-    "total_agent_utility": 5.918174577330199,
+    "total_agent_utility": 4.889962262015418,
     "llm_calls": 2250,
     "parse_failures": 0,
-    "other_errors": 159,
-    "mean_latency_s": 82.85475156446749,
+    "other_errors": 0,
+    "mean_latency_s": 20.47765799731465,
     "shard_durations_s": [
       23391.467512790987,
       23336.72697387502,
@@ -54,18 +75,18 @@
   "arm_C_poll_unweighted": {
     "n": 150,
     "accuracy": 0.8866666666666667,
-    "value": 362.5786360500513,
+    "value": 360.9511738839223,
     "value_star": 368.24008447593684,
-    "regret": 5.661448425885567,
-    "value_ratio": 0.9846256595505003
+    "regret": 7.288910592014531,
+    "value_ratio": 0.9802060913537216
   },
   "arm_C_poll_precision_weighted": {
     "n": 150,
     "accuracy": 0.8866666666666667,
-    "value": 362.5786360500513,
+    "value": 360.9511738839223,
     "value_star": 368.24008447593684,
-    "regret": 5.661448425885567,
-    "value_ratio": 0.9846256595505003
+    "regret": 7.288910592014531,
+    "value_ratio": 0.9802060913537216
   },
   "arm_C_weighted_equals_unweighted": true,
   "arm_D_llm_manager": {
@@ -80,32 +101,32 @@
   },
   "arm_B_learning": {
     "first_round_mean_belief": {
-      "n": 141,
-      "accuracy_sign": 0.8865248226950354,
-      "pearson_vs_x": 0.916609678103542
+      "n": 150,
+      "accuracy_sign": 0.8866666666666667,
+      "pearson_vs_x": 0.924511491154835
     },
     "last_round_mean_belief": {
-      "n": 146,
-      "accuracy_sign": 0.8972602739726028,
-      "pearson_vs_x": 0.9209315544148987
+      "n": 150,
+      "accuracy_sign": 0.9,
+      "pearson_vs_x": 0.9242824103888669
     },
     "final_market_price": {
-      "n": 146,
-      "accuracy_sign": 0.8835616438356164,
-      "pearson_vs_x": 0.8835572917909515
+      "n": 150,
+      "accuracy_sign": 0.8933333333333333,
+      "pearson_vs_x": 0.8823754024365608
     }
   },
   "agreement": {
-    "B_vs_C": 0.9066666666666666,
+    "B_vs_C": 0.92,
     "B_vs_D": 0.9266666666666666,
-    "C_vs_D": 0.9266666666666666,
+    "C_vs_D": 0.94,
     "B_vs_bayes": 0.9333333333333333,
-    "C_vs_bayes": 0.96,
+    "C_vs_bayes": 0.9733333333333334,
     "D_vs_bayes": 0.9533333333333334
   },
   "honest_profit_scale": {
-    "mean_transfer_per_participation": 1.7075891460421857,
-    "mean_abs_transfer": 4.832782943673536,
+    "mean_transfer_per_participation": 1.664862509121601,
+    "mean_abs_transfer": 4.850866853052427,
     "p75_positive_transfer": 6.288746550790918
   }
 }
