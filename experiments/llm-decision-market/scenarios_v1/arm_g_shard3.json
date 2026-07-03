@@ -1,0 +1,49 @@
+{
+  "seed": 777,
+  "num_proposals": 11,
+  "round_cap": 3,
+  "deterministic_env": true,
+  "proposal_offset": 39,
+  "environment": {
+    "mu_W": 3.0,
+    "sigma_W": 0.0,
+    "phi": 0.01,
+    "alpha": 0.10638297872340426,
+    "fee_rate": 0.01,
+    "C": 50.0,
+    "tau_F": 10.0
+  },
+  "mechanism": {
+    "id": "binary_staking_market",
+    "params": {
+      "max_rounds": 3,
+      "oracle_margin_threshold": 0.1,
+      "winner_subsidy": 10.0
+    }
+  },
+  "agents": [
+    {
+      "id": "llm_market",
+      "count": 4,
+      "params": {
+        "model": "claude-haiku-4-5-20251001",
+        "shard_id": "g3",
+        "log_dir": "/Users/kas/simulations-llm-dm/experiments/llm-decision-market/logs",
+        "max_rounds": 3,
+        "precision_ratio": 0.094
+      }
+    },
+    {
+      "id": "llm_market_liar",
+      "count": 1,
+      "params": {
+        "model": "claude-haiku-4-5-20251001",
+        "shard_id": "g3",
+        "log_dir": "/Users/kas/simulations-llm-dm/experiments/llm-decision-market/logs",
+        "max_rounds": 3,
+        "precision_ratio": 0.094,
+        "bounty": 40.0
+      }
+    }
+  ]
+}

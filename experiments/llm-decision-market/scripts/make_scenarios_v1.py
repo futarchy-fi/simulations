@@ -127,6 +127,31 @@ def main() -> None:
                 )
         print(f"wrote arm F scenarios with bounties {bounties}")
 
+    # Arm G (aligned liar): identical to Arm F hi (bounty 40, proposals 0-49,
+    # same seed/env draws) except the bribed seat's prompt also instructs it to
+    # keep stated beliefs consistent with its stakes (llm_market_liar).
+    if "--arm-g" in sys.argv:
+        idx = sys.argv.index("--arm-g")
+        g_bounty = float(sys.argv[idx + 1]) if len(sys.argv) > idx + 1 else 40.0
+        for i, (offset, n) in enumerate(shard_bounds(50, 4)):
+            shard_id = f"g{i}"
+            sc = base(n, offset, [
+                {"id": "llm_market", "count": NUM_AGENTS - 1,
+                 "params": llm_params(shard_id)},
+                {"id": "llm_market_liar", "count": 1,
+                 "params": llm_params(shard_id) | {"bounty": g_bounty}},
+            ])
+            (SCENARIO_DIR / f"arm_g_shard{i}.json").write_text(json.dumps(sc, indent=2))
+        # Smoke: first 5 proposals, full 5-agent config, 3 rounds (75 calls).
+        smoke_g = base(5, 0, [
+            {"id": "llm_market", "count": NUM_AGENTS - 1,
+             "params": llm_params("gsmoke")},
+            {"id": "llm_market_liar", "count": 1,
+             "params": llm_params("gsmoke") | {"bounty": g_bounty}},
+        ])
+        (SCENARIO_DIR / "arm_g_smoke.json").write_text(json.dumps(smoke_g, indent=2))
+        print(f"wrote arm G scenarios with bounty {g_bounty}")
+
     print(f"Wrote v1 scenarios to {SCENARIO_DIR}")
 
 
