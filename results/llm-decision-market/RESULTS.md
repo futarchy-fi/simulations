@@ -46,7 +46,31 @@ i.e. signal noise std from 0.52 (poorest) down to 0.098 (richest).
 Oracle-optimal Value* = 368.24. n = 150; the standard error on an accuracy of
 0.95 is ±1.8 pp, so arms A–D and E4 are statistically indistinguishable.
 
-<!-- SONNET_TABLE -->
+## Sonnet subsample (first 30 proposals, matched environment)
+
+| Arm (n = 30) | Acc. | Regret (of 126.5) | Notes |
+|---|---|---|---|
+| A rational market | 0.933 | 0.064 | |
+| B Haiku market | 0.933 | 0.064 | mistakes: proposals 9, 27 (x = −0.03, −0.02) |
+| B **Sonnet market** | 0.933 | 0.061 | *identical* mistakes: proposals 9, 27 |
+| C Haiku poll | 0.967 | 0.031 | |
+| C Sonnet poll | 0.967 | 0.026 | |
+| E4 best signal | 0.933 | 0.061 | |
+
+Galanis's "smarter agents aggregate better" does **not** show up in decisions
+here — the ceiling binds both tiers, and Sonnet's market made exactly the
+same two near-zero-|x| mistakes as Haiku's. Where the model tier *does* show
+up is in trading quality: Sonnet stake-sizing correlations are similar
+(stake vs precision +0.79, vs |signal error| −0.50), it also shows no
+within-market belief updating, but its per-wealth utility profile on these
+30 proposals is {+1.2, +2.7, +1.1, −1.6, +3.3} (poorest→richest) versus
+Haiku's {−2.5, +3.1, +1.8, +1.1, +3.1} on the same 30 — the poorest,
+noisiest Sonnet agent no longer loses, consistent with more conservative
+low-conviction sizing. Smarter models lose less money, not make better
+decisions (on 30 proposals this is suggestive, not significant).
+Sonnet calls were ~4x slower (mean 90 s vs 21 s per call at the same
+1024-token thinking cap); 450 calls, 0 parse failures, 2 transport errors
+(retried into abstain).
 
 ## Key findings
 
@@ -165,6 +189,10 @@ python experiments/llm-decision-market/scripts/run_arm_d.py \
 experiments/llm-decision-market/scripts/run_arm_b.sh sonnet   # subsample
 python experiments/llm-decision-market/scripts/analyze.py
 ```
+
+Total LLM usage across the experiment: 2,870 CLI invocations (2,250 Arm B
+haiku + 150 Arm D + 450 Sonnet + 20 smoke), zero JSON parse failures,
+2 transport errors, well under the 5,000-call budget.
 
 Artifacts in this directory: `metrics.json` (all numbers above),
 `arm_a_report.json`, `arm_b_merged_report.json` (+ per-shard reports),

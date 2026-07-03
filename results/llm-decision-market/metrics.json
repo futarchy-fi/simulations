@@ -464,5 +464,260 @@
     "value_star": 368.24008447593684,
     "regret": 0.23066573694802628,
     "value_ratio": 0.9993735995980005
+  },
+  "arm_B_sonnet_subsample": {
+    "n": 30,
+    "accuracy": 0.9333333333333333,
+    "value": 126.41270627689246,
+    "value_star": 126.47630924794356,
+    "regret": 0.0636029710510968,
+    "value_ratio": 0.9994971155354763,
+    "mechanism_net_profit": -300.00000000000006,
+    "oracle_invocations": 0,
+    "agent_participations": 150,
+    "total_agent_utility": 6.640889199378957,
+    "per_agent": {
+      "llm_market#0": {
+        "wealth": 5.633476393041272,
+        "utility": 1.084103819473744,
+        "stake": 149.62721643647345,
+        "n_part": 30
+      },
+      "llm_market#1": {
+        "wealth": 22.26049981733569,
+        "utility": -1.6406638158917322,
+        "stake": 579.3621266511157,
+        "n_part": 30
+      },
+      "llm_market#2": {
+        "wealth": 3.0759415202839757,
+        "utility": 2.6898777322970298,
+        "stake": 79.07762321059184,
+        "n_part": 30
+      },
+      "llm_market#3": {
+        "wealth": 1.8673960295478549,
+        "utility": 1.230937656250548,
+        "stake": 49.85750095536238,
+        "n_part": 30
+      },
+      "llm_market#4": {
+        "wealth": 51.86718811297054,
+        "utility": 3.2766338072493673,
+        "stake": 1320.495504274408,
+        "n_part": 30
+      }
+    }
+  },
+  "arm_B_sonnet_microstructure": {
+    "stake_sizing": {
+      "n_accepted_stakes": 443,
+      "spearman_stake_vs_precision": 0.7866103542640523,
+      "spearman_stake_vs_abs_signal_error": -0.4994235883228049,
+      "spearman_stake_vs_belief_extremity": 0.42015069521376786,
+      "spearman_agent_wealth_vs_total_stake": 0.9368421052631578
+    },
+    "per_agent": [
+      {
+        "wealth": 1.8673960295478549,
+        "precision": 3.7347920590957098,
+        "mean_abs_signal_error": 0.4161044193134917,
+        "total_stake": 15.247117608998904,
+        "belief_accuracy": 1.0
+      },
+      {
+        "wealth": 1.8673960295478549,
+        "precision": 3.7347920590957098,
+        "mean_abs_signal_error": 0.46131797032687055,
+        "total_stake": 14.244808059754764,
+        "belief_accuracy": 0.75
+      },
+      {
+        "wealth": 1.8673960295478549,
+        "precision": 3.7347920590957098,
+        "mean_abs_signal_error": 0.35436211242199733,
+        "total_stake": 13.860808059754763,
+        "belief_accuracy": 0.75
+      },
+      {
+        "wealth": 1.8673960295478549,
+        "precision": 3.7347920590957098,
+        "mean_abs_signal_error": 0.6732997319928967,
+        "total_stake": 9.854384835852855,
+        "belief_accuracy": 0.8333333333333334
+      },
+      {
+        "wealth": 3.0759415202839757,
+        "precision": 6.151883040567951,
+        "mean_abs_signal_error": 0.22891124133687793,
+        "total_stake": 25.37727392635511,
+        "belief_accuracy": 1.0
+      },
+      {
+        "wealth": 3.0759415202839757,
+        "precision": 6.151883040567951,
+        "mean_abs_signal_error": 0.2777794169871469,
+        "total_stake": 20.57358525817133,
+        "belief_accuracy": 0.875
+      },
+      {
+        "wealth": 3.0759415202839757,
+        "precision": 6.151883040567951,
+        "mean_abs_signal_error": 0.3902411317627429,
+        "total_stake": 22.55284928423674,
+        "belief_accuracy": 0.75
+      },
+      {
+        "wealth": 3.0759415202839757,
+        "precision": 6.151883040567951,
+        "mean_abs_signal_error": 0.24374813694395425,
+        "total_stake": 17.42034928423674,
+        "belief_accuracy": 0.8333333333333334
+      },
+      {
+        "wealth": 5.633476393041272,
+        "precision": 11.266952786082545,
+        "mean_abs_signal_error": 0.2397552507894565,
+        "total_stake": 42.94776286694604,
+        "belief_accuracy": 1.0
+      },
+      {
+        "wealth": 5.633476393041272,
+        "precision": 11.266952786082545,
+        "mean_abs_signal_error": 0.33438320279089767,
+        "total_stake": 43.05782729604426,
+        "belief_accuracy": 1.0
+      },
+      {
+        "wealth": 5.633476393041272,
+        "precision": 11.266952786082545,
+        "mean_abs_signal_error": 0.35413203117443337,
+        "total_stake": 46.30407214549114,
+        "belief_accuracy": 0.875
+      },
+      {
+        "wealth": 5.633476393041272,
+        "precision": 11.266952786082545,
+        "mean_abs_signal_error": 0.28468926919354104,
+        "total_stake": 29.437628858196454,
+        "belief_accuracy": 1.0
+      },
+      {
+        "wealth": 22.26049981733569,
+        "precision": 44.52099963467138,
+        "mean_abs_signal_error": 0.14566394129581173,
+        "total_stake": 186.6735604895031,
+        "belief_accuracy": 1.0
+      },
+      {
+        "wealth": 22.26049981733569,
+        "precision": 44.52099963467138,
+        "mean_abs_signal_error": 0.07921367417820453,
+        "total_stake": 170.68178024475156,
+        "belief_accuracy": 1.0
+      },
+      {
+        "wealth": 22.26049981733569,
+        "precision": 44.52099963467138,
+        "mean_abs_signal_error": 0.08765843161850473,
+        "total_stake": 148.74118635715857,
+        "belief_accuracy": 0.875
+      },
+      {
+        "wealth": 22.26049981733569,
+        "precision": 44.52099963467138,
+        "mean_abs_signal_error": 0.13981938312777467,
+        "total_stake": 122.3955924695656,
+        "belief_accuracy": 1.0
+      },
+      {
+        "wealth": 51.86718811297054,
+        "precision": 103.73437622594108,
+        "mean_abs_signal_error": 0.07563290742302876,
+        "total_stake": 357.2679070514515,
+        "belief_accuracy": 1.0
+      },
+      {
+        "wealth": 51.86718811297054,
+        "precision": 103.73437622594108,
+        "mean_abs_signal_error": 0.07700119421750637,
+        "total_stake": 403.8853800217685,
+        "belief_accuracy": 0.875
+      },
+      {
+        "wealth": 51.86718811297054,
+        "precision": 103.73437622594108,
+        "mean_abs_signal_error": 0.0922195763316472,
+        "total_stake": 343.323876068602,
+        "belief_accuracy": 1.0
+      },
+      {
+        "wealth": 51.86718811297054,
+        "precision": 103.73437622594108,
+        "mean_abs_signal_error": 0.0736366396318039,
+        "total_stake": 259.9824729703171,
+        "belief_accuracy": 0.8333333333333334
+      }
+    ],
+    "learning": {
+      "first_round_mean_belief": {
+        "n": 30,
+        "accuracy_sign": 0.9666666666666667,
+        "pearson_vs_x": 0.871017870334687
+      },
+      "last_round_mean_belief": {
+        "n": 30,
+        "accuracy_sign": 0.9666666666666667,
+        "pearson_vs_x": 0.8699475501066731
+      },
+      "final_market_price": {
+        "n": 30,
+        "accuracy_sign": 0.9333333333333333,
+        "pearson_vs_x": 0.7949644378101495
+      }
+    },
+    "cost": {
+      "llm_act_calls": 450,
+      "cli_invocations": 450,
+      "parse_failures": 0,
+      "other_errors": 2,
+      "mean_latency_s": 89.71997400049973,
+      "p90_latency_s": 146.7358042536187
+    }
+  },
+  "matched_first30": {
+    "arm_A": {
+      "n": 30,
+      "accuracy": 0.9333333333333333,
+      "value": 126.41270627689246,
+      "value_star": 126.47630924794356,
+      "regret": 0.0636029710510968,
+      "value_ratio": 0.9994971155354763
+    },
+    "arm_B_haiku": {
+      "n": 30,
+      "accuracy": 0.9333333333333333,
+      "value": 126.41270627689246,
+      "value_star": 126.47630924794356,
+      "regret": 0.0636029710510968,
+      "value_ratio": 0.9994971155354763
+    },
+    "arm_C_poll": {
+      "n": 30,
+      "accuracy": 0.9666666666666667,
+      "value": 126.44501669878241,
+      "value_star": 126.47630924794356,
+      "regret": 0.03129254916115087,
+      "value_ratio": 0.9997525817337078
+    }
+  },
+  "arm_C_sonnet_poll": {
+    "n": 30,
+    "accuracy": 0.9666666666666667,
+    "value": 126.44501669878241,
+    "value_star": 126.47630924794356,
+    "regret": 0.03129254916115087,
+    "value_ratio": 0.9997525817337078,
+    "mean_beliefs_per_proposal": 5.0
   }
 }
