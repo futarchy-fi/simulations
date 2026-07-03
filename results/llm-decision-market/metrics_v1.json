@@ -1,0 +1,111 @@
+{
+  "E4_best_signal_dictator": {
+    "n": 150,
+    "accuracy": 0.7933333333333333,
+    "value": 321.15780844365855,
+    "value_star": 368.24008447593684,
+    "regret": 47.08227603227829,
+    "value_ratio": 0.8721424472317192
+  },
+  "fullinfo_bayes_benchmark": {
+    "n": 150,
+    "accuracy": 0.8866666666666667,
+    "value": 360.7518552890514,
+    "value_star": 368.24008447593684,
+    "regret": 7.488229186885462,
+    "value_ratio": 0.9796648178659246
+  },
+  "arm_A_rational_market": {
+    "n": 150,
+    "accuracy": 0.8733333333333333,
+    "value": 359.2058428753524,
+    "value_star": 368.24008447593684,
+    "regret": 9.034241600584437,
+    "value_ratio": 0.9754664362152708,
+    "mechanism_net_profit": -2050.0,
+    "oracle_invocations": 11,
+    "total_agent_utility": 47.335086905123
+  },
+  "arm_B_llm_market": {
+    "n": 150,
+    "accuracy": 0.9,
+    "value": 359.22036441292164,
+    "value_star": 368.24008447593684,
+    "regret": 9.0197200630152,
+    "value_ratio": 0.9755058711876745,
+    "mechanism_net_profit": -2160.0,
+    "oracle_invocations": 14,
+    "total_agent_utility": 5.918174577330199,
+    "llm_calls": 2250,
+    "parse_failures": 0,
+    "other_errors": 159,
+    "mean_latency_s": 82.85475156446749,
+    "shard_durations_s": [
+      23391.467512790987,
+      23336.72697387502,
+      23432.112122207996,
+      23235.915292749996,
+      23498.491694958007,
+      23308.003484542016,
+      23512.307655917015,
+      22711.61356025
+    ]
+  },
+  "arm_C_poll_unweighted": {
+    "n": 150,
+    "accuracy": 0.8866666666666667,
+    "value": 362.5786360500513,
+    "value_star": 368.24008447593684,
+    "regret": 5.661448425885567,
+    "value_ratio": 0.9846256595505003
+  },
+  "arm_C_poll_precision_weighted": {
+    "n": 150,
+    "accuracy": 0.8866666666666667,
+    "value": 362.5786360500513,
+    "value_star": 368.24008447593684,
+    "regret": 5.661448425885567,
+    "value_ratio": 0.9846256595505003
+  },
+  "arm_C_weighted_equals_unweighted": true,
+  "arm_D_llm_manager": {
+    "n": 150,
+    "accuracy": 0.8933333333333333,
+    "value": 355.3453927326931,
+    "value_star": 368.24008447593684,
+    "regret": 12.894691743243754,
+    "value_ratio": 0.9649829220477316,
+    "total_calls": 150,
+    "failures": 0
+  },
+  "arm_B_learning": {
+    "first_round_mean_belief": {
+      "n": 141,
+      "accuracy_sign": 0.8865248226950354,
+      "pearson_vs_x": 0.916609678103542
+    },
+    "last_round_mean_belief": {
+      "n": 146,
+      "accuracy_sign": 0.8972602739726028,
+      "pearson_vs_x": 0.9209315544148987
+    },
+    "final_market_price": {
+      "n": 146,
+      "accuracy_sign": 0.8835616438356164,
+      "pearson_vs_x": 0.8835572917909515
+    }
+  },
+  "agreement": {
+    "B_vs_C": 0.9066666666666666,
+    "B_vs_D": 0.9266666666666666,
+    "C_vs_D": 0.9266666666666666,
+    "B_vs_bayes": 0.9333333333333333,
+    "C_vs_bayes": 0.96,
+    "D_vs_bayes": 0.9533333333333334
+  },
+  "honest_profit_scale": {
+    "mean_transfer_per_participation": 1.7075891460421857,
+    "mean_abs_transfer": 4.832782943673536,
+    "p75_positive_transfer": 6.288746550790918
+  }
+}

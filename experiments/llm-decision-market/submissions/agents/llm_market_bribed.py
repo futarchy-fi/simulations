@@ -16,6 +16,8 @@ from pathlib import Path
 
 _PARENT_PATH = Path(__file__).with_name("llm_market_agent.py")
 _spec = importlib.util.spec_from_file_location("llm_dm_base_agent", _PARENT_PATH)
+if _spec is None or _spec.loader is None:
+    raise ImportError(f"Cannot load base agent module from {_PARENT_PATH}")
 _mod = importlib.util.module_from_spec(_spec)
 sys.modules["llm_dm_base_agent"] = _mod
 _spec.loader.exec_module(_mod)

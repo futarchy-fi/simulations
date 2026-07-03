@@ -297,10 +297,16 @@ class LLMMarketAgent(AgentBase):
             return None
         if not isinstance(obj, dict):
             return None
+        raw_belief = obj.get("belief_x_positive")
+        raw_amount = obj.get("amount", 0.0)
+        if not isinstance(raw_belief, (int, float, str)):
+            return None
+        if not isinstance(raw_amount, (int, float, str)):
+            return None
         try:
-            belief = float(obj.get("belief_x_positive"))
+            belief = float(raw_belief)
             action = str(obj.get("action"))
-            amount = float(obj.get("amount", 0.0))
+            amount = float(raw_amount)
         except (TypeError, ValueError):
             return None
         if action not in {"stake_yes", "stake_no", "pass"}:
