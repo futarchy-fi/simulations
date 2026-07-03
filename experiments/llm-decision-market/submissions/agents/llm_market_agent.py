@@ -98,6 +98,7 @@ class LLMMarketAgent(AgentBase):
         parsed, raw, latency, error = self._call_llm(prompt)
         record = {
             "ts": time.time(),
+            **self._log_extra(),
             "shard_id": self.shard_id,
             "instance_uid": self.instance_uid,
             "model": self.model,
@@ -125,6 +126,9 @@ class LLMMarketAgent(AgentBase):
         return contribution
 
     # -------------------------------------------------------------- helpers
+
+    def _log_extra(self) -> dict:
+        return {"agent_type": self.agent_id}
 
     def _round_index(self, public_history: list[object]) -> int:
         if not public_history:
@@ -293,10 +297,16 @@ class LLMMarketAgent(AgentBase):
             return None
         if not isinstance(obj, dict):
             return None
+        raw_belief = obj.get("belief_x_positive")
+        raw_amount = obj.get("amount", 0.0)
+        if not isinstance(raw_belief, (int, float, str)):
+            return None
+        if not isinstance(raw_amount, (int, float, str)):
+            return None
         try:
-            belief = float(obj.get("belief_x_positive"))
+            belief = float(raw_belief)
             action = str(obj.get("action"))
-            amount = float(obj.get("amount", 0.0))
+            amount = float(raw_amount)
         except (TypeError, ValueError):
             return None
         if action not in {"stake_yes", "stake_no", "pass"}:

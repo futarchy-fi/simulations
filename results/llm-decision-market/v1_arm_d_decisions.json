@@ -1,0 +1,1057 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "wall_time_s": 1464.8635628749907,
+  "total_calls": 150,
+  "decisions": [
+    {
+      "index": 0,
+      "decision": "reject",
+      "belief": 0.0009,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 1,
+      "decision": "reject",
+      "belief": 5.2e-06,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 2,
+      "decision": "approve",
+      "belief": 0.99999,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 3,
+      "decision": "approve",
+      "belief": 0.9155,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 4,
+      "decision": "approve",
+      "belief": 0.9999999,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 5,
+      "decision": "approve",
+      "belief": 0.99998,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 6,
+      "decision": "approve",
+      "belief": 0.9999,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 7,
+      "decision": "reject",
+      "belief": 0.0668,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 8,
+      "decision": "reject",
+      "belief": 0.993,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 9,
+      "decision": "approve",
+      "belief": 0.735,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 10,
+      "decision": "approve",
+      "belief": 0.8925,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 11,
+      "decision": "approve",
+      "belief": 0.903,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 12,
+      "decision": "reject",
+      "belief": 0.157,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 13,
+      "decision": "reject",
+      "belief": 1.2e-62,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 14,
+      "decision": "reject",
+      "belief": 3e-07,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 15,
+      "decision": "approve",
+      "belief": 0.9999,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 16,
+      "decision": "reject",
+      "belief": 0.0192,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 17,
+      "decision": "approve",
+      "belief": 0.9884,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 18,
+      "decision": "approve",
+      "belief": 0.5258,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 19,
+      "decision": "approve",
+      "belief": 0.9888,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 20,
+      "decision": "reject",
+      "belief": 0.00027,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 21,
+      "decision": "approve",
+      "belief": 0.684,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 22,
+      "decision": "approve",
+      "belief": 0.9495,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 23,
+      "decision": "approve",
+      "belief": 0.5302,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 24,
+      "decision": "reject",
+      "belief": 0.0176,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 25,
+      "decision": "approve",
+      "belief": 0.923,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 26,
+      "decision": "approve",
+      "belief": 0.9999,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 27,
+      "decision": "approve",
+      "belief": 0.595,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 28,
+      "decision": "approve",
+      "belief": 0.99999,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 29,
+      "decision": "approve",
+      "belief": 0.919,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 30,
+      "decision": "reject",
+      "belief": 0.307,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 31,
+      "decision": "approve",
+      "belief": 0.9897,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 32,
+      "decision": "reject",
+      "belief": 0.0006,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 33,
+      "decision": "reject",
+      "belief": 0.0046,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 34,
+      "decision": "approve",
+      "belief": 0.898,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 35,
+      "decision": "approve",
+      "belief": 0.976,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 36,
+      "decision": "reject",
+      "belief": 0.0012,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 37,
+      "decision": "approve",
+      "belief": 0.974,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 38,
+      "decision": "reject",
+      "belief": 0.000485,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 39,
+      "decision": "approve",
+      "belief": 0.999995,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 40,
+      "decision": "reject",
+      "belief": 0.0,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 41,
+      "decision": "reject",
+      "belief": 0.00034,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 42,
+      "decision": "reject",
+      "belief": 0.0003,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 43,
+      "decision": "reject",
+      "belief": 0.052,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 44,
+      "decision": "approve",
+      "belief": 0.8666,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 45,
+      "decision": "approve",
+      "belief": 0.999999,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 46,
+      "decision": "approve",
+      "belief": 0.9955,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 47,
+      "decision": "reject",
+      "belief": 0.0038,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 48,
+      "decision": "approve",
+      "belief": 0.966,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 49,
+      "decision": "approve",
+      "belief": 0.9948,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 50,
+      "decision": "reject",
+      "belief": 0.0645,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 51,
+      "decision": "reject",
+      "belief": 1e-07,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 52,
+      "decision": "approve",
+      "belief": 0.686,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 53,
+      "decision": "reject",
+      "belief": 0.0138,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 54,
+      "decision": "reject",
+      "belief": 0.338,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 55,
+      "decision": "approve",
+      "belief": 0.9999,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 56,
+      "decision": "reject",
+      "belief": 0.3097,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 57,
+      "decision": "approve",
+      "belief": 0.5065,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 58,
+      "decision": "approve",
+      "belief": 0.8315,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 59,
+      "decision": "approve",
+      "belief": 0.9863,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 60,
+      "decision": "reject",
+      "belief": 0.156,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 61,
+      "decision": "reject",
+      "belief": 0.255,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 62,
+      "decision": "approve",
+      "belief": 0.99996,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 63,
+      "decision": "reject",
+      "belief": 9e-06,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 64,
+      "decision": "reject",
+      "belief": 0.0116,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 65,
+      "decision": "reject",
+      "belief": 2.2e-07,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 66,
+      "decision": "approve",
+      "belief": 0.9945,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 67,
+      "decision": "reject",
+      "belief": 0.081,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 68,
+      "decision": "reject",
+      "belief": 0.0385,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 69,
+      "decision": "approve",
+      "belief": 0.9993,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 70,
+      "decision": "approve",
+      "belief": 0.821,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 71,
+      "decision": "approve",
+      "belief": 0.9554,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 72,
+      "decision": "approve",
+      "belief": 0.9674,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 73,
+      "decision": "approve",
+      "belief": 0.9999999,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 74,
+      "decision": "reject",
+      "belief": 0.213,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 75,
+      "decision": "reject",
+      "belief": 0.0009,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 76,
+      "decision": "approve",
+      "belief": 0.9998,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 77,
+      "decision": "reject",
+      "belief": 0.156,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 78,
+      "decision": "reject",
+      "belief": 0.0001,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 79,
+      "decision": "reject",
+      "belief": 5.2e-06,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 80,
+      "decision": "approve",
+      "belief": 0.856,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 81,
+      "decision": "reject",
+      "belief": 3.3e-06,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 82,
+      "decision": "approve",
+      "belief": 0.873,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 83,
+      "decision": "approve",
+      "belief": 0.578,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 84,
+      "decision": "reject",
+      "belief": 0.00019,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 85,
+      "decision": "reject",
+      "belief": 4.3e-08,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 86,
+      "decision": "approve",
+      "belief": 0.629,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 87,
+      "decision": "reject",
+      "belief": 0.000588,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 88,
+      "decision": "reject",
+      "belief": 0.0115,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 89,
+      "decision": "approve",
+      "belief": 0.859,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 90,
+      "decision": "approve",
+      "belief": 0.7418,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 91,
+      "decision": "reject",
+      "belief": 0.259,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 92,
+      "decision": "reject",
+      "belief": 3.29e-06,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 93,
+      "decision": "approve",
+      "belief": 0.7746,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 94,
+      "decision": "approve",
+      "belief": 0.965,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 95,
+      "decision": "approve",
+      "belief": 0.501,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 96,
+      "decision": "approve",
+      "belief": 0.99999,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 97,
+      "decision": "reject",
+      "belief": 0.0105,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 98,
+      "decision": "approve",
+      "belief": 0.957,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 99,
+      "decision": "reject",
+      "belief": 0.3587,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 100,
+      "decision": "approve",
+      "belief": 0.9882,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 101,
+      "decision": "approve",
+      "belief": 0.99996,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 102,
+      "decision": "reject",
+      "belief": 0.0224,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 103,
+      "decision": "approve",
+      "belief": 0.9999,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 104,
+      "decision": "reject",
+      "belief": 0.0125,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 105,
+      "decision": "reject",
+      "belief": 0.242,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 106,
+      "decision": "approve",
+      "belief": 0.9999,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 107,
+      "decision": "reject",
+      "belief": 0.0355,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 108,
+      "decision": "approve",
+      "belief": 0.617,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 109,
+      "decision": "approve",
+      "belief": 0.9831,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 110,
+      "decision": "reject",
+      "belief": 0.00014,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 111,
+      "decision": "approve",
+      "belief": 0.7698,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 112,
+      "decision": "approve",
+      "belief": 0.9791,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 113,
+      "decision": "reject",
+      "belief": 0.0056,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 114,
+      "decision": "approve",
+      "belief": 0.9349,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 115,
+      "decision": "approve",
+      "belief": 0.9949,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 116,
+      "decision": "approve",
+      "belief": 0.619,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 117,
+      "decision": "reject",
+      "belief": 0.1427,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 118,
+      "decision": "reject",
+      "belief": 0.0045,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 119,
+      "decision": "reject",
+      "belief": 3e-05,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 120,
+      "decision": "approve",
+      "belief": 0.9993,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 121,
+      "decision": "approve",
+      "belief": 0.9773,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 122,
+      "decision": "reject",
+      "belief": 0.0847,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 123,
+      "decision": "reject",
+      "belief": 0.0436,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 124,
+      "decision": "approve",
+      "belief": 0.572,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 125,
+      "decision": "reject",
+      "belief": 0.0043,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 126,
+      "decision": "reject",
+      "belief": 0.103,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 127,
+      "decision": "approve",
+      "belief": 0.9054,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 128,
+      "decision": "approve",
+      "belief": 0.6446,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 129,
+      "decision": "approve",
+      "belief": 0.9993,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 130,
+      "decision": "approve",
+      "belief": 0.9788,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 131,
+      "decision": "reject",
+      "belief": 0.1273,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 132,
+      "decision": "reject",
+      "belief": 0.0,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 133,
+      "decision": "approve",
+      "belief": 0.9713,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 134,
+      "decision": "approve",
+      "belief": 0.9999,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 135,
+      "decision": "approve",
+      "belief": 0.87,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 136,
+      "decision": "approve",
+      "belief": 0.9621,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 137,
+      "decision": "approve",
+      "belief": 0.9982,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 138,
+      "decision": "approve",
+      "belief": 0.9999,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 139,
+      "decision": "reject",
+      "belief": 0.0001,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 140,
+      "decision": "approve",
+      "belief": 0.9878,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 141,
+      "decision": "reject",
+      "belief": 1.2e-14,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 142,
+      "decision": "approve",
+      "belief": 0.9999,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 143,
+      "decision": "approve",
+      "belief": 0.7005,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 144,
+      "decision": "reject",
+      "belief": 0.341,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 145,
+      "decision": "reject",
+      "belief": 1.06e-05,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 146,
+      "decision": "reject",
+      "belief": 0.077,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 147,
+      "decision": "approve",
+      "belief": 0.6869,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 148,
+      "decision": "approve",
+      "belief": 0.9165,
+      "failed": false,
+      "n_calls": 1
+    },
+    {
+      "index": 149,
+      "decision": "reject",
+      "belief": 0.0028,
+      "failed": false,
+      "n_calls": 1
+    }
+  ]
+}

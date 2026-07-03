@@ -24,7 +24,7 @@ SYSTEM_PROMPT = (
 JSON_RE = re.compile(r"\{.*\}", re.DOTALL)
 
 
-def build_prompt(row: dict) -> str:
+def build_prompt(row: dict, precision_ratio: float = 2.0) -> str:
     y = row["y"]
     lines = [
         "You are a manager deciding whether to approve a proposal.",
@@ -35,7 +35,7 @@ def build_prompt(row: dict) -> str:
         "Five independent analysts each observed a noisy signal s_j = x + noise_j, noise_j ~ N(0, 1/precision_j), independent across analysts given x:",
     ]
     for i, agent in enumerate(row["agent_reports"]):
-        precision = 2.0 * agent["wealth"]
+        precision = precision_ratio * agent["wealth"]
         lines.append(
             f"- Analyst {i + 1}: signal = {agent['signal']:.4f}, precision = {precision:.3f} (noise std {1.0 / math.sqrt(precision):.4f})"
         )
@@ -98,8 +98,8 @@ def parse(raw: str) -> dict | None:
     return {"belief_x_positive": belief, "decision": decision}
 
 
-def process(row: dict, model: str, log_path: Path) -> dict:
-    prompt = build_prompt(row)
+def process(row: dict, model: str, log_path: Path, precision_ratio: float = 2.0) -> dict:
+    prompt = build_prompt(row, precision_ratio)
     started = time.perf_counter()
     parsed = None
     raws = []
@@ -152,6 +152,7 @@ def main() -> None:
     parser.add_argument("--log", required=True)
     parser.add_argument("--model", default=MODEL)
     parser.add_argument("--workers", type=int, default=8)
+    parser.add_argument("--precision-ratio", type=float, default=2.0)
     args = parser.parse_args()
 
     report = json.loads(Path(args.env_report).read_text())
@@ -161,7 +162,7 @@ def main() -> None:
 
     started = time.perf_counter()
     with ThreadPoolExecutor(max_workers=args.workers) as pool:
-        results = list(pool.map(lambda row: process(row, args.model, log_path), rows))
+        results = list(pool.map(lambda row: process(row, args.model, log_path, args.precision_ratio), rows))
     results.sort(key=lambda r: r["index"])
 
     payload = {

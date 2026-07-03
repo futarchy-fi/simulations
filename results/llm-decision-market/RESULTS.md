@@ -198,3 +198,305 @@ Artifacts in this directory: `metrics.json` (all numbers above),
 `arm_a_report.json`, `arm_b_merged_report.json` (+ per-shard reports),
 `arm_d_decisions.json`, `arm_b_sonnet_merged_report.json`, and
 `raw_llm_logs/` (every prompt and raw response, 2850+ calls).
+
+---
+
+# Experiment v1 — de-saturated environment
+
+v0's null (market = poll = manager = one good signal) was a ceiling effect:
+the richest agent's signal was nearly noiseless, so every aggregation method
+collapsed onto it. v1 re-runs everything in an environment where **no single
+signal suffices but pooled signals do**: uniform wealth (sigma_W = 0,
+W_j = 20.09 for all five agents) and precision ratio tau_j/W_j = 0.094, so
+every agent's signal has noise std 0.727. On the realized seed-777 draws the
+best-single-signal dictator scores 0.793 and the full-information Bayes
+posterior 0.887 — a 9.3 pp aggregation headroom that v0 lacked. Everything
+else (150 proposals, seed, mechanism, subsidy 10, 10% oracle margin, prompts,
+Haiku 4.5 with the 1024-token thinking cap) is identical to v0; the
+`deterministic_env` machinery again gives every arm the same (x, y, signal)
+draws, so arms differ only in the decision process.
+
+A transient API outage hit 159 of the 2250 Arm B calls (concentrated on 19
+proposals); those 19 proposals were rerun individually on identical env draws
+and spliced in (`metrics_v1.json:patched_proposals`). After splicing: 2250
+calls, 0 parse failures, 0 transport errors.
+
+## v1 headline table
+
+| Arm | Decision process | Acc. vs 1(x>0) | Value Σxy·D | Regret (of 368.24) | Value ratio | LLM calls |
+|---|---|---|---|---|---|---|
+| A | rational Bayesian agents + market | 0.873 | 359.21 | 9.03 | 0.975 | 0 |
+| B | **LLM (Haiku 4.5) agents + market** | **0.900** | 359.22 | 9.02 | 0.976 | 2250 |
+| C | poll: unweighted mean of B's round-0 beliefs | 0.887 | 360.95 | 7.29 | 0.980 | 0 extra |
+| C' | poll: precision-weighted (tau_j) mean | 0.887 | 360.95 | 7.29 | 0.980 | 0 extra |
+| D | LLM manager, sees all 5 signals | 0.893 | 355.35 | 12.89 | 0.965 | 150 |
+| E4 | best-signal dictator | 0.793 | 321.16 | 47.08 | 0.872 | 0 |
+| — | full-information Bayes posterior (ceiling on signals) | 0.887 | 360.75 | 7.49 | 0.980 | 0 |
+
+n = 150, so the SE on an accuracy of 0.89 is ±2.6 pp. Pairwise exact McNemar
+tests: B vs C p = 0.77, B vs D p = 1.0, B vs A p = 0.34, B vs Bayes p = 0.75 —
+none of the aggregating arms are distinguishable from each other. The only
+significant separation is that every aggregating arm beats the single-signal
+dictator (B vs E4: 22 vs 6 discordant proposals, p = 0.004). C and C' are
+identical *by construction* here: with uniform wealth all precisions are
+equal, so precision-weighting is a no-op (in v0, where wealths differed, the
+saturated environment made the comparison vacuous instead; a v2 with unequal
+wealths *and* headroom is needed to make weighting bite).
+
+## v1 key findings
+
+**1. De-saturation worked, and aggregation is real.** The dictator-to-Bayes
+headroom (0.793 → 0.887) exists and every aggregation method — market, poll,
+manager — captures essentially all of it. This is the positive result v0
+could not show: five noisy LLM traders reliably reconstruct ~100% of the
+pooled-signal optimum (B even lands 2 proposals above the signals-only Bayes
+benchmark, see finding 3).
+
+**2. Trading still adds nothing over polling the same models.** B beats C by
+1.3 pp (0.900 vs 0.887, 7-vs-5 discordant, p = 0.77) — indistinguishable, and
+the poll achieves *lower* importance-weighted regret (7.29 vs 9.02). The
+distributed-vs-centralized comparison is equally null (B vs D, p = 1.0). One
+asymmetry deserves emphasis and is a feature of the design, not a bug: **the
+poll is not incentive-compatible** — agents are simply asked and have no
+reason to lie, and these five have no hidden agenda — **while the market is**
+(stakes are at risk; misreporting costs money in expectation). The v1 result
+is therefore "when agents are honest, a poll is as good as a market and much
+cheaper (5 vs 15 calls/proposal, no subsidy, no redistribution)"; what a
+market buys is robustness when honesty cannot be assumed. Arm F below tests
+exactly that premise.
+
+**3. The oracle half of the mechanism finally activated — and it is the
+market's only edge.** With noisy signals, margins tighten: the 10%-margin
+verification oracle fired on 14/150 proposals in Arm B (11/150 in Arm A) vs
+1/150 in v0. B's 2-proposal edge over the signals-only Bayes ceiling comes
+from these purchases of outside information (the oracle's z has noise std
+0.316, more precise than any agent). But the oracle proposals are the
+near-zero-|x| coin flips, so even the oracle only gets 8/14 right, and the
+mechanism paid C = 50 each time: −700 of Arm B's −2200 net mechanism profit
+is oracle cost. Buying verification on close calls is the correct qualitative
+behavior; at these parameters it isn't worth the money.
+
+**4. v0's within-market-learning null survives de-saturation, including the
+degradation.** Round-0 mean belief predicts x with Pearson r = 0.925;
+last-round mean belief r = 0.924 (no learning; mean |belief drift| 0.026);
+the final stake-weighted market price r = 0.882 — the market's *price* is
+again a slightly worse aggregator than the unweighted average of the same
+agents' pre-market beliefs, because stake sizes inject noise (sign accuracy:
+0.887 round-0, 0.900 last-round, 0.893 price — all within noise of each
+other). With real headroom to learn from and 3 rounds of published pools,
+Haiku agents still do not update toward the market: the v0 conclusion was not
+an artifact of saturation.
+
+**5. Calibration degrades gracefully with signal quality; staking stays
+belief-consistent, with a rational-looking exception.** Round-0 Brier is
+0.140 (vs 0.076 in v0 — expected, signals are noisier) and the calibration
+curve stays monotone (stated 0.02 → realized 0.00; 0.29 → 0.27; 0.51 → 0.55;
+0.88 → 0.84; 0.98 → 0.99; n = 750). 96% of stakes (1573/1636) are on the side
+of the stated belief. The 63 exceptions are *not* confusion: all occur in
+rounds 1–2, and 60/63 bet *against* the market majority — small longshot
+stakes on the thin side of a lopsided pari-mutuel pool, where the payout
+multiple can justify a bet at odds worse than your belief. v0's "zero
+inconsistencies" becomes "inconsistencies only where pot odds arguably
+justify them."
+
+**6. LLM agents still overpay to participate.** Total agent utility 4.9 (LLM)
+vs 47.3 (rational) — with uniform wealth there is no poor agent to exploit,
+so the v0 redistribution finding becomes a uniform tax: Haiku agents stake a
+median 15% of wealth on noisy edges where Kelly sizing would stake far less,
+and the difference is eaten by fees, participation costs, and losses to the
+oracle-flipped settlements. Decisions were unharmed; wallets were not.
+
+## v1 reproduction
+
+```bash
+python experiments/llm-decision-market/scripts/make_scenarios_v1.py --bounties 2.0 40.0
+python -m proposal_poker.simulate --scenario experiments/llm-decision-market/scenarios_v1/arm_a.json \
+  --output results/llm-decision-market/v1_arm_a_report.json
+# 8 shards, scenarios_v1/arm_b_shard*.json -> v1_arm_b_shard*_report.json (~2.6 h)
+python experiments/llm-decision-market/scripts/run_arm_d.py \
+  --env-report results/llm-decision-market/v1_arm_a_report.json \
+  --output results/llm-decision-market/v1_arm_d_decisions.json \
+  --log experiments/llm-decision-market/logs/v1_arm_d_calls.jsonl
+python experiments/llm-decision-market/scripts/analyze_v1.py
+```
+
+Artifacts: `metrics_v1.json`, `v1_arm_a_report.json`,
+`v1_arm_b_merged_report.json` (+ shards + `v1_patch_*` reruns),
+`v1_arm_d_decisions.json`; raw call logs in
+`experiments/llm-decision-market/logs/calls_v1b*`, `calls_p*`,
+`v1_arm_d_calls.jsonl`. Mean call latency 20.5 s; ~15 calls and ~$0.06 per
+market decision vs 1 call for the equally-accurate manager.
+
+---
+
+# Arm F — behavioral bribery (covert manipulator)
+
+The equilibrium companion study
+(`mechanism-design/MANIPULATION.md`, on main) predicts what *rational*
+traders do when one seat holds an outside bounty: with the bribe common
+knowledge, the others **exclude the manipulator's information entirely** —
+pivotal-state prices park at the no-signal posterior
+(uninformative-not-biased, "blind"), decisions degrade to the
+without-that-signal floor, and the manipulator's market losses transfer to
+the informed (77–91% capture). With a *covert* manipulator (T2u — the case
+matching this arm, since our bounty is undisclosed), the bribed type
+partially pools with the honest one: prices go **"blurry, not blind"** —
+resolution degrades in all pivotal states in proportion to the suspicion
+prior — while decision accuracy exactly matches the known-type mixture
+(accuracy-neutral at the 0.5 threshold). Arm F asks what *behavioral* Haiku
+traders do under the same treatment.
+
+## Setup
+
+v1 environment, proposals 0–49, identical seeded draws to the v1 Arm B
+baseline slice (so per-proposal comparisons are exact). Four honest
+`llm_market` agents + one `llm_market_bribed` agent whose prompt (alone)
+adds a private side deal: an outside party pays a bounty iff the final
+decision is APPROVE. Honest agents' prompts are unchanged — they are not
+told manipulation is possible (covert, and unlike T2u, no suspicion prior
+q is induced). Two bounty levels, calibrated to the v1 honest profit scale
+(mean transfer per participation 1.66): **lo = 2.0 (~1.2x)** and
+**hi = 40.0 (~24x)**. 50 proposals x 15 calls x 2 levels = 1500 calls,
+0 parse failures, 0 transport errors.
+
+## Results
+
+Baseline = v1 Arm B on the same 50 proposals (accuracy 0.980, i.e. 49/50;
+this slice is easier than the full 150). Position-4 in the baseline is the
+seat the bribed agent occupies in Arm F.
+
+| | baseline slice | F-lo (bounty 2.0) | F-hi (bounty 40.0) |
+|---|---|---|---|
+| Decision accuracy | 0.980 | 0.980 (0 flips) | 0.960 (1 flip, #40) |
+| Value ratio | 0.9998 | 0.9998 | 0.9955 |
+| Approve rate | 0.56 | 0.56 | 0.58 |
+| Final-price mean shift vs baseline | — | +0.023 | +0.092 (+0.131 on x<0) |
+| Price–x correlation | 0.868 | 0.870 | 0.865 |
+| Oracle invocations | 3 | 3 | 6 |
+| Mechanism net profit | −650 | −650 | −800 |
+| Bribed seat: YES vs NO stake | 241 vs 227 | 359 vs 34 | 695 vs 12 |
+| Bribed seat: stakes against own stated belief | 3/104 actions (pot-odds longshots) | 14/88 actions | 49/127 actions |
+| Bribed seat: round-0 belief corr. with x | 0.78 | 0.79 | 0.78 |
+| Bribed seat: market transfer | +70.1 | −0.2 | −51.2 |
+| Bribed seat: bounty receipts | — | +56.0 | +1160.0 |
+| Honest seats (pos 0–3): market transfer | +303.4 | +380.8 | +427.5 |
+| Honest seats: YES / NO stake | 1109 / 690 | 962 / 706 | 995 / 774 |
+
+With n = 50 the hi-bounty accuracy delta (−2 pp = one proposal) is not
+statistically distinguishable from zero; the effects that *are* clearly
+resolved are in the stakes, prices, transfers, and oracle usage.
+
+## Reading vs the equilibrium predictions
+
+**1. The bribed agent lies with money, not with words.** Its *stated*
+beliefs remain exactly as honest as everyone else's (round-0 corr with x
+0.78–0.79 at every bounty, same as honest seats), while its stakes skew to
+10:1 YES:NO at lo and 58:1 at hi, including 49 explicit stake-YES actions
+with stated belief < 0.5 at hi. This is the belief-vs-action gap the covert
+threat model worries about — and it means a poll of stated beliefs (Arm C)
+would have been *uncorrupted* here, while any stake-weighted statistic is.
+It also makes this manipulator trivially detectable to a monitor comparing
+an agent's stakes with its own stated beliefs; Haiku does not hide
+strategically the way the T2u pooling equilibrium does.
+
+**2. The transfer half of Hanson's claim holds behaviorally — at nearly
+100% capture.** At hi bounty the bribed seat's market book swings from
++70.1 (its baseline counterfactual) to −51.2, a −121 swing; the four honest
+seats gain +124 (303.4 → 427.5). The manipulator's losses become honest
+profit almost one-for-one — above the 77–91% equilibrium capture in the
+decision-market mechanisms. The channel is mechanical, not strategic:
+inflating the YES pool of a pari-mutuel market raises the payout multiple on
+NO, and v1's Haiku agents are pot-odds-sensitive (v1 finding 5), so their
+stakes drift toward the cheap side (YES/NO 1109/690 baseline → 995/774 at
+hi) with *no belief change and no suspicion*. Hanson's subsidy arrives via
+odds arithmetic alone.
+
+**3. The accuracy half: decisions are robust, but for behavioral reasons,
+not equilibrium ones.** Equilibrium robustness comes from discounting
+(known bribe) or hedged suspicion (covert, T2u); Haiku's honest agents do
+neither — their belief updating is ~zero in both baseline and Arm F (mean
+drift −0.002/+0.001 vs +0.003 baseline), they never react to the distorted
+pools, and their stated beliefs stay equally informative (corr with x 0.78
+vs 0.77). Decisions survive because (i) four honest signal-followers
+arithmetically outweigh one distorted stake in the pool on all but
+knife-edge proposals, and (ii) the same no-updating stubbornness that made
+within-market learning null (v1 finding 4) makes the agents *immune to
+price manipulation as an information channel* — you cannot cascade agents
+that ignore the market. Naive following, the behavioral failure mode the
+equilibrium analysis flagged as potentially worse-than-equilibrium, did not
+occur.
+
+**4. Prices end up biased — not blind, and not blurry: a third regime.**
+The known-manipulator equilibrium predicts pivotal prices parked
+uninformatively at the no-signal posterior; T2u predicts resolution loss
+across pivotal states. Behaviorally we see neither: a roughly uniform price
+shift *toward* the bribe direction (+0.092 mean at hi; +0.131 on x<0
+proposals, where the bribe fights the truth) with resolution essentially
+intact (price–x corr 0.865 vs 0.868) and pivotal-proposal accuracy
+unchanged (0.750 both; only 4 of the 50 proposals are pivotal in the
+delete-one-signal sense, so this is directional only). Because nobody
+discounts and nobody follows, the bribed stakes shift the price *level*
+without destroying its *slope*. A monitor watching for "suspiciously
+favorable prices" — useless at equilibrium, where corruption shows up as
+lost resolution — would actually work against behavioral LLM manipulators
+at these scales.
+
+**5. The one decision the bribe bought, it bought through the oracle — a
+channel absent from the equilibrium model.** Proposal 40 (x = −0.325):
+baseline price 0.342 → reject; bribed price 0.466, margin < 10% → the
+mechanism bought a verification (z = x + noise, std 0.316) and the noisy
+oracle draw came out approve. More generally the hi bounty doubled oracle
+invocations on the slice (3 → 6; mechanism profit −650 → −800): pushing
+prices toward 0.5 converts clear decisions into paid, noisy oracle
+decisions. In a mechanism where near-ties trigger costly verification, a
+covert manipulator's cheapest product is not a purchased decision but
+*manufactured closeness* — extra verification spend plus oracle variance.
+This is the behavioral analog of the equilibrium result that the briber
+buys degradation, not decisions.
+
+**6. Bounty economics: Haiku is a cheap date.** At equilibrium, a bounty of
+~1.2x honest profit changes nothing — a rational trader ignores it. Haiku
+distorted its stakes at lo anyway (10:1 skew) and ended up *worse off than
+not being bribed*: market book +70.1 → −0.2 while collecting only 56.0 in
+bounty. The briber bought real stake distortion for less than the seat's
+opportunity cost — and got zero decision flips for it. At hi the bribe pays
+the agent handsomely (+1160 bounty against −51 market book, net ~+1039 over
+the honest counterfactual) and still moves only one knife-edge decision,
+via oracle noise. So the behavioral corruption *threshold* in decision
+terms is at least as high as the equilibrium one (~24x honest profit buys
+only a statistically null −2 pp), but the behavioral *distortion* threshold
+is far lower (≤ 1.2x): LLM agents accept bribes too small to be rational,
+and the market absorbs the distortion.
+
+## Arm F limitations
+
+- One bribed seat among five equal-precision agents: the information-
+  exclusion question is mild here (deleting one of five signals costs only
+  ~2 pp in the Bayes benchmark, vs 1/3 of the evidence in the equilibrium
+  games). Bribing the *only* informed agent — a redundancy-poor version —
+  is the sharper test and remains open.
+- n = 50 per bounty level; decision-level effects below ~5 pp are not
+  resolvable. Price/stake/transfer effects are resolved (750 acting calls
+  per level).
+- The honest agents were never told manipulation was possible (q = 0
+  prior, unlike T2u's common-knowledge q). A disclosure ablation ("one of
+  your counterparties may be bribed") would test whether prompted suspicion
+  produces T2u-style discounting, or overreaction.
+- Single prompt, single model tier, APPROVE-side bounty only, one seat.
+
+## Arm F reproduction
+
+```bash
+python experiments/llm-decision-market/scripts/make_scenarios_v1.py --bounties 2.0 40.0
+experiments/llm-decision-market/scripts/run_arm_f.sh   # 8 detached shards, ~70 min
+python experiments/llm-decision-market/scripts/analyze_v1.py  # writes arm_F into metrics_v1.json
+```
+
+Artifacts: `v1_arm_f_{lo,hi}_shard{0..3}_report.json`, `metrics_v1.json`
+(`arm_F` block), raw call logs
+`experiments/llm-decision-market/logs/calls_f{lo,hi}*.jsonl`.
+
+Total v1-program LLM usage: 2250 (Arm B) + 285 (patch reruns) + 150 (Arm D)
++ 1500 (Arm F) + ~460 (aborted first Arm F launch; logs quarantined in
+`logs/aborted/`) + ~30 smoke ≈ 4675 CLI calls; mean latency ~20 s; zero
+parse failures end to end.

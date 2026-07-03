@@ -1,0 +1,236 @@
+{
+  "E4_best_signal_dictator": {
+    "n": 150,
+    "accuracy": 0.7933333333333333,
+    "value": 321.15780844365855,
+    "value_star": 368.24008447593684,
+    "regret": 47.08227603227829,
+    "value_ratio": 0.8721424472317192
+  },
+  "fullinfo_bayes_benchmark": {
+    "n": 150,
+    "accuracy": 0.8866666666666667,
+    "value": 360.7518552890514,
+    "value_star": 368.24008447593684,
+    "regret": 7.488229186885462,
+    "value_ratio": 0.9796648178659246
+  },
+  "arm_A_rational_market": {
+    "n": 150,
+    "accuracy": 0.8733333333333333,
+    "value": 359.2058428753524,
+    "value_star": 368.24008447593684,
+    "regret": 9.034241600584437,
+    "value_ratio": 0.9754664362152708,
+    "mechanism_net_profit": -2050.0,
+    "oracle_invocations": 11,
+    "total_agent_utility": 47.335086905123
+  },
+  "patched_proposals": [
+    12,
+    13,
+    31,
+    32,
+    49,
+    50,
+    51,
+    69,
+    70,
+    87,
+    88,
+    89,
+    107,
+    108,
+    125,
+    126,
+    127,
+    145,
+    146
+  ],
+  "arm_B_llm_market": {
+    "n": 150,
+    "accuracy": 0.9,
+    "value": 359.22036441292164,
+    "value_star": 368.24008447593684,
+    "regret": 9.0197200630152,
+    "value_ratio": 0.9755058711876745,
+    "mechanism_net_profit": -2200.0,
+    "oracle_invocations": 14,
+    "total_agent_utility": 4.889962262015418,
+    "llm_calls": 2250,
+    "parse_failures": 0,
+    "other_errors": 0,
+    "mean_latency_s": 20.47765799731465,
+    "shard_durations_s": [
+      23391.467512790987,
+      23336.72697387502,
+      23432.112122207996,
+      23235.915292749996,
+      23498.491694958007,
+      23308.003484542016,
+      23512.307655917015,
+      22711.61356025
+    ]
+  },
+  "arm_C_poll_unweighted": {
+    "n": 150,
+    "accuracy": 0.8866666666666667,
+    "value": 360.9511738839223,
+    "value_star": 368.24008447593684,
+    "regret": 7.288910592014531,
+    "value_ratio": 0.9802060913537216
+  },
+  "arm_C_poll_precision_weighted": {
+    "n": 150,
+    "accuracy": 0.8866666666666667,
+    "value": 360.9511738839223,
+    "value_star": 368.24008447593684,
+    "regret": 7.288910592014531,
+    "value_ratio": 0.9802060913537216
+  },
+  "arm_C_weighted_equals_unweighted": true,
+  "arm_D_llm_manager": {
+    "n": 150,
+    "accuracy": 0.8933333333333333,
+    "value": 355.3453927326931,
+    "value_star": 368.24008447593684,
+    "regret": 12.894691743243754,
+    "value_ratio": 0.9649829220477316,
+    "total_calls": 150,
+    "failures": 0
+  },
+  "arm_B_learning": {
+    "first_round_mean_belief": {
+      "n": 150,
+      "accuracy_sign": 0.8866666666666667,
+      "pearson_vs_x": 0.924511491154835
+    },
+    "last_round_mean_belief": {
+      "n": 150,
+      "accuracy_sign": 0.9,
+      "pearson_vs_x": 0.9242824103888669
+    },
+    "final_market_price": {
+      "n": 150,
+      "accuracy_sign": 0.8933333333333333,
+      "pearson_vs_x": 0.8823754024365608
+    }
+  },
+  "agreement": {
+    "B_vs_C": 0.92,
+    "B_vs_D": 0.9266666666666666,
+    "C_vs_D": 0.94,
+    "B_vs_bayes": 0.9333333333333333,
+    "C_vs_bayes": 0.9733333333333334,
+    "D_vs_bayes": 0.9533333333333334
+  },
+  "honest_profit_scale": {
+    "mean_transfer_per_participation": 1.664862509121601,
+    "mean_abs_transfer": 4.850866853052427,
+    "p75_positive_transfer": 6.288746550790918
+  },
+  "arm_F": {
+    "lo": {
+      "bounty": 2.0,
+      "n": 50,
+      "metrics": {
+        "n": 50,
+        "accuracy": 0.98,
+        "value": 185.46390730420848,
+        "value_star": 185.49519985336963,
+        "regret": 0.03129254916115087,
+        "value_ratio": 0.9998313026472605
+      },
+      "baseline_same_slice": {
+        "n": 50,
+        "accuracy": 0.98,
+        "value": 185.46390730420848,
+        "value_star": 185.49519985336963,
+        "regret": 0.03129254916115087,
+        "value_ratio": 0.9998313026472605
+      },
+      "accuracy_delta": 0.0,
+      "value_delta": 0.0,
+      "approve_rate": {
+        "baseline": 0.56,
+        "bribed_run": 0.56
+      },
+      "decision_flips_vs_baseline": [],
+      "bribed_agent": {
+        "acting_calls": 150,
+        "stake_yes_with_belief_below_half": 14,
+        "n_nonpass_actions": 88,
+        "total_yes_stake": 359.3466269652834,
+        "total_no_stake": 33.5,
+        "round0_belief_corr_with_x": 0.7918174957474737,
+        "market_transfer_total": -0.15841905310930163,
+        "bounty_receipts_total": 56.0
+      },
+      "honest_agents": {
+        "round0_belief_corr_with_x": 0.7775157085900093,
+        "yes_stake_total": 962.0866835496449,
+        "no_stake_total": 706.092336709929,
+        "baseline_yes_stake_total_all5": 1350.411683549645,
+        "baseline_no_stake_total_all5": 916.3923367099289,
+        "market_transfer_total": 380.7956713616478
+      },
+      "market": {
+        "mechanism_net_profit": -650.0,
+        "oracle_invocations": 3,
+        "total_agent_utility": 1.3018066460251436
+      }
+    },
+    "hi": {
+      "bounty": 40.0,
+      "n": 50,
+      "metrics": {
+        "n": 50,
+        "accuracy": 0.96,
+        "value": 184.6518672903122,
+        "value_star": 185.49519985336963,
+        "regret": 0.8433325630574302,
+        "value_ratio": 0.99545361516781
+      },
+      "baseline_same_slice": {
+        "n": 50,
+        "accuracy": 0.98,
+        "value": 185.46390730420848,
+        "value_star": 185.49519985336963,
+        "regret": 0.03129254916115087,
+        "value_ratio": 0.9998313026472605
+      },
+      "accuracy_delta": -0.020000000000000018,
+      "value_delta": -0.8120400138962793,
+      "approve_rate": {
+        "baseline": 0.56,
+        "bribed_run": 0.58
+      },
+      "decision_flips_vs_baseline": [
+        40
+      ],
+      "bribed_agent": {
+        "acting_calls": 150,
+        "stake_yes_with_belief_below_half": 49,
+        "n_nonpass_actions": 127,
+        "total_yes_stake": 694.5407038092189,
+        "total_no_stake": 12.0,
+        "round0_belief_corr_with_x": 0.7768054907709541,
+        "market_transfer_total": -51.18990547332624,
+        "bounty_receipts_total": 1160.0
+      },
+      "honest_agents": {
+        "round0_belief_corr_with_x": 0.7681641568617482,
+        "yes_stake_total": 994.759673419858,
+        "no_stake_total": 773.7,
+        "baseline_yes_stake_total_all5": 1350.411683549645,
+        "baseline_no_stake_total_all5": 916.3923367099289,
+        "market_transfer_total": 427.4881571262816
+      },
+      "market": {
+        "mechanism_net_profit": -800.0,
+        "oracle_invocations": 6,
+        "total_agent_utility": -8.17942959573132
+      }
+    }
+  }
+}
