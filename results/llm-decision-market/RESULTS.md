@@ -198,3 +198,131 @@ Artifacts in this directory: `metrics.json` (all numbers above),
 `arm_a_report.json`, `arm_b_merged_report.json` (+ per-shard reports),
 `arm_d_decisions.json`, `arm_b_sonnet_merged_report.json`, and
 `raw_llm_logs/` (every prompt and raw response, 2850+ calls).
+
+---
+
+# Experiment v1 — de-saturated environment
+
+v0's null (market = poll = manager = one good signal) was a ceiling effect:
+the richest agent's signal was nearly noiseless, so every aggregation method
+collapsed onto it. v1 re-runs everything in an environment where **no single
+signal suffices but pooled signals do**: uniform wealth (sigma_W = 0,
+W_j = 20.09 for all five agents) and precision ratio tau_j/W_j = 0.094, so
+every agent's signal has noise std 0.727. On the realized seed-777 draws the
+best-single-signal dictator scores 0.793 and the full-information Bayes
+posterior 0.887 — a 9.3 pp aggregation headroom that v0 lacked. Everything
+else (150 proposals, seed, mechanism, subsidy 10, 10% oracle margin, prompts,
+Haiku 4.5 with the 1024-token thinking cap) is identical to v0; the
+`deterministic_env` machinery again gives every arm the same (x, y, signal)
+draws, so arms differ only in the decision process.
+
+A transient API outage hit 159 of the 2250 Arm B calls (concentrated on 19
+proposals); those 19 proposals were rerun individually on identical env draws
+and spliced in (`metrics_v1.json:patched_proposals`). After splicing: 2250
+calls, 0 parse failures, 0 transport errors.
+
+## v1 headline table
+
+| Arm | Decision process | Acc. vs 1(x>0) | Value Σxy·D | Regret (of 368.24) | Value ratio | LLM calls |
+|---|---|---|---|---|---|---|
+| A | rational Bayesian agents + market | 0.873 | 359.21 | 9.03 | 0.975 | 0 |
+| B | **LLM (Haiku 4.5) agents + market** | **0.900** | 359.22 | 9.02 | 0.976 | 2250 |
+| C | poll: unweighted mean of B's round-0 beliefs | 0.887 | 360.95 | 7.29 | 0.980 | 0 extra |
+| C' | poll: precision-weighted (tau_j) mean | 0.887 | 360.95 | 7.29 | 0.980 | 0 extra |
+| D | LLM manager, sees all 5 signals | 0.893 | 355.35 | 12.89 | 0.965 | 150 |
+| E4 | best-signal dictator | 0.793 | 321.16 | 47.08 | 0.872 | 0 |
+| — | full-information Bayes posterior (ceiling on signals) | 0.887 | 360.75 | 7.49 | 0.980 | 0 |
+
+n = 150, so the SE on an accuracy of 0.89 is ±2.6 pp. Pairwise exact McNemar
+tests: B vs C p = 0.77, B vs D p = 1.0, B vs A p = 0.34, B vs Bayes p = 0.75 —
+none of the aggregating arms are distinguishable from each other. The only
+significant separation is that every aggregating arm beats the single-signal
+dictator (B vs E4: 22 vs 6 discordant proposals, p = 0.004). C and C' are
+identical *by construction* here: with uniform wealth all precisions are
+equal, so precision-weighting is a no-op (in v0, where wealths differed, the
+saturated environment made the comparison vacuous instead; a v2 with unequal
+wealths *and* headroom is needed to make weighting bite).
+
+## v1 key findings
+
+**1. De-saturation worked, and aggregation is real.** The dictator-to-Bayes
+headroom (0.793 → 0.887) exists and every aggregation method — market, poll,
+manager — captures essentially all of it. This is the positive result v0
+could not show: five noisy LLM traders reliably reconstruct ~100% of the
+pooled-signal optimum (B even lands 2 proposals above the signals-only Bayes
+benchmark, see finding 3).
+
+**2. Trading still adds nothing over polling the same models.** B beats C by
+1.3 pp (0.900 vs 0.887, 7-vs-5 discordant, p = 0.77) — indistinguishable, and
+the poll achieves *lower* importance-weighted regret (7.29 vs 9.02). The
+distributed-vs-centralized comparison is equally null (B vs D, p = 1.0). One
+asymmetry deserves emphasis and is a feature of the design, not a bug: **the
+poll is not incentive-compatible** — agents are simply asked and have no
+reason to lie, and these five have no hidden agenda — **while the market is**
+(stakes are at risk; misreporting costs money in expectation). The v1 result
+is therefore "when agents are honest, a poll is as good as a market and much
+cheaper (5 vs 15 calls/proposal, no subsidy, no redistribution)"; what a
+market buys is robustness when honesty cannot be assumed. Arm F below tests
+exactly that premise.
+
+**3. The oracle half of the mechanism finally activated — and it is the
+market's only edge.** With noisy signals, margins tighten: the 10%-margin
+verification oracle fired on 14/150 proposals in Arm B (11/150 in Arm A) vs
+1/150 in v0. B's 2-proposal edge over the signals-only Bayes ceiling comes
+from these purchases of outside information (the oracle's z has noise std
+0.316, more precise than any agent). But the oracle proposals are the
+near-zero-|x| coin flips, so even the oracle only gets 8/14 right, and the
+mechanism paid C = 50 each time: −700 of Arm B's −2200 net mechanism profit
+is oracle cost. Buying verification on close calls is the correct qualitative
+behavior; at these parameters it isn't worth the money.
+
+**4. v0's within-market-learning null survives de-saturation, including the
+degradation.** Round-0 mean belief predicts x with Pearson r = 0.925;
+last-round mean belief r = 0.924 (no learning; mean |belief drift| 0.026);
+the final stake-weighted market price r = 0.882 — the market's *price* is
+again a slightly worse aggregator than the unweighted average of the same
+agents' pre-market beliefs, because stake sizes inject noise (sign accuracy:
+0.887 round-0, 0.900 last-round, 0.893 price — all within noise of each
+other). With real headroom to learn from and 3 rounds of published pools,
+Haiku agents still do not update toward the market: the v0 conclusion was not
+an artifact of saturation.
+
+**5. Calibration degrades gracefully with signal quality; staking stays
+belief-consistent, with a rational-looking exception.** Round-0 Brier is
+0.140 (vs 0.076 in v0 — expected, signals are noisier) and the calibration
+curve stays monotone (stated 0.02 → realized 0.00; 0.29 → 0.27; 0.51 → 0.55;
+0.88 → 0.84; 0.98 → 0.99; n = 750). 96% of stakes (1573/1636) are on the side
+of the stated belief. The 63 exceptions are *not* confusion: all occur in
+rounds 1–2, and 60/63 bet *against* the market majority — small longshot
+stakes on the thin side of a lopsided pari-mutuel pool, where the payout
+multiple can justify a bet at odds worse than your belief. v0's "zero
+inconsistencies" becomes "inconsistencies only where pot odds arguably
+justify them."
+
+**6. LLM agents still overpay to participate.** Total agent utility 4.9 (LLM)
+vs 47.3 (rational) — with uniform wealth there is no poor agent to exploit,
+so the v0 redistribution finding becomes a uniform tax: Haiku agents stake a
+median 15% of wealth on noisy edges where Kelly sizing would stake far less,
+and the difference is eaten by fees, participation costs, and losses to the
+oracle-flipped settlements. Decisions were unharmed; wallets were not.
+
+## v1 reproduction
+
+```bash
+python experiments/llm-decision-market/scripts/make_scenarios_v1.py --bounties 2.0 40.0
+python -m proposal_poker.simulate --scenario experiments/llm-decision-market/scenarios_v1/arm_a.json \
+  --output results/llm-decision-market/v1_arm_a_report.json
+# 8 shards, scenarios_v1/arm_b_shard*.json -> v1_arm_b_shard*_report.json (~2.6 h)
+python experiments/llm-decision-market/scripts/run_arm_d.py \
+  --env-report results/llm-decision-market/v1_arm_a_report.json \
+  --output results/llm-decision-market/v1_arm_d_decisions.json \
+  --log experiments/llm-decision-market/logs/v1_arm_d_calls.jsonl
+python experiments/llm-decision-market/scripts/analyze_v1.py
+```
+
+Artifacts: `metrics_v1.json`, `v1_arm_a_report.json`,
+`v1_arm_b_merged_report.json` (+ shards + `v1_patch_*` reruns),
+`v1_arm_d_decisions.json`; raw call logs in
+`experiments/llm-decision-market/logs/calls_v1b*`, `calls_p*`,
+`v1_arm_d_calls.jsonl`. Mean call latency 20.5 s; ~15 calls and ~$0.06 per
+market decision vs 1 call for the equally-accurate manager.
