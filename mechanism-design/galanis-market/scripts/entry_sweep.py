@@ -79,7 +79,11 @@ def price_trajectory(game, policy):
                 for t, p in enumerate(hist):
                     sums[t] += weight * p
                 return
-            for action, prob in policy.action_probabilities(state).items():
+            if state.is_chance_node():
+                branches = state.chance_outcomes()
+            else:
+                branches = policy.action_probabilities(state).items()
+            for action, prob in branches:
                 if prob > 0.0:
                     walk_leaf(state.child(action), weight * prob)
 
@@ -145,6 +149,20 @@ def main() -> None:
             "num_actions": ACTIONS, "signals": "b,c",
             "decision_rule": rule,
         })}
+
+    if wanted("REPL"):
+        # Phase-1 replacement sweep (3 informed traders, seat 0 bribed)
+        # at a few bonus levels -- used to compare final vs TWAP rules
+        # against the manipulator_sweep_t3s111y2.json baseline.
+        results["REPL"] = {}
+        for bonus in (0.0, 0.05, 0.2):
+            params = {
+                "structure": STRUCTURE, "num_players": 3, "num_rounds": 3,
+                "num_actions": ACTIONS, "signals": "a,b,c",
+                "manipulator_player": 0, "manipulator_direction": 1,
+                "decision_rule": rule,
+            }
+            results["REPL"][str(bonus)] = run_config("REPL", params, bonus)
 
     for variant in ("T1", "T2", "T3"):
         if not wanted(variant):

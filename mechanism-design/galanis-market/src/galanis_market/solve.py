@@ -292,7 +292,11 @@ def expected_profits(
                     p_high += weight
                 total_w += weight
                 return
-            for action, prob in policy.action_probabilities(state).items():
+            if state.is_chance_node():
+                branches = state.chance_outcomes()
+            else:
+                branches = policy.action_probabilities(state).items()
+            for action, prob in branches:
                 if prob > 0.0:
                     _walk(state.child(action), weight * prob)
 
@@ -330,9 +334,12 @@ def _final_price_distribution(
     """Return list of (final_price, probability) under `policy` from `state`."""
     if state.is_terminal():
         return [(float(state.final_price()), weight)]
-    action_probs = policy.action_probabilities(state)
+    if state.is_chance_node():
+        branches = state.chance_outcomes()
+    else:
+        branches = policy.action_probabilities(state).items()
     out: List[Tuple[float, float]] = []
-    for action, prob in action_probs.items():
+    for action, prob in branches:
         if prob <= 0.0:
             continue
         child = state.child(action)

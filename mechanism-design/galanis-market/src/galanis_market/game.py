@@ -71,7 +71,10 @@ _DEFAULT_GAME_TYPE = _build_game_type()
 
 
 def _build_game_info(
-    num_actions: int, num_rounds: int, num_players: int = 3
+    num_actions: int,
+    num_rounds: int,
+    num_players: int = 3,
+    has_type_node: bool = False,
 ) -> pyspiel.GameInfo:
     # min/max utility bounds: a trader's worst case is losing the full
     # b * log 2 maximum subsidy per trade times their number of trades;
@@ -84,7 +87,9 @@ def _build_game_info(
         min_utility=-bound,
         max_utility=bound,
         utility_sum=None,  # general sum
-        max_game_length=num_rounds + 1,  # +1 for the chance node
+        # +1 for the omega chance node, +1 more for the manipulator-type
+        # chance node when manipulator_prob < 1.
+        max_game_length=num_rounds + 1 + (1 if has_type_node else 0),
     )
 
 
@@ -191,10 +196,16 @@ class GalanisMarketGame(pyspiel.Game):
         self.structure: Structure = STRUCTURES[self.structure_name]
         self.price_grid: List[float] = _default_price_grid(self.num_actions)
         self.lmsr: LMSR = LMSR(b=self.b)
+        # A second chance node (drawing the designated player's type)
+        # exists only under genuine type uncertainty.
+        self.has_type_node: bool = (
+            self.manipulator_player >= 0 and self.manipulator_prob < 1.0
+        )
 
         game_type = _build_game_type()
         game_info = _build_game_info(
-            self.num_actions, self.num_rounds, self.n_players
+            self.num_actions, self.num_rounds, self.n_players,
+            self.has_type_node,
         )
         super().__init__(game_type, game_info, params)
 
@@ -228,6 +239,8 @@ class GalanisMarketState(pyspiel.State):
         self._manipulator_player = game.manipulator_player
         self._manipulator_direction = game.manipulator_direction
         self._manipulator_bonus = game.manipulator_bonus
+        self._manipulator_prob = game.manipulator_prob
+        self._has_type_node = game.has_type_node
         self._naive_player = game.naive_player
         self._insider_player = game.insider_player
         # Compute the action index whose target price is closest to 0.5;
@@ -238,6 +251,10 @@ class GalanisMarketState(pyspiel.State):
         )
         # Mutable state.
         self._omega_idx: Optional[int] = None
+        # Realised type of the designated player under type uncertainty:
+        # None until drawn; 1 = bribed (receives the bonus), 0 = honest.
+        # Stays None when there is no type node (common-knowledge case).
+        self._manip_type: Optional[int] = None
         self._price_history: List[float] = [game.initial_price]
         self._action_history: List[int] = []
         self._trader_profit: List[float] = [0.0] * self._num_players
@@ -248,6 +265,8 @@ class GalanisMarketState(pyspiel.State):
         if self.is_terminal():
             return pyspiel.PlayerId.TERMINAL
         if self._omega_idx is None:
+            return pyspiel.PlayerId.CHANCE
+        if self._has_type_node and self._manip_type is None:
             return pyspiel.PlayerId.CHANCE
         return len(self._action_history) % self._num_players
 
@@ -261,8 +280,12 @@ class GalanisMarketState(pyspiel.State):
 
     def chance_outcomes(self):
         assert self.is_chance_node()
-        prob = 1.0 / len(STATES)
-        return [(i, prob) for i in range(len(STATES))]
+        if self._omega_idx is None:
+            prob = 1.0 / len(STATES)
+            return [(i, prob) for i in range(len(STATES))]
+        # Type node: outcome 1 = bribed (prob p), 0 = honest (prob 1-p).
+        p = self._manipulator_prob
+        return [(0, 1.0 - p), (1, p)]
 
     # ---- Actions --------------------------------------------------------
 
@@ -275,7 +298,10 @@ class GalanisMarketState(pyspiel.State):
 
     def _apply_action(self, action: int) -> None:
         if self.is_chance_node():
-            self._omega_idx = int(action)
+            if self._omega_idx is None:
+                self._omega_idx = int(action)
+            else:
+                self._manip_type = int(action)
             return
 
         active = self.current_player()
@@ -292,7 +318,9 @@ class GalanisMarketState(pyspiel.State):
 
     def _action_to_string(self, player: int, action: int) -> str:
         if player == pyspiel.PlayerId.CHANCE:
-            return f"omega={action}"
+            if self._omega_idx is None:
+                return f"omega={action}"
+            return f"type={'bribed' if action == 1 else 'honest'}"
         return f"p_target={self._price_grid[action]:.4f}"
 
     # ---- Payoffs --------------------------------------------------------
@@ -301,10 +329,12 @@ class GalanisMarketState(pyspiel.State):
         if not self.is_terminal():
             return [0.0] * self._num_players
         out = list(self._trader_profit)
-        if (
+        bribed = (
             0 <= self._manipulator_player < self._num_players
             and self._manipulator_bonus != 0.0
-        ):
+            and (not self._has_type_node or self._manip_type == 1)
+        )
+        if bribed:
             shift = (self.decision_price() - 0.5) * self._manipulator_direction
             out[self._manipulator_player] += self._manipulator_bonus * shift
         return out
@@ -332,6 +362,11 @@ class GalanisMarketState(pyspiel.State):
             cell = str(
                 self._structure.cell_of(player, STATES[self._omega_idx])
             )
+        # Under type uncertainty the designated player privately knows
+        # whether they are bribed; nobody else does.
+        if self._has_type_node and player == self._manipulator_player:
+            t = "?" if self._manip_type is None else str(self._manip_type)
+            cell = f"{cell}|type={t}"
         public = ",".join(str(a) for a in self._action_history)
         return f"p{player}|cell={cell}|hist=[{public}]"
 
