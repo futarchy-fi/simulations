@@ -255,33 +255,40 @@ def expected_profits(
                           any manipulator bonus term;
     * ``market_pnl``   -- expected pure LMSR trading profit per player
                           (excludes the manipulator's out-of-market bonus);
-    * ``p_high``       -- probability that the final price is at or above
-                          ``decision_threshold`` (a decision proxy for a
-                          would-be sponsor who acts iff the market says
-                          the event is more likely than not).
+    * ``p_high``       -- probability that the decision statistic (final
+                          price, or TWAP if game.decision_rule == 'twap')
+                          is at or above ``decision_threshold`` (a decision
+                          proxy for a would-be sponsor who acts iff the
+                          market says the event is more likely than not);
+    * ``mean_stat``    -- expected value of the decision statistic.
 
     Also returns an ``__aggregate__`` entry averaging over the uniform
-    prior, including ``decision_accuracy`` = P[1{p >= thr} == X].
+    prior, including ``decision_accuracy`` = P[1{stat >= thr} == X].
     """
+    n = game.num_players()
     out: Dict[str, Dict[str, object]] = {}
-    agg_returns = np.zeros(3)
-    agg_market = np.zeros(3)
+    agg_returns = np.zeros(n)
+    agg_market = np.zeros(n)
     acc = 0.0
+    stat_le = 0.0
     for omega_idx in range(len(STATES)):
         root = game.new_initial_state()
         root.apply_action(omega_idx)
         x = game.structure.x_of(STATES[omega_idx])
-        returns_acc = np.zeros(3)
-        market_acc = np.zeros(3)
+        returns_acc = np.zeros(n)
+        market_acc = np.zeros(n)
         p_high = 0.0
+        stat_acc = 0.0
         total_w = 0.0
 
         def _walk(state, weight):
-            nonlocal p_high, total_w, returns_acc, market_acc
+            nonlocal p_high, stat_acc, total_w, returns_acc, market_acc
             if state.is_terminal():
                 returns_acc += weight * np.asarray(state.returns())
                 market_acc += weight * np.asarray(state._trader_profit)
-                if state.final_price() >= decision_threshold:
+                stat = state.decision_price()
+                stat_acc += weight * stat
+                if stat >= decision_threshold:
                     p_high += weight
                 total_w += weight
                 return
@@ -293,19 +300,24 @@ def expected_profits(
         returns_acc /= total_w
         market_acc /= total_w
         p_high /= total_w
+        stat_acc /= total_w
         out[STATE_LABELS[omega_idx]] = {
             "x": float(x),
             "returns": returns_acc.tolist(),
             "market_pnl": market_acc.tolist(),
             "p_high": float(p_high),
+            "mean_stat": float(stat_acc),
         }
         agg_returns += returns_acc / len(STATES)
         agg_market += market_acc / len(STATES)
         acc += (p_high if x == 1 else 1.0 - p_high) / len(STATES)
+        p_clip = float(np.clip(stat_acc, 1e-15, 1 - 1e-15))
+        stat_le += -(x * np.log(p_clip) + (1 - x) * np.log(1 - p_clip)) / len(STATES)
     out["__aggregate__"] = {
         "returns": agg_returns.tolist(),
         "market_pnl": agg_market.tolist(),
         "decision_accuracy": float(acc),
+        "stat_log_error": float(stat_le),
     }
     return out
 
