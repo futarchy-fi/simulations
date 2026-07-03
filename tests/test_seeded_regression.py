@@ -20,7 +20,6 @@ def test_seeded_regression_snapshot() -> None:
             "seed": 12345,
             "num_proposals": 25,
             "round_cap": 20,
-            "stake_cap_fraction": 0.99,
             "environment": {
                 "mu_W": 3.0,
                 "sigma_W": 1.5,
@@ -55,20 +54,26 @@ def test_seeded_regression_snapshot() -> None:
     report = run_simulation(config, registry=registry)
     agg = report.aggregates
 
-    assert report.metadata.scenario_hash == "3888c4ea6dc463e82482d1b5b51041a735eb1a62fe4a2a6ed92493a579a95d34"
+    assert report.metadata.scenario_hash == "241455fab2f4ff5ec44473deaa3e65e7b268894453d003bf180fa91dfb64bb26"
 
-    assert agg.approval_count == 12
+    assert agg.approval_count == 0
     assert agg.futarchy_count == 0
-    assert agg.proposal_utility_total == pytest.approx(51.57195221635675)
+    assert agg.proposal_utility_total == pytest.approx(0.0)
     assert agg.oracle_optimal_total == pytest.approx(51.58878936524919)
-    assert agg.regret == pytest.approx(0.016837148892442144)
+    assert agg.regret == pytest.approx(51.58878936524919)
     assert agg.mechanism_net_profit_total == pytest.approx(0.0, abs=1e-12)
     assert agg.mechanism_net_profit_mean == pytest.approx(0.0, abs=1e-12)
-    assert agg.utility_mean == pytest.approx(61.37840542649422)
-    assert agg.utility_min == pytest.approx(19.902062963660327)
-    assert agg.utility_max == pytest.approx(122.40554503442964)
-    assert agg.utility_std == pytest.approx(32.10442990548472)
+    assert agg.utility_mean == pytest.approx(0.0)
+    assert agg.utility_min == pytest.approx(0.0)
+    assert agg.utility_max == pytest.approx(0.0)
+    assert agg.utility_std == pytest.approx(0.0)
 
     assert [row.final_decision for row in report.per_proposal[:3]] == ["reject", "reject", "reject"]
     assert [row.mechanism_net_profit for row in report.per_proposal[:3]] == pytest.approx([0.0, 0.0, 0.0])
     assert [row.proposal_utility for row in report.per_proposal[:3]] == pytest.approx([0.0, 0.0, 0.0])
+    assert [row.contribution_total for row in report.per_proposal[:3]] == pytest.approx([0.0, 0.0, 0.0])
+    assert [row.agent_reports[0].attempts[0].rejection_reason for row in report.per_proposal[:3]] == [
+        "abstain",
+        "abstain",
+        "abstain",
+    ]

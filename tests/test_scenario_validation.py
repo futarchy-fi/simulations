@@ -18,7 +18,6 @@ def test_scenario_defaults_are_applied() -> None:
 
     assert config.num_proposals == 500
     assert config.round_cap == 20
-    assert config.stake_cap_fraction == pytest.approx(0.99)
     assert config.environment.mu_W == pytest.approx(3.0)
 
 

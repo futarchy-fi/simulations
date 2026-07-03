@@ -16,10 +16,19 @@ import numpy as np
 from pydantic import BaseModel, ValidationError
 
 from .discovery import SubmissionRegistry, discover_submissions
-from .errors import BudgetBalanceError, InvalidSubmissionError, SimulationError, SybilViolationError
+from .errors import InvalidSubmissionError, SimulationError, SybilViolationError
 from .metrics import build_aggregates
 from .scenario import ScenarioConfig, scenario_hash
-from .types import AgentReport, Contribution, ProposalReport, Receipt, SettlementContext, SimulationReport
+from .types import (
+    AgentAttemptReport,
+    AgentReport,
+    Contribution,
+    ProposalAgentReport,
+    ProposalReport,
+    Receipt,
+    SettlementContext,
+    SimulationReport,
+)
 
 _EPS = 1e-9
 
@@ -53,8 +62,13 @@ def run_simulation(
     proposal_rows: list[ProposalReport] = []
 
     for proposal_idx in range(config.num_proposals):
-        x = float(rng.normal(0.0, 1.0))
-        y = float(rng.lognormal(0.0, 2.0))
+        global_idx = config.proposal_offset + proposal_idx
+        if config.deterministic_env:
+            prop_rng = np.random.default_rng([config.seed or 0, global_idx])
+        else:
+            prop_rng = rng
+        x = float(prop_rng.normal(0.0, 1.0))
+        y = float(prop_rng.lognormal(0.0, 2.0))
 
         mechanism = registry.create_mechanism(config.mechanism.id, config.mechanism.params)
         state = mechanism.init()
@@ -62,12 +76,14 @@ def run_simulation(
 
         receipts_by_agent: list[list[Receipt]] = [[] for _ in runtimes]
         my_past_by_agent: list[list[Contribution]] = [[] for _ in runtimes]
+        attempts_by_agent: list[list[AgentAttemptReport]] = [[] for _ in runtimes]
         stake_by_agent = np.zeros(len(runtimes), dtype=float)
+        entry_cost_by_agent = np.zeros(len(runtimes), dtype=float)
         payout_by_agent = np.zeros(len(runtimes), dtype=float)
 
         if len(runtimes) > 0:
             signal_std = np.array([1.0 / math.sqrt(agent.precision) for agent in runtimes], dtype=float)
-            signals = x + rng.normal(0.0, signal_std)
+            signals = x + prop_rng.normal(0.0, signal_std)
         else:
             signals = np.array([], dtype=float)
 
@@ -76,11 +92,18 @@ def run_simulation(
         receipt_counter = 0
 
         for _round in range(config.round_cap):
-            for agent_index in rng.permutation(len(runtimes)):
+            for agent_index in prop_rng.permutation(len(runtimes)):
                 runtime = runtimes[agent_index]
 
                 # Participation constraint from the model.
                 if config.environment.phi * math.sqrt(y) >= 1.0:
+                    attempts_by_agent[agent_index].append(
+                        AgentAttemptReport(
+                            round_index=_round,
+                            accepted=False,
+                            rejection_reason="participation_constraint",
+                        )
+                    )
                     continue
 
                 message = mechanism.publish(state)
@@ -94,12 +117,45 @@ def run_simulation(
                     my_past=list(my_past_by_agent[agent_index]),
                 )
                 if raw_contribution is None:
+                    attempts_by_agent[agent_index].append(
+                        AgentAttemptReport(
+                            round_index=_round,
+                            public_message=message,
+                            accepted=False,
+                            rejection_reason="abstain",
+                        )
+                    )
                     continue
 
                 contribution = Contribution.model_validate(raw_contribution)
 
-                max_allowed_stake = config.stake_cap_fraction * runtime.wealth
-                if stake_by_agent[agent_index] + contribution.amount > max_allowed_stake:
+                entry_cost = 0.0
+                if not receipts_by_agent[agent_index]:
+                    entry_cost = _participation_entry_cost(
+                        wealth=runtime.wealth,
+                        y=y,
+                        phi=config.environment.phi,
+                    )
+
+                potential_stake = stake_by_agent[agent_index] + contribution.amount
+                potential_loss = (
+                    potential_stake
+                    + _stake_fee_cost(potential_stake, config.environment.fee_rate)
+                    + entry_cost_by_agent[agent_index]
+                )
+                if not receipts_by_agent[agent_index]:
+                    potential_loss += entry_cost
+
+                if potential_loss >= runtime.wealth:
+                    attempts_by_agent[agent_index].append(
+                        AgentAttemptReport(
+                            round_index=_round,
+                            public_message=message,
+                            contribution=contribution,
+                            accepted=False,
+                            rejection_reason="insufficient_wealth",
+                        )
+                    )
                     continue
 
                 contribution = contribution.model_copy(
@@ -109,6 +165,15 @@ def run_simulation(
                 state_at_entry = copy.deepcopy(state)
                 state, raw_receipt = mechanism.on_contribution(state, contribution)
                 if raw_receipt is None:
+                    attempts_by_agent[agent_index].append(
+                        AgentAttemptReport(
+                            round_index=_round,
+                            public_message=message,
+                            contribution=contribution,
+                            accepted=False,
+                            rejection_reason="mechanism_rejected",
+                        )
+                    )
                     continue
 
                 receipt = _normalize_receipt(
@@ -122,6 +187,16 @@ def run_simulation(
                 receipts_by_agent[agent_index].append(receipt)
                 my_past_by_agent[agent_index].append(contribution)
                 stake_by_agent[agent_index] += contribution.amount
+                if entry_cost_by_agent[agent_index] == 0.0:
+                    entry_cost_by_agent[agent_index] = entry_cost
+                attempts_by_agent[agent_index].append(
+                    AgentAttemptReport(
+                        round_index=_round,
+                        public_message=message,
+                        contribution=contribution,
+                        accepted=True,
+                    )
+                )
 
             state, done = mechanism.on_round_end(state)
             if done:
@@ -134,7 +209,7 @@ def run_simulation(
         oracle_signal: float | None = None
         final_decision = decision_pre_oracle
         if use_futarchy:
-            oracle_signal = float(x + rng.normal(0.0, 1.0 / math.sqrt(config.environment.tau_F)))
+            oracle_signal = float(x + prop_rng.normal(0.0, 1.0 / math.sqrt(config.environment.tau_F)))
             final_decision = "approve" if oracle_signal > 0.0 else "reject"
 
         settlement = SettlementContext(
@@ -152,11 +227,9 @@ def run_simulation(
 
         contribution_total = float(np.sum(stake_by_agent))
         payout_total = float(np.sum(payout_by_agent))
-
-        if payout_total > contribution_total + _EPS:
-            raise BudgetBalanceError(
-                f"Budget balance violated on proposal {proposal_idx}: payouts={payout_total} > contributions={contribution_total}"
-            )
+        external_funding = float(mechanism.external_funding(state, settlement))
+        if not math.isfinite(external_funding) or external_funding < 0.0:
+            raise SimulationError("Mechanism external funding must be a non-negative finite float")
 
         _enforce_sybil_invariant(all_settled_receipts)
 
@@ -165,25 +238,43 @@ def run_simulation(
         proposal_utility = x * y if final_decision == "approve" else 0.0
         oracle_optimal_value = x * y if x > 0.0 else 0.0
 
+        proposal_agent_rows: list[ProposalAgentReport] = []
         for agent_index, runtime in enumerate(runtimes):
             stake = float(stake_by_agent[agent_index])
-            transfer = float(payout_by_agent[agent_index] - stake)
+            entry_cost = float(entry_cost_by_agent[agent_index])
+            fee_cost = _stake_fee_cost(stake, config.environment.fee_rate)
+            transfer = float(payout_by_agent[agent_index] - stake - entry_cost - fee_cost)
             terminal_wealth = runtime.wealth + transfer
             if terminal_wealth <= 0.0:
                 raise SimulationError(
                     f"Non-positive terminal wealth for {runtime.instance_id} on proposal {proposal_idx}"
                 )
-            utility = math.log(terminal_wealth) - config.environment.fee_rate * (stake / runtime.wealth)
+            utility = math.log(terminal_wealth) - math.log(runtime.wealth)
 
             runtime.total_utility += utility
             runtime.total_stake += stake
             runtime.total_transfer += transfer
             if stake > 0.0:
                 runtime.participation_count += 1
+            proposal_agent_rows.append(
+                ProposalAgentReport(
+                    agent_instance_id=runtime.instance_id,
+                    agent_type_id=runtime.type_id,
+                    wealth=runtime.wealth,
+                    signal=float(signals[agent_index]),
+                    attempts=attempts_by_agent[agent_index],
+                    stake=stake,
+                    payout=float(payout_by_agent[agent_index]),
+                    entry_cost=entry_cost,
+                    fee_cost=fee_cost,
+                    transfer=transfer,
+                    utility=utility,
+                )
+            )
 
         proposal_rows.append(
             ProposalReport(
-                index=proposal_idx,
+                index=global_idx,
                 x=x,
                 y=y,
                 decision_pre_oracle=decision_pre_oracle,
@@ -192,10 +283,12 @@ def run_simulation(
                 oracle_signal=oracle_signal,
                 contribution_total=contribution_total,
                 payout_total=payout_total,
+                external_funding=external_funding,
                 mechanism_net_profit=mechanism_net_profit,
                 proposal_utility=proposal_utility,
                 oracle_optimal_value=oracle_optimal_value,
                 forced_termination=forced_termination,
+                agent_reports=proposal_agent_rows,
             )
         )
 
@@ -271,6 +364,14 @@ def _validate_contribution_data(schema: type[BaseModel] | None, data: Any) -> An
     except ValidationError as exc:
         raise SimulationError(f"Contribution data failed schema validation: {exc}") from exc
     return validated.model_dump(mode="python")
+
+
+def _participation_entry_cost(wealth: float, y: float, phi: float) -> float:
+    return phi * wealth * math.sqrt(y)
+
+
+def _stake_fee_cost(stake: float, fee_rate: float) -> float:
+    return fee_rate * stake
 
 
 def _normalize_receipt(

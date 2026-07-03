@@ -20,7 +20,6 @@ def _scenario(seed: int) -> ScenarioConfig:
             "seed": seed,
             "num_proposals": 40,
             "round_cap": 20,
-            "stake_cap_fraction": 0.99,
             "environment": {
                 "mu_W": 3.0,
                 "sigma_W": 1.5,
@@ -61,7 +60,7 @@ def test_stochastic_invariants_hold_across_seeds() -> None:
         report = run_simulation(config, registry=registry)
 
         for proposal in report.per_proposal:
-            assert proposal.payout_total <= proposal.contribution_total + 1e-9
+            assert proposal.payout_total <= proposal.contribution_total + proposal.external_funding + 1e-9
             expected_profit = (
                 proposal.contribution_total
                 - proposal.payout_total

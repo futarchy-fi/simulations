@@ -51,24 +51,37 @@ For every proposal, every agent observes a private signal for free:
 Conditionally independent across agents given x. Agents observe s_j
 and y before taking any action.
 
-### 2.4 Utility
+### 2.4 Participation cost
+
+If an agent enters the betting pool for a proposal, they pay a
+dead-weight monetary cost:
+
+    K_j = phi * W_j * sqrt(y) * 1(participates)
+
+Where `participates` means the agent has at least one accepted
+contribution on that proposal. This money vanishes; it does not go
+to the mechanism or to other agents.
+
+### 2.5 Utility
 
 Agent j's utility for a single proposal:
 
-    U_j = log(W_j + T_j) - fee_rate * (S_j / W_j)
+    U_j = log(W_j + T_j - K_j - fee_rate * S_j) - log(W_j)
 
 Where:
 - T_j = net monetary transfer (payouts received minus money contributed)
+- K_j = participation cost paid on first accepted contribution
 - S_j = total money contributed to the mechanism across all rounds
 - fee_rate = 0.01 (1%) by default
 
-The first term is log utility over terminal wealth. The second term
-is the stake disutility — a utility cost proportional to the fraction
-of wealth put at stake, regardless of whether the money is returned.
+Both `K_j` and `fee_rate * S_j` are dead-weight monetary costs. They
+reduce terminal wealth directly and are not paid to the mechanism or
+to other agents.
 
-If agent j does not participate: T_j = 0, S_j = 0, U_j = log(W_j).
+If agent j does not participate: T_j = 0, K_j = 0, S_j = 0,
+U_j = 0.
 
-### 2.5 Participation constraint
+### 2.6 Participation constraint
 
 Agent j cannot participate in a proposal when:
 
@@ -145,6 +158,10 @@ A mechanism M is a tuple of functions:
         - PayoutFn: Receipt -> float (money returned to receipt holder)
         - bool: whether to invoke the futarchy oracle
 
+    external_funding(State, Settlement) -> float
+        Optional non-agent funding available at settlement. This can
+        encode public subsidies or sponsor budgets. Defaults to 0.
+
     valid_data() -> Schema
         Defines what data the mechanism accepts in contributions.
 
@@ -159,10 +176,9 @@ outcome.
    outcomes depend only on observed contributions. The mechanism
    cannot condition on x, y, s_j, W_j, tau_j, or N.
 
-2. **Budget balance.** Total payouts cannot exceed total
-   contributions:
-
-       sum over all receipts r: PayoutFn(r) <= sum over all receipts r: r.amount
+2. **Mechanism-defined funding.** Total payouts may exceed total
+   contributions if the mechanism has public external funding defined
+   by its own rules.
 
 3. **Sybil resistance.** Two receipts with identical (amount, data,
    state_at_entry) receive identical payouts. The payout depends
@@ -184,6 +200,9 @@ For each proposal (x, y):
           - agent sees (W_j, s_j, y, public_history, own_past)
           - agent returns a Contribution or None
           - if Contribution:
+              - reject it if the contribution would make j's terminal
+                wealth non-positive in the worst case (zero payout),
+                since log utility would be undefined
               state, receipt = mechanism.on_contribution(state, c)
               assign receipt to agent j (invisible to mechanism)
               append msg to public_history for all agents
@@ -199,8 +218,9 @@ For each proposal (x, y):
     6. For each agent j:
        - S_j = sum of amounts in j's contributions
        - payout_j = sum of payout_fn(r) for r in j's receipts
+       - K_j = phi * W_j * sqrt(y) if j has any accepted contribution, else 0
        - T_j = payout_j - S_j
-       - U_j = log(W_j + T_j) - fee_rate * S_j / W_j
+       - U_j = log(W_j + T_j - K_j - fee_rate * S_j) - log(W_j)
 
 ## 6. Agent Interface
 
@@ -231,7 +251,7 @@ tau = (phi / alpha) * wealth.
 | Wealth          | W_j     | LN(3,1.5)| Agent wealth (fixed across proposals)|
 | Entry cost frac | phi     | 0.01    | Participation constraint parameter   |
 | Precision scale | alpha   | 0.005   | tau_j = phi * W_j / alpha            |
-| Stake disutility| fee_rate| 0.01    | Utility cost per unit S/W staked     |
+| Stake fee       | fee_rate| 0.01    | Dead-weight monetary fee per unit staked |
 | Futarchy cost   | C       | 50      | Cost of verification oracle          |
 | Futarchy prec   | tau_F   | 10      | Verification oracle precision        |
 | Proposals       | M       | 500     | Number of proposals                  |
