@@ -23,7 +23,7 @@ for scenario in "$SCEN/$PATTERN"*.json; do
     --output "$OUT/${name}_report.json" \
     > "$OUT/${name}.log" 2>&1 &
   pids+=($!)
-  echo "launched $name pid ${pids[-1]}"
+  echo "launched $name pid $!"
 done
 
 fail=0

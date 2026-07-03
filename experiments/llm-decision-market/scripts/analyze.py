@@ -297,6 +297,9 @@ def main() -> None:
     if b_paths:
         merged_b = merge_reports(b_paths)
         b_rows = merged_b["per_proposal"]
+        (RESULTS / "arm_b_merged_report.json").write_text(
+            json.dumps(merged_b, indent=2, default=float)
+        )
         # sanity: env identical to arm A
         for ra, rb in zip(env_rows, b_rows):
             assert abs(ra["x"] - rb["x"]) < 1e-12 and abs(ra["y"] - rb["y"]) < 1e-12, (
@@ -344,6 +347,9 @@ def main() -> None:
     if s_paths:
         merged_s = merge_reports(s_paths)
         s_rows = merged_s["per_proposal"]
+        (RESULTS / "arm_b_sonnet_merged_report.json").write_text(
+            json.dumps(merged_s, indent=2, default=float)
+        )
         env_sub = env_rows[: len(s_rows)]
         s_dec = {r["index"]: r["final_decision"] == "approve" for r in s_rows}
         s_offsets = shard_offsets_for(30, 4, "sonnet")
