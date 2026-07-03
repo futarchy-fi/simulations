@@ -232,5 +232,167 @@
         "total_agent_utility": -8.17942959573132
       }
     }
+  },
+  "arm_G": {
+    "bounty": 40.0,
+    "n": 50,
+    "llm_calls": 750,
+    "parse_failures": 0,
+    "other_errors": 0,
+    "market": {
+      "metrics": {
+        "n": 50,
+        "accuracy": 0.9,
+        "value": 172.11453274698542,
+        "value_star": 185.49519985336963,
+        "regret": 13.380667106384209,
+        "value_ratio": 0.9278651570662672
+      },
+      "baseline_same_slice": {
+        "n": 50,
+        "accuracy": 0.98,
+        "value": 185.46390730420848,
+        "value_star": 185.49519985336963,
+        "regret": 0.03129254916115087,
+        "value_ratio": 0.9998313026472605
+      },
+      "f_hi_same_slice": {
+        "n": 50,
+        "accuracy": 0.96,
+        "value": 184.6518672903122,
+        "value_star": 185.49519985336963,
+        "regret": 0.8433325630574302,
+        "value_ratio": 0.99545361516781
+      },
+      "accuracy_delta_vs_baseline": -0.07999999999999996,
+      "accuracy_delta_vs_f_hi": -0.05999999999999994,
+      "decision_flips_vs_baseline": [
+        12,
+        16,
+        27,
+        48
+      ],
+      "decision_flips_vs_f_hi": [
+        12,
+        16,
+        27,
+        40,
+        48
+      ],
+      "approve_rate": 0.64,
+      "final_price_mean_shift_vs_baseline": 0.08577756705799164,
+      "final_price_mean_shift_vs_baseline_xneg": 0.15570828631309117,
+      "price_x_correlation": 0.8316578226391925,
+      "mechanism_net_profit": -650.0,
+      "oracle_invocations": 3,
+      "total_agent_utility": -5.3299209557057825
+    },
+    "poll_on_slice": {
+      "baseline_slice": {
+        "n": 50,
+        "accuracy": 0.94,
+        "value": 184.99491661344126,
+        "value_star": 185.49519985336963,
+        "regret": 0.5002832399283648,
+        "value_ratio": 0.9973029855202515
+      },
+      "f_hi_incl_bribed_reports": {
+        "n": 50,
+        "accuracy": 0.94,
+        "value": 184.99491661344126,
+        "value_star": 185.49519985336963,
+        "regret": 0.5002832399283648,
+        "value_ratio": 0.9973029855202515
+      },
+      "g_incl_liar_reports": {
+        "n": 50,
+        "accuracy": 0.96,
+        "value": 185.43159688231853,
+        "value_star": 185.49519985336963,
+        "regret": 0.0636029710510968,
+        "value_ratio": 0.9996571179680047
+      },
+      "g_honest_only": {
+        "n": 50,
+        "accuracy": 0.98,
+        "value": 185.34346345980651,
+        "value_star": 185.49519985336963,
+        "regret": 0.15173639356311241,
+        "value_ratio": 0.9991819928834651
+      },
+      "g_poll_flips_vs_baseline_poll": [
+        23
+      ],
+      "g_poll_approve_rate": 0.58,
+      "baseline_poll_approve_rate": 0.56
+    },
+    "audit_stake_vs_belief": {
+      "g_liar": {
+        "against": 0,
+        "actions": 118,
+        "rate": 0.0
+      },
+      "f_hi_bribed": {
+        "against": 49,
+        "actions": 127,
+        "rate": 0.3858267716535433
+      },
+      "g_honest": {
+        "against": 13,
+        "actions": 442,
+        "rate": 0.029411764705882353
+      },
+      "f_hi_honest": {
+        "against": 12,
+        "actions": 448,
+        "rate": 0.026785714285714284
+      },
+      "baseline_all": {
+        "against": 24,
+        "actions": 559,
+        "rate": 0.04293381037567084
+      }
+    },
+    "residual_monitors": {
+      "belief_vs_population_divergence": {
+        "g_liar_mean": 0.0849045,
+        "g_liar_mean_abs": 0.22189149999999994,
+        "g_honest_loo_mean": -2.359223927328458e-18,
+        "g_honest_loo_mean_abs": 0.18475566666666665,
+        "f_hi_bribed_mean": -0.012086000000000006,
+        "f_hi_bribed_mean_abs": 0.178713
+      },
+      "round0_belief_corr_with_x": {
+        "g_liar": 0.6730604199878663,
+        "g_honest": 0.7653987271492924,
+        "f_hi_bribed": 0.7768054907709541,
+        "f_hi_honest": 0.7681641568617482
+      },
+      "round0_brier_vs_outcome": {
+        "g_liar": 0.19520758000000002,
+        "g_honest": 0.11223857495,
+        "f_hi_bribed": 0.1262714746,
+        "f_hi_honest": 0.1134260574,
+        "baseline_all_slice": 0.12082070736000002
+      },
+      "last_round_brier_vs_outcome": {
+        "g_liar": 0.2060016162,
+        "g_honest": 0.11352715186250001,
+        "f_hi_bribed": 0.1292194554,
+        "f_hi_honest": 0.10887580805
+      },
+      "pnl": {
+        "g_liar_market_transfer": 6.1000398084170975,
+        "g_liar_bounty_receipts": 1280.0,
+        "g_honest_market_transfer": 368.4883655872072,
+        "f_hi_bribed_market_transfer": -51.18990547332624,
+        "f_hi_honest_market_transfer": 427.4881571262816,
+        "baseline_seat4_transfer": 70.12121824035569
+      },
+      "g_liar_stakes": {
+        "yes": 673.3853772290769,
+        "no": 2.5
+      }
+    }
   }
 }

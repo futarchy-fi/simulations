@@ -518,6 +518,17 @@ def main() -> None:
         def r0_pairs(recs):
             return [(r["parsed"]["belief_x_positive"], envmap[r["global_index"]]["x"])
                     for r in recs if r["round_index"] == 0 and r["parsed"]]
+
+        def rl_pairs(recs):
+            last = {}
+            for r in recs:
+                if r["parsed"] is None:
+                    continue
+                key = (r["global_index"], r["instance_uid"])
+                prev = last.get(key)
+                if prev is None or r["round_index"] > prev[0]:
+                    last[key] = (r["round_index"], r["parsed"]["belief_x_positive"])
+            return [(b, envmap[idx]["x"]) for (idx, _u), (_r, b) in last.items()]
         liar_pairs = r0_pairs(liar)
         corr_liar = (float(np.corrcoef(*zip(*liar_pairs))[0, 1])
                      if len(liar_pairs) > 2 else None)
@@ -584,6 +595,14 @@ def main() -> None:
                     "f_hi_bribed": brier(r0_pairs(fhi_bribed)),
                     "f_hi_honest": brier(r0_pairs(fhi_honest)),
                     "baseline_all_slice": brier(r0_pairs(b_recs_slice)),
+                },
+                "last_round_brier_vs_outcome": {
+                    # the liar lies hardest once it holds a position, so its
+                    # final-round reports decalibrate more than round-0 ones
+                    "g_liar": brier(rl_pairs(liar)),
+                    "g_honest": brier(rl_pairs(g_honest)),
+                    "f_hi_bribed": brier(rl_pairs(fhi_bribed)),
+                    "f_hi_honest": brier(rl_pairs(fhi_honest)),
                 },
                 "pnl": {
                     "g_liar_market_transfer": liar_transfer,

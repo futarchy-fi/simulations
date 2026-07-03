@@ -1,0 +1,4488 @@
+{
+  "metadata": {
+    "scenario_hash": "71c93475910c1dcef01469ca721ed941c13dbfefda74087ca302f98b227fe620",
+    "seed": 777,
+    "duration_seconds": 3267.6041469159827,
+    "discovered_agents": [
+      "bayesian_threshold",
+      "llm_market",
+      "llm_market_bribed",
+      "llm_market_liar"
+    ],
+    "discovered_mechanisms": [
+      "binary_staking_market"
+    ]
+  },
+  "aggregates": {
+    "proposal_count": 13,
+    "approval_count": 9,
+    "futarchy_count": 0,
+    "proposal_utility_total": 54.396302189651564,
+    "oracle_optimal_total": 54.42861261154151,
+    "regret": 0.03231042188994593,
+    "mechanism_net_profit_total": -130.0,
+    "mechanism_net_profit_mean": -10.0,
+    "utility_mean": 0.04770983397184718,
+    "utility_min": -1.1612019792022614,
+    "utility_max": 1.0155794245397245,
+    "utility_std": 0.7726655138029648
+  },
+  "per_agent": [
+    {
+      "agent_instance_id": "llm_market#0",
+      "agent_type_id": "llm_market",
+      "wealth": 20.085536923187668,
+      "total_utility": 1.0155794245397245,
+      "mean_utility": 0.07812149419536342,
+      "total_stake": 110.75,
+      "total_transfer": 33.22274381470354,
+      "participation_count": 12
+    },
+    {
+      "agent_instance_id": "llm_market#1",
+      "agent_type_id": "llm_market",
+      "wealth": 20.085536923187668,
+      "total_utility": 0.37068432686215447,
+      "mean_utility": 0.028514178989396496,
+      "total_stake": 84.5,
+      "total_transfer": 13.826943631285241,
+      "participation_count": 12
+    },
+    {
+      "agent_instance_id": "llm_market#2",
+      "agent_type_id": "llm_market",
+      "wealth": 20.085536923187668,
+      "total_utility": 0.49620855620434745,
+      "mean_utility": 0.03816988893879596,
+      "total_stake": 87.0,
+      "total_transfer": 25.20931217703191,
+      "participation_count": 12
+    },
+    {
+      "agent_instance_id": "llm_market#3",
+      "agent_type_id": "llm_market",
+      "wealth": 20.085536923187668,
+      "total_utility": -0.4827211585447291,
+      "mean_utility": -0.037132396811133006,
+      "total_stake": 98.8,
+      "total_transfer": 7.399923445024783,
+      "participation_count": 13
+    },
+    {
+      "agent_instance_id": "llm_market_liar#0",
+      "agent_type_id": "llm_market_liar",
+      "wealth": 20.085536923187668,
+      "total_utility": -1.1612019792022614,
+      "mean_utility": -0.08932322916940473,
+      "total_stake": 174.492336709929,
+      "total_transfer": 16.53261880459023,
+      "participation_count": 13
+    }
+  ],
+  "per_proposal": [
+    {
+      "index": 26,
+      "x": 0.9051972101494024,
+      "y": 1.1090811908746314,
+      "decision_pre_oracle": "approve",
+      "final_decision": "approve",
+      "use_futarchy": false,
+      "oracle_signal": null,
+      "contribution_total": 65.0,
+      "payout_total": 75.0,
+      "external_funding": 10.0,
+      "mechanism_net_profit": -10.0,
+      "proposal_utility": 1.003937199808893,
+      "oracle_optimal_value": 1.003937199808893,
+      "forced_termination": false,
+      "agent_reports": [
+        {
+          "agent_instance_id": "llm_market#0",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 1.7787244985883084,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 19.5,
+                "reject_stake": 0.0,
+                "total_stake": 19.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 8.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 43.5,
+                "reject_stake": 0.0,
+                "total_stake": 43.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 50.5,
+                "reject_stake": 0.0,
+                "total_stake": 50.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 5.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 16.0,
+          "payout": 18.46153846153846,
+          "entry_cost": 0.21152666184668975,
+          "fee_cost": 0.16,
+          "transfer": 2.09001179969177,
+          "utility": 0.09899027300242746
+        },
+        {
+          "agent_instance_id": "llm_market#1",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 2.316055650663275,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 11.5,
+                "reject_stake": 0.0,
+                "total_stake": 11.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 8.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 27.5,
+                "reject_stake": 0.0,
+                "total_stake": 27.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 4.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 55.5,
+                "reject_stake": 0.0,
+                "total_stake": 55.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 5.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 17.0,
+          "payout": 19.615384615384613,
+          "entry_cost": 0.21152666184668975,
+          "fee_cost": 0.17,
+          "transfer": 2.2338579535379237,
+          "utility": 0.10545602588777925
+        },
+        {
+          "agent_instance_id": "llm_market#2",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.5645309135922221,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 0.0,
+                "total_stake": 0.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 39.5,
+                "reject_stake": 0.0,
+                "total_stake": 39.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 4.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 60.5,
+                "reject_stake": 0.0,
+                "total_stake": 60.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 8.5,
+          "payout": 9.807692307692307,
+          "entry_cost": 0.21152666184668975,
+          "fee_cost": 0.085,
+          "transfer": 1.0111656458456169,
+          "utility": 0.049116751920466495
+        },
+        {
+          "agent_instance_id": "llm_market#3",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 1.338024556100501,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 8.5,
+                "reject_stake": 0.0,
+                "total_stake": 8.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 37.5,
+                "reject_stake": 0.0,
+                "total_stake": 37.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 63.0,
+                "reject_stake": 0.0,
+                "total_stake": 63.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 7.0,
+          "payout": 8.076923076923077,
+          "entry_cost": 0.21152666184668975,
+          "fee_cost": 0.07,
+          "transfer": 0.7953964150763868,
+          "utility": 0.038836462123849724
+        },
+        {
+          "agent_instance_id": "llm_market_liar#0",
+          "agent_type_id": "llm_market_liar",
+          "wealth": 20.085536923187668,
+          "signal": 0.4191283927487259,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 2.0,
+                "reject_stake": 0.0,
+                "total_stake": 2.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 6.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 31.5,
+                "reject_stake": 0.0,
+                "total_stake": 31.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 6.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 46.5,
+                "reject_stake": 0.0,
+                "total_stake": 46.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 4.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 16.5,
+          "payout": 19.03846153846154,
+          "entry_cost": 0.21152666184668975,
+          "fee_cost": 0.165,
+          "transfer": 2.1619348766148505,
+          "utility": 0.10222837518104777
+        }
+      ]
+    },
+    {
+      "index": 27,
+      "x": -0.016598954715443464,
+      "y": 1.9465335283964629,
+      "decision_pre_oracle": "approve",
+      "final_decision": "approve",
+      "use_futarchy": false,
+      "oracle_signal": null,
+      "contribution_total": 29.0,
+      "payout_total": 39.0,
+      "external_funding": 10.0,
+      "mechanism_net_profit": -10.0,
+      "proposal_utility": -0.03231042188994527,
+      "oracle_optimal_value": 0.0,
+      "forced_termination": false,
+      "agent_reports": [
+        {
+          "agent_instance_id": "llm_market#0",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.003689548719406816,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 2.0,
+                "total_stake": 2.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 13.0,
+                "reject_stake": 5.0,
+                "total_stake": 18.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 17.5,
+                "reject_stake": 11.5,
+                "total_stake": 29.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            }
+          ],
+          "stake": 0.0,
+          "payout": 0.0,
+          "entry_cost": 0.0,
+          "fee_cost": 0.0,
+          "transfer": 0.0,
+          "utility": 0.0
+        },
+        {
+          "agent_instance_id": "llm_market#1",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -0.7114664442142568,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 0.0,
+                "total_stake": 0.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 13.0,
+                "reject_stake": 5.0,
+                "total_stake": 18.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 1.5,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 13.0,
+                "reject_stake": 6.5,
+                "total_stake": 19.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 6.5,
+          "payout": 0.0,
+          "entry_cost": 0.280229847242249,
+          "fee_cost": 0.065,
+          "transfer": -6.8452298472422495,
+          "utility": -0.41673425671285536
+        },
+        {
+          "agent_instance_id": "llm_market#2",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.17919056884181792,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 2.0,
+                "total_stake": 2.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 13.0,
+                "reject_stake": 5.0,
+                "total_stake": 18.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 13.0,
+                "reject_stake": 6.5,
+                "total_stake": 19.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            }
+          ],
+          "stake": 0.0,
+          "payout": 0.0,
+          "entry_cost": 0.0,
+          "fee_cost": 0.0,
+          "transfer": 0.0,
+          "utility": 0.0
+        },
+        {
+          "agent_instance_id": "llm_market#3",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -0.5667436348771184,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 5.0,
+                "reject_stake": 2.0,
+                "total_stake": 7.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 1.5,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 5.0,
+                "reject_stake": 3.5,
+                "total_stake": 8.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 1.5,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 13.0,
+                "reject_stake": 9.5,
+                "total_stake": 22.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 5.0,
+          "payout": 0.0,
+          "entry_cost": 0.280229847242249,
+          "fee_cost": 0.05,
+          "transfer": -5.330229847242249,
+          "utility": -0.3083971801682903
+        },
+        {
+          "agent_instance_id": "llm_market_liar#0",
+          "agent_type_id": "llm_market_liar",
+          "wealth": 20.085536923187668,
+          "signal": 1.5079348041075993,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 2.0,
+                "total_stake": 2.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 5.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 5.0,
+                "reject_stake": 5.0,
+                "total_stake": 10.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 8.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 13.0,
+                "reject_stake": 11.5,
+                "total_stake": 24.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 4.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 17.5,
+          "payout": 39.0,
+          "entry_cost": 0.280229847242249,
+          "fee_cost": 0.17500000000000002,
+          "transfer": 21.04477015275775,
+          "utility": 0.7167452481990337
+        }
+      ]
+    },
+    {
+      "index": 28,
+      "x": 0.7560384788991261,
+      "y": 3.9463514281103707,
+      "decision_pre_oracle": "approve",
+      "final_decision": "approve",
+      "use_futarchy": false,
+      "oracle_signal": null,
+      "contribution_total": 51.5,
+      "payout_total": 61.5,
+      "external_funding": 10.0,
+      "mechanism_net_profit": -10.0,
+      "proposal_utility": 2.9835935309099586,
+      "oracle_optimal_value": 2.9835935309099586,
+      "forced_termination": false,
+      "agent_reports": [
+        {
+          "agent_instance_id": "llm_market#0",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 2.920039953695033,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 0.0,
+                "total_stake": 0.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 27.0,
+                "reject_stake": 0.0,
+                "total_stake": 27.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 40.0,
+                "reject_stake": 0.0,
+                "total_stake": 40.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 4.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 10.5,
+          "payout": 12.53883495145631,
+          "entry_cost": 0.39900774370191106,
+          "fee_cost": 0.105,
+          "transfer": 1.5348272077543996,
+          "utility": 0.07363565438847663
+        },
+        {
+          "agent_instance_id": "llm_market#1",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.28674698331226584,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 3.5,
+                "reject_stake": 0.0,
+                "total_stake": 3.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 1.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 20.5,
+                "reject_stake": 0.0,
+                "total_stake": 20.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 46.5,
+                "reject_stake": 0.0,
+                "total_stake": 46.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            }
+          ],
+          "stake": 1.5,
+          "payout": 1.7912621359223302,
+          "entry_cost": 0.39900774370191106,
+          "fee_cost": 0.015,
+          "transfer": -0.12274560777958086,
+          "utility": -0.0061298934328202215
+        },
+        {
+          "agent_instance_id": "llm_market#2",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 1.43401045765597,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 15.0,
+                "reject_stake": 0.0,
+                "total_stake": 15.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 17.5,
+                "reject_stake": 0.0,
+                "total_stake": 17.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 44.0,
+                "reject_stake": 0.0,
+                "total_stake": 44.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 8.0,
+          "payout": 9.553398058252426,
+          "entry_cost": 0.39900774370191106,
+          "fee_cost": 0.08,
+          "transfer": 1.0743903145505154,
+          "utility": 0.05210916831396828
+        },
+        {
+          "agent_instance_id": "llm_market#3",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 3.1350578873520707,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 11.0,
+                "reject_stake": 0.0,
+                "total_stake": 11.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 4.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 20.5,
+                "reject_stake": 0.0,
+                "total_stake": 20.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 6.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 46.5,
+                "reject_stake": 0.0,
+                "total_stake": 46.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 5.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 15.5,
+          "payout": 18.509708737864077,
+          "entry_cost": 0.39900774370191106,
+          "fee_cost": 0.155,
+          "transfer": 2.4557009941621666,
+          "utility": 0.1153464280152372
+        },
+        {
+          "agent_instance_id": "llm_market_liar#0",
+          "agent_type_id": "llm_market_liar",
+          "wealth": 20.085536923187668,
+          "signal": 0.5831310859725543,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 5.0,
+                "reject_stake": 0.0,
+                "total_stake": 5.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 6.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 30.0,
+                "reject_stake": 0.0,
+                "total_stake": 30.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 10.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 40.0,
+                "reject_stake": 0.0,
+                "total_stake": 40.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.6923367099289943,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": false,
+              "rejection_reason": "insufficient_wealth"
+            }
+          ],
+          "stake": 16.0,
+          "payout": 19.106796116504853,
+          "entry_cost": 0.39900774370191106,
+          "fee_cost": 0.16,
+          "transfer": 2.547788372802942,
+          "utility": 0.11942339078560638
+        }
+      ]
+    },
+    {
+      "index": 29,
+      "x": 0.6212070099088456,
+      "y": 1.1962807962742967,
+      "decision_pre_oracle": "approve",
+      "final_decision": "approve",
+      "use_futarchy": false,
+      "oracle_signal": null,
+      "contribution_total": 47.5,
+      "payout_total": 57.5,
+      "external_funding": 10.0,
+      "mechanism_net_profit": -10.0,
+      "proposal_utility": 0.7431380164649287,
+      "oracle_optimal_value": 0.7431380164649287,
+      "forced_termination": false,
+      "agent_reports": [
+        {
+          "agent_instance_id": "llm_market#0",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.7001655076420372,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 1.5,
+                "reject_stake": 0.0,
+                "total_stake": 1.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 1.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 15.0,
+                "reject_stake": 3.5,
+                "total_stake": 18.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 23.0,
+                "reject_stake": 10.0,
+                "total_stake": 33.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 8.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 9.5,
+          "payout": 16.807692307692307,
+          "entry_cost": 0.21968480109453817,
+          "fee_cost": 0.095,
+          "transfer": 6.993007506597769,
+          "utility": 0.2987416958529754
+        },
+        {
+          "agent_instance_id": "llm_market#1",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.4256472591801847,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 13.0,
+                "reject_stake": 3.5,
+                "total_stake": 16.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 23.0,
+                "reject_stake": 3.5,
+                "total_stake": 26.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 31.0,
+                "reject_stake": 10.0,
+                "total_stake": 41.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 1.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 3.5,
+          "payout": 6.192307692307692,
+          "entry_cost": 0.21968480109453817,
+          "fee_cost": 0.035,
+          "transfer": 2.4376228912131532,
+          "utility": 0.1145441049030369
+        },
+        {
+          "agent_instance_id": "llm_market#2",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.3187156347320344,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 0.0,
+                "total_stake": 0.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 1.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 23.0,
+                "reject_stake": 3.5,
+                "total_stake": 26.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 32.5,
+                "reject_stake": 15.0,
+                "total_stake": 47.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            }
+          ],
+          "stake": 3.5,
+          "payout": 2.6538461538461537,
+          "entry_cost": 0.21968480109453817,
+          "fee_cost": 0.035,
+          "transfer": -1.1008386472483844,
+          "utility": -0.05636669920316395
+        },
+        {
+          "agent_instance_id": "llm_market#3",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -0.3810030068365413,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 3.0,
+                "reject_stake": 0.0,
+                "total_stake": 3.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.5,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 23.0,
+                "reject_stake": 5.5,
+                "total_stake": 28.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 4.5,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 32.5,
+                "reject_stake": 10.0,
+                "total_stake": 42.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 5.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 13.0,
+          "payout": 0.0,
+          "entry_cost": 0.21968480109453817,
+          "fee_cost": 0.13,
+          "transfer": -13.349684801094538,
+          "utility": -1.0925556766719255
+        },
+        {
+          "agent_instance_id": "llm_market_liar#0",
+          "agent_type_id": "llm_market_liar",
+          "wealth": 20.085536923187668,
+          "signal": 1.3273739963350168,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 3.0,
+                "reject_stake": 3.5,
+                "total_stake": 6.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 10.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 15.0,
+                "reject_stake": 3.5,
+                "total_stake": 18.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 8.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 32.5,
+                "reject_stake": 15.0,
+                "total_stake": 47.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 1.7923367099289946,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": false,
+              "rejection_reason": "insufficient_wealth"
+            }
+          ],
+          "stake": 18.0,
+          "payout": 31.846153846153847,
+          "entry_cost": 0.21968480109453817,
+          "fee_cost": 0.18,
+          "transfer": 13.44646904505931,
+          "utility": 0.512500384762204
+        }
+      ]
+    },
+    {
+      "index": 30,
+      "x": 0.16919623267770048,
+      "y": 2.2733422909696768,
+      "decision_pre_oracle": "approve",
+      "final_decision": "approve",
+      "use_futarchy": false,
+      "oracle_signal": null,
+      "contribution_total": 49.0,
+      "payout_total": 59.0,
+      "external_funding": 10.0,
+      "mechanism_net_profit": -10.0,
+      "proposal_utility": 0.3846409512189621,
+      "oracle_optimal_value": 0.3846409512189621,
+      "forced_termination": false,
+      "agent_reports": [
+        {
+          "agent_instance_id": "llm_market#0",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -0.8824553981626219,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 0.0,
+                "total_stake": 0.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 18.0,
+                "reject_stake": 6.0,
+                "total_stake": 24.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 5.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 21.0,
+                "reject_stake": 11.0,
+                "total_stake": 32.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 4.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 11.5,
+          "payout": 0.0,
+          "entry_cost": 0.30284182961438916,
+          "fee_cost": 0.115,
+          "transfer": -11.917841829614389,
+          "utility": -0.8998132492206237
+        },
+        {
+          "agent_instance_id": "llm_market#1",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -0.3519477916632552,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 0.0,
+                "total_stake": 0.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 18.0,
+                "reject_stake": 2.5,
+                "total_stake": 20.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.5,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 27.0,
+                "reject_stake": 15.0,
+                "total_stake": 42.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 5.5,
+          "payout": 0.0,
+          "entry_cost": 0.30284182961438916,
+          "fee_cost": 0.055,
+          "transfer": -5.857841829614389,
+          "utility": -0.34480957617059804
+        },
+        {
+          "agent_instance_id": "llm_market#2",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.6586845684964826,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 16.0,
+                "reject_stake": 2.5,
+                "total_stake": 18.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 18.0,
+                "reject_stake": 11.0,
+                "total_stake": 29.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 27.0,
+                "reject_stake": 17.0,
+                "total_stake": 44.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 5.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 10.0,
+          "payout": 18.4375,
+          "entry_cost": 0.30284182961438916,
+          "fee_cost": 0.1,
+          "transfer": 8.034658170385612,
+          "utility": 0.33648800481218366
+        },
+        {
+          "agent_instance_id": "llm_market#3",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.9139920912109466,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 8.0,
+                "reject_stake": 2.5,
+                "total_stake": 10.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 8.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 18.0,
+                "reject_stake": 2.5,
+                "total_stake": 20.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 21.0,
+                "reject_stake": 15.0,
+                "total_stake": 36.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 6.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 14.0,
+          "payout": 25.8125,
+          "entry_cost": 0.30284182961438916,
+          "fee_cost": 0.14,
+          "transfer": 11.36965817038561,
+          "utility": 0.4485641553099686
+        },
+        {
+          "agent_instance_id": "llm_market_liar#0",
+          "agent_type_id": "llm_market_liar",
+          "wealth": 20.085536923187668,
+          "signal": -0.19922140486954407,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 2.5,
+                "total_stake": 2.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 8.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 18.0,
+                "reject_stake": 2.5,
+                "total_stake": 20.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 27.0,
+                "reject_stake": 17.0,
+                "total_stake": 44.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            }
+          ],
+          "stake": 8.0,
+          "payout": 14.75,
+          "entry_cost": 0.30284182961438916,
+          "fee_cost": 0.08,
+          "transfer": 6.36715817038561,
+          "utility": 0.27535804701038824
+        }
+      ]
+    },
+    {
+      "index": 31,
+      "x": 1.2798670685659341,
+      "y": 1.2530989066534297,
+      "decision_pre_oracle": "approve",
+      "final_decision": "approve",
+      "use_futarchy": false,
+      "oracle_signal": null,
+      "contribution_total": 58.49233670992899,
+      "payout_total": 68.49233670992899,
+      "external_funding": 10.0,
+      "mechanism_net_profit": -10.0,
+      "proposal_utility": 1.6038000242817023,
+      "oracle_optimal_value": 1.6038000242817023,
+      "forced_termination": false,
+      "agent_reports": [
+        {
+          "agent_instance_id": "llm_market#0",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.9498196344873362,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 5.0,
+                "reject_stake": 0.0,
+                "total_stake": 5.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 12.5,
+                "reject_stake": 0.0,
+                "total_stake": 12.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 41.49233670992899,
+                "reject_stake": 8.0,
+                "total_stake": 49.49233670992899,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            }
+          ],
+          "stake": 5.5,
+          "payout": 8.280688114716924,
+          "entry_cost": 0.22484131738589744,
+          "fee_cost": 0.055,
+          "transfer": 2.5008467973310258,
+          "utility": 0.11734723446552531
+        },
+        {
+          "agent_instance_id": "llm_market#1",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 1.8950331508746001,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 8.0,
+                "reject_stake": 0.0,
+                "total_stake": 8.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 24.0,
+                "reject_stake": 8.0,
+                "total_stake": 32.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 4.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 35.49233670992899,
+                "reject_stake": 8.0,
+                "total_stake": 43.49233670992899,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 6.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 13.0,
+          "payout": 19.572535543876366,
+          "entry_cost": 0.22484131738589744,
+          "fee_cost": 0.13,
+          "transfer": 6.217694226490469,
+          "utility": 0.2696917890395767
+        },
+        {
+          "agent_instance_id": "llm_market#2",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -0.6414239625395801,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 0.0,
+                "total_stake": 0.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 15.0,
+                "reject_stake": 0.0,
+                "total_stake": 15.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 8.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 41.49233670992899,
+                "reject_stake": 8.0,
+                "total_stake": 49.49233670992899,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 5.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 13.0,
+          "payout": 0.0,
+          "entry_cost": 0.22484131738589744,
+          "fee_cost": 0.13,
+          "transfer": -13.354841317385898,
+          "utility": -1.0933215027243885
+        },
+        {
+          "agent_instance_id": "llm_market#3",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 1.5187275957781525,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 11.0,
+                "reject_stake": 0.0,
+                "total_stake": 11.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 1.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 15.0,
+                "reject_stake": 8.0,
+                "total_stake": 23.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 41.49233670992899,
+                "reject_stake": 13.0,
+                "total_stake": 54.49233670992899,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 4.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 7.5,
+          "payout": 11.291847429159443,
+          "entry_cost": 0.22484131738589744,
+          "fee_cost": 0.075,
+          "transfer": 3.492006111773545,
+          "utility": 0.16029469268972285
+        },
+        {
+          "agent_instance_id": "llm_market_liar#0",
+          "agent_type_id": "llm_market_liar",
+          "wealth": 20.085536923187668,
+          "signal": 0.2383711863481932,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 0.0,
+                "total_stake": 0.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 5.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 17.0,
+                "reject_stake": 8.0,
+                "total_stake": 25.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 7.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 28.0,
+                "reject_stake": 8.0,
+                "total_stake": 36.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 7.492336709928994,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 19.492336709928992,
+          "payout": 29.34726562217626,
+          "entry_cost": 0.22484131738589744,
+          "fee_cost": 0.19492336709928992,
+          "transfer": 9.43516422776208,
+          "utility": 0.385091751176144
+        }
+      ]
+    },
+    {
+      "index": 32,
+      "x": -0.9722500395517447,
+      "y": 0.7228211030817039,
+      "decision_pre_oracle": "reject",
+      "final_decision": "reject",
+      "use_futarchy": false,
+      "oracle_signal": null,
+      "contribution_total": 37.55,
+      "payout_total": 47.54999999999999,
+      "external_funding": 10.0,
+      "mechanism_net_profit": -9.999999999999993,
+      "proposal_utility": 0.0,
+      "oracle_optimal_value": 0.0,
+      "forced_termination": false,
+      "agent_reports": [
+        {
+          "agent_instance_id": "llm_market#0",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -0.09576004385274883,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 8.5,
+                "reject_stake": 3.0,
+                "total_stake": 11.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 16.0,
+                "reject_stake": 7.5,
+                "total_stake": 23.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 0.75,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 16.0,
+                "reject_stake": 21.55,
+                "total_stake": 37.55,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            }
+          ],
+          "stake": 0.75,
+          "payout": 1.654872389791183,
+          "entry_cost": 0.17076499803160478,
+          "fee_cost": 0.0075,
+          "transfer": 0.7266073917595782,
+          "utility": 0.03553667762212287
+        },
+        {
+          "agent_instance_id": "llm_market#1",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -2.0594718306319217,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 8.5,
+                "reject_stake": 0.0,
+                "total_stake": 8.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 16.0,
+                "reject_stake": 3.0,
+                "total_stake": 19.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 16.0,
+                "reject_stake": 10.55,
+                "total_stake": 26.55,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 8.0,
+          "payout": 17.65197215777262,
+          "entry_cost": 0.17076499803160478,
+          "fee_cost": 0.08,
+          "transfer": 9.401207159741015,
+          "utility": 0.38394080923534446
+        },
+        {
+          "agent_instance_id": "llm_market#2",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -1.0545891973608403,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 8.5,
+                "reject_stake": 0.0,
+                "total_stake": 8.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 16.0,
+                "reject_stake": 5.0,
+                "total_stake": 21.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 16.0,
+                "reject_stake": 13.55,
+                "total_stake": 29.55,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 8.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 10.5,
+          "payout": 23.16821345707656,
+          "entry_cost": 0.17076499803160478,
+          "fee_cost": 0.105,
+          "transfer": 12.392448459044957,
+          "utility": 0.48056248696066595
+        },
+        {
+          "agent_instance_id": "llm_market#3",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -0.7174871673351063,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 8.5,
+                "reject_stake": 3.0,
+                "total_stake": 11.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 16.0,
+                "reject_stake": 8.25,
+                "total_stake": 24.25,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.3,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 16.0,
+                "reject_stake": 21.55,
+                "total_stake": 37.55,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            }
+          ],
+          "stake": 2.3,
+          "payout": 5.0749419953596275,
+          "entry_cost": 0.17076499803160478,
+          "fee_cost": 0.023,
+          "transfer": 2.581176997328023,
+          "utility": 0.1208975012344573
+        },
+        {
+          "agent_instance_id": "llm_market_liar#0",
+          "agent_type_id": "llm_market_liar",
+          "wealth": 20.085536923187668,
+          "signal": -1.639505513252863,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 0.0,
+                "total_stake": 0.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 8.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 8.5,
+                "reject_stake": 3.0,
+                "total_stake": 11.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 7.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 16.0,
+                "reject_stake": 13.55,
+                "total_stake": 29.55,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            }
+          ],
+          "stake": 16.0,
+          "payout": 0.0,
+          "entry_cost": 0.17076499803160478,
+          "fee_cost": 0.16,
+          "transfer": -16.330764998031604,
+          "utility": -1.6769724556016736
+        }
+      ]
+    },
+    {
+      "index": 33,
+      "x": -0.867446291689678,
+      "y": 0.052970347436490046,
+      "decision_pre_oracle": "reject",
+      "final_decision": "reject",
+      "use_futarchy": false,
+      "oracle_signal": null,
+      "contribution_total": 36.0,
+      "payout_total": 46.0,
+      "external_funding": 10.0,
+      "mechanism_net_profit": -10.0,
+      "proposal_utility": 0.0,
+      "oracle_optimal_value": 0.0,
+      "forced_termination": false,
+      "agent_reports": [
+        {
+          "agent_instance_id": "llm_market#0",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -1.4328102586493365,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 2.5,
+                "reject_stake": 0.0,
+                "total_stake": 2.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 2.5,
+                "reject_stake": 2.0,
+                "total_stake": 4.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 11.0,
+                "reject_stake": 9.5,
+                "total_stake": 20.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 6.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 10.5,
+          "payout": 24.15,
+          "entry_cost": 0.04622744137111006,
+          "fee_cost": 0.105,
+          "transfer": 13.498772558628888,
+          "utility": 0.5140589781923373
+        },
+        {
+          "agent_instance_id": "llm_market#1",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -1.3778093258774569,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 2.5,
+                "reject_stake": 0.0,
+                "total_stake": 2.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 4.0,
+                "reject_stake": 7.0,
+                "total_stake": 11.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 11.0,
+                "reject_stake": 15.5,
+                "total_stake": 26.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 5.0,
+          "payout": 11.5,
+          "entry_cost": 0.04622744137111006,
+          "fee_cost": 0.05,
+          "transfer": 6.40377255862889,
+          "utility": 0.276741235817632
+        },
+        {
+          "agent_instance_id": "llm_market#2",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -1.3810575363604478,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 2.5,
+                "reject_stake": 2.0,
+                "total_stake": 4.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 2.5,
+                "reject_stake": 4.5,
+                "total_stake": 7.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 11.0,
+                "reject_stake": 18.0,
+                "total_stake": 29.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 4.5,
+          "payout": 10.35,
+          "entry_cost": 0.04622744137111006,
+          "fee_cost": 0.045,
+          "transfer": 5.758772558628889,
+          "utility": 0.25209044062099073
+        },
+        {
+          "agent_instance_id": "llm_market#3",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.25453900883093994,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 0.0,
+                "total_stake": 0.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 2.5,
+                "reject_stake": 7.0,
+                "total_stake": 9.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 1.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 7.0,
+                "reject_stake": 9.5,
+                "total_stake": 16.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 4.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 8.0,
+          "payout": 0.0,
+          "entry_cost": 0.04622744137111006,
+          "fee_cost": 0.08,
+          "transfer": -8.12622744137111,
+          "utility": -0.5184899887783474
+        },
+        {
+          "agent_instance_id": "llm_market_liar#0",
+          "agent_type_id": "llm_market_liar",
+          "wealth": 20.085536923187668,
+          "signal": -0.5205041096373938,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 2.5,
+                "reject_stake": 0.0,
+                "total_stake": 2.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 4.0,
+                "reject_stake": 9.5,
+                "total_stake": 13.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 11.0,
+                "reject_stake": 20.0,
+                "total_stake": 31.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 5.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 8.0,
+          "payout": 0.0,
+          "entry_cost": 0.04622744137111006,
+          "fee_cost": 0.08,
+          "transfer": -8.12622744137111,
+          "utility": -0.5184899887783474
+        }
+      ]
+    },
+    {
+      "index": 34,
+      "x": 0.3564867924496203,
+      "y": 4.162939980106475,
+      "decision_pre_oracle": "approve",
+      "final_decision": "approve",
+      "use_futarchy": false,
+      "oracle_signal": null,
+      "contribution_total": 23.0,
+      "payout_total": 33.0,
+      "external_funding": 10.0,
+      "mechanism_net_profit": -10.0,
+      "proposal_utility": 1.4840331206684432,
+      "oracle_optimal_value": 1.4840331206684432,
+      "forced_termination": false,
+      "agent_reports": [
+        {
+          "agent_instance_id": "llm_market#0",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.2253646344942907,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 3.0,
+                "reject_stake": 0.0,
+                "total_stake": 3.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 11.5,
+                "reject_stake": 0.0,
+                "total_stake": 11.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 1.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 21.5,
+                "reject_stake": 0.0,
+                "total_stake": 21.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 1.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 3.0,
+          "payout": 4.304347826086956,
+          "entry_cost": 0.40981091414907755,
+          "fee_cost": 0.03,
+          "transfer": 0.8645369119378785,
+          "utility": 0.04214217071160453
+        },
+        {
+          "agent_instance_id": "llm_market#1",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.6836489952724065,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 6.0,
+                "reject_stake": 0.0,
+                "total_stake": 6.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 9.0,
+                "reject_stake": 0.0,
+                "total_stake": 9.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 23.0,
+                "reject_stake": 0.0,
+                "total_stake": 23.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            }
+          ],
+          "stake": 5.5,
+          "payout": 7.891304347826086,
+          "entry_cost": 0.40981091414907755,
+          "fee_cost": 0.055,
+          "transfer": 1.9264934336770085,
+          "utility": 0.0915891383018077
+        },
+        {
+          "agent_instance_id": "llm_market#2",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.8243779575596519,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 3.0,
+                "reject_stake": 0.0,
+                "total_stake": 3.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 11.5,
+                "reject_stake": 0.0,
+                "total_stake": 11.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 23.0,
+                "reject_stake": 0.0,
+                "total_stake": 23.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            }
+          ],
+          "stake": 3.0,
+          "payout": 4.304347826086956,
+          "entry_cost": 0.40981091414907755,
+          "fee_cost": 0.03,
+          "transfer": 0.8645369119378785,
+          "utility": 0.04214217071160453
+        },
+        {
+          "agent_instance_id": "llm_market#3",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.35020390571063503,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 0.0,
+                "total_stake": 0.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 13.0,
+                "reject_stake": 0.0,
+                "total_stake": 13.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 21.5,
+                "reject_stake": 0.0,
+                "total_stake": 21.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            }
+          ],
+          "stake": 2.0,
+          "payout": 2.869565217391304,
+          "entry_cost": 0.40981091414907755,
+          "fee_cost": 0.02,
+          "transfer": 0.43975430324222664,
+          "utility": 0.02165784410165017
+        },
+        {
+          "agent_instance_id": "llm_market_liar#0",
+          "agent_type_id": "llm_market_liar",
+          "wealth": 20.085536923187668,
+          "signal": 0.09014339126032578,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 0.0,
+                "total_stake": 0.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 15.0,
+                "reject_stake": 0.0,
+                "total_stake": 15.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 17.5,
+                "reject_stake": 0.0,
+                "total_stake": 17.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 4.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 9.5,
+          "payout": 13.630434782608695,
+          "entry_cost": 0.40981091414907755,
+          "fee_cost": 0.095,
+          "transfer": 3.6256238684596176,
+          "utility": 0.16594585677209484
+        }
+      ]
+    },
+    {
+      "index": 35,
+      "x": 0.4268249327456921,
+      "y": 94.33208651758015,
+      "decision_pre_oracle": "approve",
+      "final_decision": "approve",
+      "use_futarchy": false,
+      "oracle_signal": null,
+      "contribution_total": 40.0,
+      "payout_total": 50.0,
+      "external_funding": 10.0,
+      "mechanism_net_profit": -10.0,
+      "proposal_utility": 40.263286483626956,
+      "oracle_optimal_value": 40.263286483626956,
+      "forced_termination": false,
+      "agent_reports": [
+        {
+          "agent_instance_id": "llm_market#0",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.6939292884088946,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 0.0,
+                "total_stake": 0.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 8.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 23.0,
+                "reject_stake": 0.0,
+                "total_stake": 23.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 4.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 37.0,
+                "reject_stake": 0.0,
+                "total_stake": 37.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 15.0,
+          "payout": 18.75,
+          "entry_cost": 1.9508018825969917,
+          "fee_cost": 0.15,
+          "transfer": 1.6491981174030084,
+          "utility": 0.07891167391743714
+        },
+        {
+          "agent_instance_id": "llm_market#1",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.8253990232211657,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 17.0,
+                "reject_stake": 0.0,
+                "total_stake": 17.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 20.0,
+                "reject_stake": 0.0,
+                "total_stake": 20.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 34.5,
+                "reject_stake": 0.0,
+                "total_stake": 34.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 8.5,
+          "payout": 10.625,
+          "entry_cost": 1.9508018825969917,
+          "fee_cost": 0.085,
+          "transfer": 0.08919811740300827,
+          "utility": 0.004431081013549054
+        },
+        {
+          "agent_instance_id": "llm_market#2",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.2405656899511967,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 0.0,
+                "total_stake": 0.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 32.0,
+                "reject_stake": 0.0,
+                "total_stake": 32.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 37.0,
+                "reject_stake": 0.0,
+                "total_stake": 37.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            }
+          ],
+          "stake": 2.5,
+          "payout": 3.125,
+          "entry_cost": 1.9508018825969917,
+          "fee_cost": 0.025,
+          "transfer": -1.3508018825969916,
+          "utility": -0.06962071033683825
+        },
+        {
+          "agent_instance_id": "llm_market#3",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.7403893151872856,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 8.0,
+                "reject_stake": 0.0,
+                "total_stake": 8.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 20.0,
+                "reject_stake": 0.0,
+                "total_stake": 20.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 34.5,
+                "reject_stake": 0.0,
+                "total_stake": 34.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            }
+          ],
+          "stake": 3.0,
+          "payout": 3.75,
+          "entry_cost": 1.9508018825969917,
+          "fee_cost": 0.03,
+          "transfer": -1.2308018825969917,
+          "utility": -0.06323592186305582
+        },
+        {
+          "agent_instance_id": "llm_market_liar#0",
+          "agent_type_id": "llm_market_liar",
+          "wealth": 20.085536923187668,
+          "signal": 0.8832561726180198,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 11.0,
+                "reject_stake": 0.0,
+                "total_stake": 11.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 6.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 27.0,
+                "reject_stake": 0.0,
+                "total_stake": 27.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 5.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 40.0,
+                "reject_stake": 0.0,
+                "total_stake": 40.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 8.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": false,
+              "rejection_reason": "insufficient_wealth"
+            }
+          ],
+          "stake": 11.0,
+          "payout": 13.75,
+          "entry_cost": 1.9508018825969917,
+          "fee_cost": 0.11,
+          "transfer": 0.6891981174030083,
+          "utility": 0.03373758689800033
+        }
+      ]
+    },
+    {
+      "index": 36,
+      "x": -0.9679323927609672,
+      "y": 0.03009432729349668,
+      "decision_pre_oracle": "reject",
+      "final_decision": "reject",
+      "use_futarchy": false,
+      "oracle_signal": null,
+      "contribution_total": 29.0,
+      "payout_total": 39.0,
+      "external_funding": 10.0,
+      "mechanism_net_profit": -10.0,
+      "proposal_utility": 0.0,
+      "oracle_optimal_value": 0.0,
+      "forced_termination": false,
+      "agent_reports": [
+        {
+          "agent_instance_id": "llm_market#0",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -1.8335536437054256,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 2.5,
+                "total_stake": 2.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 0.0,
+                "reject_stake": 8.5,
+                "total_stake": 8.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.5,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 4.5,
+                "reject_stake": 12.0,
+                "total_stake": 16.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            }
+          ],
+          "stake": 6.0,
+          "payout": 14.181818181818183,
+          "entry_cost": 0.034843820328705144,
+          "fee_cost": 0.06,
+          "transfer": 8.086974361489478,
+          "utility": 0.33834672540075683
+        },
+        {
+          "agent_instance_id": "llm_market#1",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -0.5777503367642189,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 2.5,
+                "total_stake": 2.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 0.0,
+                "reject_stake": 6.5,
+                "total_stake": 6.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 4.5,
+                "reject_stake": 14.5,
+                "total_stake": 19.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 2.0,
+          "payout": 0.0,
+          "entry_cost": 0.034843820328705144,
+          "fee_cost": 0.02,
+          "transfer": -2.054843820328705,
+          "utility": -0.10792452187865686
+        },
+        {
+          "agent_instance_id": "llm_market#2",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -0.7205808361067971,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 0.0,
+                "total_stake": 0.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 0.0,
+                "reject_stake": 6.5,
+                "total_stake": 6.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 4.5,
+                "reject_stake": 12.0,
+                "total_stake": 16.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 7.0,
+          "payout": 16.545454545454547,
+          "entry_cost": 0.034843820328705144,
+          "fee_cost": 0.07,
+          "transfer": 9.440610725125842,
+          "utility": 0.38527623171964365
+        },
+        {
+          "agent_instance_id": "llm_market#3",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -0.7239783866652337,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 5.0,
+                "total_stake": 5.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 1.5,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 0.0,
+                "reject_stake": 6.5,
+                "total_stake": 6.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 6.5,
+                "reject_stake": 14.5,
+                "total_stake": 21.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 3.5,
+          "payout": 8.272727272727273,
+          "entry_cost": 0.034843820328705144,
+          "fee_cost": 0.035,
+          "transfer": 4.702883452398568,
+          "utility": 0.21037662379042654
+        },
+        {
+          "agent_instance_id": "llm_market_liar#0",
+          "agent_type_id": "llm_market_liar",
+          "wealth": 20.085536923187668,
+          "signal": -1.3453435009200407,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 0.0,
+                "total_stake": 0.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 0.0,
+                "reject_stake": 12.0,
+                "total_stake": 12.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 4.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 6.5,
+                "reject_stake": 16.5,
+                "total_stake": 23.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 6.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 10.5,
+          "payout": 0.0,
+          "entry_cost": 0.034843820328705144,
+          "fee_cost": 0.105,
+          "transfer": -10.639843820328705,
+          "utility": -0.7544411186940434
+        }
+      ]
+    },
+    {
+      "index": 37,
+      "x": 0.13280143092762287,
+      "y": 44.89547471676771,
+      "decision_pre_oracle": "approve",
+      "final_decision": "approve",
+      "use_futarchy": false,
+      "oracle_signal": null,
+      "contribution_total": 59.5,
+      "payout_total": 69.5,
+      "external_funding": 10.0,
+      "mechanism_net_profit": -10.0,
+      "proposal_utility": 5.962183284561665,
+      "oracle_optimal_value": 5.962183284561665,
+      "forced_termination": false,
+      "agent_reports": [
+        {
+          "agent_instance_id": "llm_market#0",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.9341399778374793,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 0.0,
+                "total_stake": 0.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 10.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 48.5,
+                "reject_stake": 0.0,
+                "total_stake": 48.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 50.5,
+                "reject_stake": 0.0,
+                "total_stake": 50.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 5.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 15.0,
+          "payout": 17.521008403361343,
+          "entry_cost": 1.3458130330127285,
+          "fee_cost": 0.15,
+          "transfer": 1.0251953703486143,
+          "utility": 0.04978155067288492
+        },
+        {
+          "agent_instance_id": "llm_market#1",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 1.1029243362241061,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 29.0,
+                "reject_stake": 0.0,
+                "total_stake": 29.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 39.0,
+                "reject_stake": 0.0,
+                "total_stake": 39.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 57.0,
+                "reject_stake": 0.0,
+                "total_stake": 57.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 8.5,
+          "payout": 9.928571428571429,
+          "entry_cost": 1.3458130330127285,
+          "fee_cost": 0.085,
+          "transfer": -0.0022416044412996577,
+          "utility": -0.00011160914164110025
+        },
+        {
+          "agent_instance_id": "llm_market#2",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.7230717302880056,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 21.0,
+                "reject_stake": 0.0,
+                "total_stake": 21.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 8.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 34.5,
+                "reject_stake": 0.0,
+                "total_stake": 34.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 4.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 48.5,
+                "reject_stake": 0.0,
+                "total_stake": 48.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 14.5,
+          "payout": 16.936974789915965,
+          "entry_cost": 1.3458130330127285,
+          "fee_cost": 0.145,
+          "transfer": 0.9461617569032363,
+          "utility": 0.04603076058906819
+        },
+        {
+          "agent_instance_id": "llm_market#3",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": 0.29369836060377896,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 10.0,
+                "reject_stake": 0.0,
+                "total_stake": 10.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 32.5,
+                "reject_stake": 0.0,
+                "total_stake": 32.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 55.5,
+                "reject_stake": 0.0,
+                "total_stake": 55.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 1.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 6.0,
+          "payout": 7.008403361344538,
+          "entry_cost": 1.3458130330127285,
+          "fee_cost": 0.06,
+          "transfer": -0.3974096716681907,
+          "utility": -0.019984223527039546
+        },
+        {
+          "agent_instance_id": "llm_market_liar#0",
+          "agent_type_id": "llm_market_liar",
+          "wealth": 20.085536923187668,
+          "signal": 0.2704590562383634,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 12.5,
+                "reject_stake": 0.0,
+                "total_stake": 12.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 8.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 41.5,
+                "reject_stake": 0.0,
+                "total_stake": 41.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 7.0,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 50.5,
+                "reject_stake": 0.0,
+                "total_stake": 50.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 4.167336709928995,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": false,
+              "rejection_reason": "insufficient_wealth"
+            }
+          ],
+          "stake": 15.5,
+          "payout": 18.10504201680672,
+          "entry_cost": 1.3458130330127285,
+          "fee_cost": 0.155,
+          "transfer": 1.104228983793992,
+          "utility": 0.05351832488467201
+        }
+      ]
+    },
+    {
+      "index": 38,
+      "x": -0.610422139977838,
+      "y": 1.0711780422200101,
+      "decision_pre_oracle": "reject",
+      "final_decision": "reject",
+      "use_futarchy": false,
+      "oracle_signal": null,
+      "contribution_total": 30.0,
+      "payout_total": 40.0,
+      "external_funding": 10.0,
+      "mechanism_net_profit": -10.0,
+      "proposal_utility": 0.0,
+      "oracle_optimal_value": 0.0,
+      "forced_termination": false,
+      "agent_reports": [
+        {
+          "agent_instance_id": "llm_market#0",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -1.6538671100988411,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 0.0,
+                "total_stake": 0.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.5,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 8.5,
+                "reject_stake": 9.5,
+                "total_stake": 18.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 8.5,
+                "reject_stake": 13.5,
+                "total_stake": 22.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 5.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 7.5,
+          "payout": 13.953488372093023,
+          "entry_cost": 0.20788075071750362,
+          "fee_cost": 0.075,
+          "transfer": 6.170607621375519,
+          "utility": 0.2679000395337998
+        },
+        {
+          "agent_instance_id": "llm_market#1",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -0.2772151931597765,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 7.5,
+                "total_stake": 7.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 8.5,
+                "reject_stake": 9.5,
+                "total_stake": 18.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 8.5,
+                "reject_stake": 13.5,
+                "total_stake": 22.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            }
+          ],
+          "stake": 0.0,
+          "payout": 0.0,
+          "entry_cost": 0.0,
+          "fee_cost": 0.0,
+          "transfer": 0.0,
+          "utility": 0.0
+        },
+        {
+          "agent_instance_id": "llm_market#2",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -0.3029050069299671,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 7.5,
+                "total_stake": 7.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 2.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 8.5,
+                "reject_stake": 13.5,
+                "total_stake": 22.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 8.5,
+                "reject_stake": 21.5,
+                "total_stake": 30.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            }
+          ],
+          "stake": 2.0,
+          "payout": 3.7209302325581395,
+          "entry_cost": 0.20788075071750362,
+          "fee_cost": 0.02,
+          "transfer": 1.493049481840636,
+          "utility": 0.07170145282014673
+        },
+        {
+          "agent_instance_id": "llm_market#3",
+          "agent_type_id": "llm_market",
+          "wealth": 20.085536923187668,
+          "signal": -1.5892071329926944,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 2.5,
+                "total_stake": 2.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 5.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 8.5,
+                "reject_stake": 9.5,
+                "total_stake": 18.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 4.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 8.5,
+                "reject_stake": 18.5,
+                "total_stake": 27.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 3.0,
+                "data": {
+                  "side": "reject"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            }
+          ],
+          "stake": 12.0,
+          "payout": 22.325581395348838,
+          "entry_cost": 0.20788075071750362,
+          "fee_cost": 0.12,
+          "transfer": 9.997700644631335,
+          "utility": 0.40396812519861713
+        },
+        {
+          "agent_instance_id": "llm_market_liar#0",
+          "agent_type_id": "llm_market_liar",
+          "wealth": 20.085536923187668,
+          "signal": -1.8177423251919234,
+          "attempts": [
+            {
+              "round_index": 0,
+              "public_message": {
+                "round": 0,
+                "approve_stake": 0.0,
+                "reject_stake": 9.5,
+                "total_stake": 9.5,
+                "winner_subsidy": 10.0
+              },
+              "contribution": {
+                "amount": 8.5,
+                "data": {
+                  "side": "approve"
+                }
+              },
+              "accepted": true,
+              "rejection_reason": null
+            },
+            {
+              "round_index": 1,
+              "public_message": {
+                "round": 1,
+                "approve_stake": 8.5,
+                "reject_stake": 13.5,
+                "total_stake": 22.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            },
+            {
+              "round_index": 2,
+              "public_message": {
+                "round": 2,
+                "approve_stake": 8.5,
+                "reject_stake": 21.5,
+                "total_stake": 30.0,
+                "winner_subsidy": 10.0
+              },
+              "contribution": null,
+              "accepted": false,
+              "rejection_reason": "abstain"
+            }
+          ],
+          "stake": 8.5,
+          "payout": 0.0,
+          "entry_cost": 0.20788075071750362,
+          "fee_cost": 0.085,
+          "transfer": -8.792880750717504,
+          "utility": -0.5758473817973884
+        }
+      ]
+    }
+  ]
+}
