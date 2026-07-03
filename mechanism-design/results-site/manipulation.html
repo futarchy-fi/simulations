@@ -264,7 +264,7 @@ The last-mover result says the vulnerability is not in the market but in <em>wha
 
 <div class="fig">
   <div class="fig-title">Final-price rule vs. TWAP rule — accuracy under the worst entrant positions</div>
-  <div class="fig-sub">Same games, different decision statistic; each point a fresh equilibrium. TWAP-TABLE-SUB</div>
+  <div class="fig-sub">Same games, different decision statistic; each point a fresh equilibrium. Dashed reference: BASE-2 = 0.75.</div>
   <div class="legend" id="legend-twap"></div>
   <div class="chart-wrap" id="chart-twap"></div>
 </div>
@@ -273,10 +273,19 @@ The last-mover result says the vulnerability is not in the market but in <em>wha
   <thead><tr><th rowspan="2">bounty</th><th colspan="2" style="text-align:center">T2 last (unique info)</th><th colspan="2" style="text-align:center">T1 last (no info)</th><th colspan="2" style="text-align:center">T2 first</th><th colspan="2" style="text-align:center">replacement (phase 1)</th></tr>
   <tr><th class="num">final</th><th class="num">TWAP</th><th class="num">final</th><th class="num">TWAP</th><th class="num">final</th><th class="num">TWAP</th><th class="num">final</th><th class="num">TWAP</th></tr></thead>
   <tbody id="twap-tbody">
+    <tr><td>0</td><td class="num">1.000</td><td class="num">1.000</td><td class="num">0.750</td><td class="num">0.750</td><td class="num">1.000</td><td class="num">1.000</td><td class="num">1.000</td><td class="num">1.000</td></tr>
+    <tr><td>0.02</td><td class="num bad">0.500</td><td class="num">1.000</td><td class="num bad">0.500</td><td class="num">0.750</td><td class="num">0.999</td><td class="num">0.875</td><td class="num">0.999</td><td class="num">—</td></tr>
+    <tr><td>0.05</td><td class="num bad">0.500</td><td class="num">0.875</td><td class="num bad">0.500</td><td class="num">0.750</td><td class="num">0.796</td><td class="num">0.750</td><td class="num">0.796</td><td class="num">0.750</td></tr>
+    <tr><td>0.20</td><td class="num bad">0.500</td><td class="num">0.750</td><td class="num bad">0.500</td><td class="num">0.750</td><td class="num">0.750</td><td class="num">0.750</td><td class="num">0.750</td><td class="num">0.750</td></tr>
   </tbody>
 </table>
 
+<p>
+(T3 mirrors T1 throughout: TWAP holds it at 0.750 in every seat at every bounty. All honest baselines are identical under both rules.)
+</p>
+
 <p id="twap-verdict">
+<strong>Verdict: TWAP reallocates vulnerability from the end of the tape to the beginning — favourably.</strong> It kills the last-mover attack completely: the uninformed bribed last-mover, who broke the market to 0.500 for pocket change under the final-price rule, now achieves nothing at any bounty — one trade is only a third of the statistic, and dragging the whole average across the threshold costs more in the market than the bounty pays back. Every treatment's worst case returns to the 0.750 information-exclusion floor: under TWAP, <em>entry never hurts, in any seat</em>. The price is a new soft spot at the start of the tape: an <em>early</em> manipulator's push now lingers in the average at weight 1/3 where the final-price rule would have let later honest trades erase it (T2-first at bounty 0.02: 0.875 under TWAP vs 0.999 under final). But early pollution is dilutable — add honest trades behind it — while final-price pollution was correctable by nothing. Baseline accuracy costs zero at this discretisation.
 </p>
 
 <h2>Phase 2c — type uncertainty: can a manipulator hide?</h2>
@@ -288,10 +297,19 @@ Everything above makes the bounty common knowledge. The realistic threat is cove
 <table id="t2u-table">
   <thead><tr><th>config</th><th class="num">acc | honest type</th><th class="num">acc | bribed type</th><th class="num">expected acc</th><th class="num">known-type mixture</th></tr></thead>
   <tbody id="t2u-tbody">
+    <tr><td>entrant first, q = 0.25</td><td class="num">1.000</td><td class="num">0.750</td><td class="num">0.9375</td><td class="num">0.9375</td></tr>
+    <tr><td>entrant first, q = 0.50</td><td class="num">1.000</td><td class="num">0.750</td><td class="num">0.8750</td><td class="num">0.8750</td></tr>
+    <tr><td>entrant last, q = 0.25</td><td class="num">1.000</td><td class="num">0.500</td><td class="num">0.8750</td><td class="num">0.8750</td></tr>
+    <tr><td>entrant last, q = 0.50</td><td class="num">1.000</td><td class="num">0.500</td><td class="num">0.7500</td><td class="num">0.7500</td></tr>
   </tbody>
 </table>
 
 <p id="t2u-verdict">
+<strong>On decisions, type uncertainty is exactly neutral</strong>: in all four equilibria the expected accuracy equals the known-type mixture to four decimals, and each type's conditional accuracy equals its common-knowledge value. Suspicion neither spreads the damage to honest states nor lets the briber buy extra decision flips by hiding.
+</p>
+
+<p>
+<strong>But the hiding is real — it shows up in prices.</strong> With the entrant moving first at q = 0.25, the bribed type's pushes carry the <em>wrong</em> pivotal states (truth = 0) to a mean price of ≈ 0.79 — where common knowledge would have pinned them at the fully-discounted 0.50 — and his manipulation gets <em>cheaper</em> (market loss −0.0014 vs −0.0022 known). The honest type pays the mirror-image price: his genuine evidence now moves the <em>right</em> pivotal states only to ≈ 0.79 instead of 0.90 (at q = 0.5: 0.68). At this grid the two distortions cancel exactly at the 0.5 decision threshold, which is why accuracy is unharmed — but that cancellation is a property of this threshold and grid, not a theorem. Covert manipulation converts the market from <em>blind in the bribed states</em> to <em>blurry in all pivotal states</em>, in proportion to q — and, conditional on the entrant being honest, the market is strictly less informative than it would be under common knowledge of honesty. In the last seat hiding is worthless: the bribed type's tell-tale final push arrives after anyone could use the information.
 </p>
 
 <h2>What this means for market design</h2>
@@ -367,8 +385,20 @@ OpenSpiel tabular CFR+ · full writeup with per-state tables in <a href="../MANI
   ];
   var ENTRY_XS = ["0", "0.02", "0.05", "0.2"];
 
-  // Filled in by the TWAP results block below (patched from solved JSONs).
-  var TWAP = window.__TWAP_DATA__;
+  // Fresh CFR+ re-solves with the decision statistic (and the manipulator's
+  // bonus) computed on the time-averaged price; values from
+  // entry_sweep_{BASE-2_T1,T2,REPL_T3}_twap.json.
+  var TWAP = {
+    xs: ["0", "0.02", "0.05", "0.2"],
+    panels: [
+      { title: "T2 last · unique info",
+        final: [1.000, 0.500, 0.500, 0.500], twap: [1.000, 1.000, 0.875, 0.750] },
+      { title: "T1 last · no info",
+        final: [0.750, 0.500, 0.500, 0.500], twap: [0.750, 0.750, 0.750, 0.750] },
+      { title: "T2 first",
+        final: [1.000, 0.999, 0.796, 0.750], twap: [1.000, 0.875, 0.750, 0.750] }
+    ]
+  };
 
   // ---------- shared helpers ----------
   var tooltip = document.getElementById("tooltip");
