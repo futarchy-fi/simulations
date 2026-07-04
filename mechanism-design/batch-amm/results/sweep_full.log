@@ -1,0 +1,30 @@
+core gaussian N=3 R=1 done
+core gaussian N=3 R=3 done
+core gaussian N=5 R=1 done
+core gaussian N=5 R=3 done
+core gaussian N=10 R=1 done
+core gaussian N=10 R=3 done
+core gaussian N=25 R=1 done
+core gaussian N=25 R=3 done
+core galanis N=3 R=1 done
+core galanis N=3 R=3 done
+wrote /Users/kas/simulations-batch/mechanism-design/batch-amm/results/core.json
+manip gaussian N=3 R=1 done
+manip gaussian N=3 R=3 done
+manip gaussian N=10 R=1 done
+manip gaussian N=10 R=3 done
+manip galanis N=3 R=1 done
+manip galanis N=3 R=3 done
+wrote /Users/kas/simulations-batch/mechanism-design/batch-amm/results/manip.json
+seats gaussian N=3 R=1 done
+seats gaussian N=3 R=3 done
+seats gaussian N=5 R=1 done
+seats gaussian N=5 R=3 done
+seats gaussian N=10 R=1 done
+seats gaussian N=10 R=3 done
+seats gaussian N=25 R=1 done
+seats gaussian N=25 R=3 done
+seats galanis N=3 R=1 done
+seats galanis N=3 R=3 done
+wrote /Users/kas/simulations-batch/mechanism-design/batch-amm/results/seats.json
+all sweeps done in 19.3s
