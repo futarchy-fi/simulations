@@ -177,8 +177,101 @@ def fig_twap():
     print("wrote fig_twap.png")
 
 
+def fig_twap_windowed():
+    data = json.loads((RES / "twap_windowed.json").read_text())["known_K"]
+    fig, axes = plt.subplots(1, 2, figsize=(9.2, 3.6), constrained_layout=True)
+    Ts = [4, 8, 16]
+
+    ax = axes[0]
+    for i, T in enumerate(Ts):
+        rows = sorted([r for r in data if r["T"] == T and r["B"] == 0.0],
+                      key=lambda r: r["K"])
+        ax.plot([r["K"] for r in rows], [r["baseline_cost_vs_K1"] for r in rows],
+                "-o", color=SERIES[i], label=f"T={T}")
+    ax.set_xscale("log", base=2)
+    ax.set_xticks([1, 2, 4, 8, 16])
+    ax.xaxis.set_major_formatter(mticker.ScalarFormatter())
+    ax.set_xlabel("window K (mean of last K batch prices)")
+    ax.set_ylabel("DQ(K) − DQ(K=1) at B=0")
+    ax.set_title("Baseline cost of remembering more prices", loc="left")
+    ax.legend(frameon=False, fontsize=8.5, loc="lower left")
+
+    ax = axes[1]
+    for i, T in enumerate(Ts):
+        rows = sorted([r for r in data if r["T"] == T and r["B"] == 5.0],
+                      key=lambda r: r["K"])
+        ax.plot([r["K"] for r in rows], [r["damage"] for r in rows],
+                "-o", color=SERIES[i], label=f"T={T}")
+        ax.annotate(f"T={T}", (rows[-1]["K"], rows[-1]["damage"]),
+                    textcoords="offset points", xytext=(5, 0), fontsize=8.5,
+                    color=TEXT2)
+    ax.set_xscale("log", base=2)
+    ax.set_xticks([1, 2, 4, 8, 16])
+    ax.xaxis.set_major_formatter(mticker.ScalarFormatter())
+    ax.set_yscale("log")
+    ax.set_xlabel("window K")
+    ax.set_ylabel("damage −ΔDQ at B=5 (log)")
+    ax.set_title("…buys almost no damage reduction", loc="left")
+    fig.suptitle("Windowed TWAP: the averaging window K decomposed "
+                 "(N=3, σ_ε=1, σ_u=1, τ=0.3, covert uninformed pusher)",
+                 x=0.01, ha="left", fontsize=10.5)
+    fig.savefig(RES / "fig_twap_windowed.png", dpi=160)
+    print("wrote fig_twap_windowed.png")
+
+
+def fig_subsidy():
+    d = json.loads((RES / "subsidy.json").read_text())
+    rows = d["rows"]
+    S_star = d["config"]["kappa_equals_kyle_lambda_at_S"]
+    insts = [("noise", "noise flow (E[transfer]=S)"),
+             ("amm_covert", "AMM depth (worst-case=S), covert"),
+             ("amm_aware", "AMM depth, honest aware")]
+    fig, axes = plt.subplots(1, 2, figsize=(9.6, 3.8), constrained_layout=True)
+
+    ax = axes[0]
+    for i, (inst, lab) in enumerate(insts):
+        rr = sorted([r for r in rows if r["instrument"] == inst],
+                    key=lambda r: r["S"])
+        ax.plot([r["S"] for r in rr], [r["damage"] for r in rr], "-o",
+                color=SERIES[i], label=lab)
+    ax.axvline(S_star, color=GRID, linewidth=1.2)
+    ax.annotate("κ = Kyle λ*", (S_star, ax.get_ylim()[0]), fontsize=8,
+                color=TEXT2, textcoords="offset points", xytext=(3, 12))
+    _logx(ax, ticks=(0.1, 0.2, 0.4, 0.8, 1.6, 3.2))
+    ax.set_yscale("log")
+    ax.set_xlabel("per-market subsidy budget S (log)")
+    ax.set_ylabel("damage −ΔDQ at B=2 (log)")
+    ax.set_title("Corruption resistance per dollar", loc="left")
+    ax.legend(frameon=False, fontsize=8)
+
+    ax = axes[1]
+    for i, (inst, lab) in enumerate(insts):
+        rr = sorted([r for r in rows if r["instrument"] == inst],
+                    key=lambda r: r["S"])
+        ax.plot([r["S"] for r in rr], [r["dq0"] for r in rr], "-o",
+                color=SERIES[i], label=lab)
+    rr = sorted([r for r in rows if r["instrument"] == "noise"],
+                key=lambda r: r["S"])
+    ax.plot([r["S"] for r in rr], [r["dq0_frozen_beta"] for r in rr], "--s",
+            color=SERIES[3], label="noise, frozen-β (behavioral bound)",
+            markersize=4.5)
+    ax.axvline(S_star, color=GRID, linewidth=1.2)
+    _logx(ax, ticks=(0.1, 0.2, 0.4, 0.8, 1.6, 3.2))
+    ax.set_xlabel("per-market subsidy budget S (log)")
+    ax.set_ylabel("baseline DQ (B=0)")
+    ax.set_title("What the same dollars do at baseline", loc="left")
+    ax.legend(frameon=False, fontsize=8, loc="lower right")
+    fig.suptitle("Two subsidy instruments, one budget: noise flow vs AMM depth "
+                 "(N=3, σ_ε=1, τ=0.3, covert informed manipulator, B=2)",
+                 x=0.01, ha="left", fontsize=10.5)
+    fig.savefig(RES / "fig_subsidy.png", dpi=160)
+    print("wrote fig_subsidy.png")
+
+
 if __name__ == "__main__":
     fig_corruption()
     fig_frontier()
     fig_camouflage()
     fig_twap()
+    fig_twap_windowed()
+    fig_subsidy()
