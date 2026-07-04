@@ -1,72 +1,51 @@
-# STATE — entry-sweep / TWAP / T2u agent (updated 2026-07-03 ~15:50 BST)
+# STATE — kyle-batch agent (analytic + numerical corruption theory, Kyle batch decision markets)
 
-Branch: `manipulator-sweeps-v0` in this worktree (~/simulations-manip). Owner authorized free merging to main.
-Venv: `mechanism-design/.venv-manip/bin/python` (open_spiel installed).
-Task spec: see the phase-2 instructions — entry sweep (done), TWAP variants (running), T2u type uncertainty (implementing), MANIPULATION.md update + HTML explainer (pending).
+(Previous STATE.md content — manipulator-sweeps + Arm G agents — was COMPLETE and merged; replaced 2026-07-04.)
 
-## Done & committed (f16ede9, pushed)
-- game.py/solve.py: num_players/signals/decision_rule support; entry_sweep.py script.
-- Final-price entry sweeps solved: `mechanism-design/galanis-market/results/entry_sweep_{BASE-2,T1,T2,T3}.json`.
-  Headline: T2-first at high bonus degrades exactly to BASE-2 (0.75, info exclusion floor);
-  ANY bribed last-mover (even uninformed T1) drives acc → 0.5 < BASE-2 from bonus 0.02. BASE-3 = T2@bonus0 (acc 1.0).
+Branch: `kyle-batch-v0` in this worktree (~/simulations-kyle). Owner authorized merging completed, tested work to main.
+Venv: `mechanism-design/.venv-kyle/bin/python` (numpy, scipy, sympy, matplotlib, pytest — installed OK).
+Never touch ~/simulations, ~/simulations-manip, ~/simulations-llm-dm, ~/simulations-batch.
+Task: build mechanism-design/kyle-batch/ — src (SymPy closed forms + NumPy/SciPy numerics), tests, results/, KYLE.md.
+Read mechanism-design/MANIPULATION.md first (CFR findings we must compare against).
 
-## Progress notes (~16:55)
-- MANIPULATION.md phase-2a section committed (e783012).
-- results-site/manipulation.html drafted: phase 1 + 2a complete with validated-palette SVG charts,
-  hover tooltips, dark mode; TWAP chart reads window.__TWAP_DATA__ (to inject), T2u/TWAP tables + verdict
-  paragraphs are empty placeholders (ids: twap-tbody, twap-verdict, t2u-tbody, t2u-verdict, TWAP-TABLE-SUB token).
-- TWAP so far: REPL 0/0.05/0.2 -> 1.0/0.750/0.750 (vs final 1.0/0.796/0.750 -- threshold NOT raised);
-  T2-first 0.02 -> 0.875 (WORSE than final 0.999: early pollution baked into average);
-  T2-last 0.02 -> 0.9999, 0.05 -> 0.875 (vs final 0.500 -- last-mover attack killed);
-  T1-last 0.02/0.05 -> 0.750 (floor held). T1-first/T3-first all 0.750 flat.
-- T2u q=0.25: first acc_honest=1.0 acc_bribed=0.75, last acc_honest=1.0 acc_bribed=0.5 --
-  exactly the known-type mixture; no hiding effect at q=0.25. q=0.5 solving.
-- local preview server: python3 -m http.server 8931 in results-site (PID 22946, kill when done).
+## Task spec (condensed)
+Model: v~N(0,1); N informed, s_i=v+ε_i, ε~N(0,σ_ε²); one batch of market orders; noise u~N(0,σ_u²);
+Kyle MM p=E[v|y], y=Σx+u. Decision: approve w.p. q(p)=logistic(p/τ) (report τ sensitivity).
+Settlement: outcome-settled, payoff x_i(v−p). Manipulator = trader 1, + B·1[approved].
+Q1 baseline closed form (Holden–Subrahmanyam N-trader) + MC verify + aggregation/decision quality vs N,σ_ε,σ_u.
+Q2 corruption fixed point (β_h, β_m, α_m, λ); price bias, quality delta, manip trading loss vs B;
+   threshold-vs-smooth, blind-vs-biased; NOISE-BUDGET FRONTIER (σ_u = subsidy = dampener = camouflage) — headline plot.
+Q3 entry: N honest vs +informed-manip vs +uninformed-manip; known (ρ=1) vs covert (ρ<1) MM; last-mover channel absent?; T2u "blurry" analog.
+Q4 T batches, TWAP-of-batch-prices vs last-batch decision statistic, myopic-λ MM (state as such).
+Q5 brief AMM (subsidized LMSR-ish curve) variant of Q2.
+Validation: every equilibrium passes MC unilateral-deviation test on a strategy grid; report bound in KYLE.md per table.
+Citations: only Kyle 1985 confidently; anything else [verify] unless fetched.
+KYLE.md structure: model, baseline table, corruption+frontier plot, entry, TWAP verdict, comparison table vs MANIPULATION.md CFR, limitations.
 
-## Next steps in order
-3. When TWAP results land: comparison tables, extend mechanism-design/MANIPULATION.md with entry/TWAP/T2u sections.
-4. mechanism-design/results-site/manipulation.html self-contained explainer (phase 1 + phase 2), tone of galanis-market/results/index.html.
-5. Merge tested pieces to main, push.
+## Key derivations so far (verify in code before trusting)
+Baseline linear eq (symmetric): ρ_v=1/(1+σ_ε²); c≡λβ=ρ_v/(2+(N−1)ρ_v);
+λ=sqrt(cN(1−c(N+σ_ε²)))/σ_u; β=c/λ. Kyle N=1,σ_ε=0 ⇒ λ=1/(2σ_u), β=σ_u ✓.
+Var(p)=Cov(v,p)=cN ⇒ corr(p,v)=sqrt(cN), INDEPENDENT of σ_u (baseline quality σ_u-invariant).
+Informed total profit = λσ_u² ∝ σ_u. Decision quality E[v·q(p)] = (Cov/Var)E[(p−m)q(p)] 1-d quadrature; oracle E[v1{v>0}]=1/√(2π).
+Corruption (linear strategies): manipulator plays α_m+β_m s. MM (linear, knows presence w.p. ρ) subtracts ρα_m from y.
+FOC ⇒ α_m=B·E[q'(p)]/(2−ρ). Price bias if present: λ(1−ρ)α_m; if absent: −λρα_m (suspicion tax) — T2u "blurry" analog.
+ρ=1 (known): bias fully subtracted, β_m≈β_h at O(B) ⇒ NO info exclusion (contrast CFR!). Quality loss O(bias²) — smooth, no threshold.
+Price bias ∝ λ·B·E[q'] ⇒ distortion INCREASES with λ (task's prediction B·q'/λ is inverted — check carefully numerically; frontier:
+σ_u ↑ ⇒ resistance ↑ AND subsidy cost ↑, baseline quality flat).
+Plan tiering: Tier1 = linear-strategy equilibrium via damped fixed point (quadrature for E[q], E[q']);
+Tier2 = MC deviation test incl. manipulator's nonlinear pointwise best response (quantifies linear-restriction error).
 
-## FINAL (~17:20) — all phases complete
-- All 5 solver outputs committed (915d778). MANIPULATION.md has phases 2a/2b/2c fully written.
-- manipulation.html complete (all charts/tables/verdicts filled, rendered + screenshot-verified).
-- TWAP verdict: kills last-mover attack entirely (floor restored to BASE-2 in every seat), zero baseline
-  cost, slight worsening for early movers (0.999->0.875 at 0.02) — favourable vulnerability reallocation.
-- T2u verdict: decision-neutral (expected acc == known-type mixture to 4dp, all four configs);
-  hiding effect real in PRICES: bribed type pools (wrong states 0.69-0.79 vs 0.50 known, cheaper),
-  honest type discounted (right states 0.68-0.79 vs 0.90). "Blind -> blurry."
-- Preview server killed. Ready to merge to main.
+## Progress
+- [x] Worktree created from origin/main (9e158c5); MANIPULATION.md read.
+- [x] venv installed
+- [ ] scaffold kyle-batch/{src,tests,results}, pyproject
+- [ ] Q1 baseline module + sympy verify + MC + tests
+- [ ] Q2 corruption fixed point + deviation test + sweeps + frontier plot
+- [ ] Q3 entry sweeps
+- [ ] Q4 TWAP multi-round
+- [ ] Q5 AMM brief
+- [ ] KYLE.md, commit/push/merge
 
----
-
-# STATE — Arm G (aligned liar) ablation: COMPLETE
-
-Branch: llm-decision-market-v0. Owner authorized free merging to main.
-
-## Status: done (2026-07-03)
-- Smoke (75 calls) + full run (750 calls) complete: 825/900 budget,
-  0 parse failures, 0 transport errors, mean latency 16.9 s.
-- Reports: results/llm-decision-market/v1_arm_g_shard{0..3}_report.json,
-  v1_arm_g_smoke_report.json. Metrics: metrics_v1.json `arm_G` block.
-- Raw logs: experiments/llm-decision-market/logs/calls_g{0..3}_*.jsonl +
-  calls_gsmoke_*.jsonl, copied into results/llm-decision-market/raw_llm_logs.
-- RESULTS.md: "Arm G — aligned liar ablation" section appended (table, four
-  measurements, verdict, limitations, reproduction).
-
-## Headline results
-- Market: 0.900 accuracy (baseline slice 0.980, F-hi 0.960); 4 flips, all
-  x<0 pushed past the oracle window (prices 0.553-0.603, oracle never fired:
-  3 invocations = baseline). Value regret 13.4 vs 0.84 (F-hi) vs 0.03.
-- Poll incl liar reports: 0.960 (honest-only same run 0.980) — the poll
-  degraded LESS than the market. Hypothesis (market more robust than poll
-  under aligned lying) REFUTED at these parameters.
-- Audit: stake-vs-stated-belief contradiction 0/118 (F-hi 49/127) — blind.
-- Liar PnL: +6.1 market transfer (F-hi −51.2) + 1280 bounty — flipped
-  decisions settle in the liar's favor (settlement endogeneity).
-- Surviving monitors: Brier decalibration (0.195 vs 0.112 honest, paired
-  t=2.81), belief-vs-population divergence (+0.085, t=2.29), one-sided book
-  (673 YES / 2.5 NO). Dead: consistency audit, PnL.
-
-## Remaining
-- Commit + push + merge to main (in progress).
+## Notes
+- Long runs: detached via `run_in_background`, poll (never park).
+- Plots: read dataviz skill before writing plot code; commit PNGs into kyle-batch/results/.
