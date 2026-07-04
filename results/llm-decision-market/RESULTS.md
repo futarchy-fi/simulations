@@ -614,10 +614,14 @@ survive; incentive-based ones die.**
 - *PnL: dead.* The market transfer is +6.1 — the market not only failed to
   charge this liar, it *paid* him. Every flipped proposal settles YES, so
   the stakes that bought the flip win it back with profit (+4.5, +8.4,
-  +21.0, +11.1 on the four flips). This is settlement endogeneity: a
-  decision market settles on the decision itself unless the oracle
-  intervenes, so a manipulator who pushes past the oracle margin makes his
-  lie self-fulfilling and self-financing. Arm F's "manipulator losses become
+  +21.0, +11.1 on the four flips). This is settlement endogeneity, scoped
+  to the mechanism class: `binary_staking_market` settles on its own
+  decision unless the oracle intervenes (an optimistic-verification rule) —
+  it is NOT an outcome-settled conditional market. In a true Hanson-style
+  market the bought approval would still face the realized outcome at
+  settlement, so manipulation self-finances only if reality cooperates.
+  General form of the finding: never settle a market on a statistic the
+  manipulator's own push determines. Arm F's "manipulator losses become
   honest subsidy" (−51.2 → +124 to honest seats) inverts exactly when
   manipulation starts succeeding: honest capture *fell* from +427.5 to
   +368.5. Hanson's subsidy argument held behaviorally only while the
