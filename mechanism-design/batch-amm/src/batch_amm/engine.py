@@ -91,10 +91,19 @@ class Config:
     sizing: str = "competitive"  # "full" | "competitive" (batch arms only)
     manip_seat: Optional[int] = None
     bounty: float = 0.0
+    # what traders observe between batch rounds:
+    #   "full"      — per-trader orders (attributed)
+    #   "aggregate" — clearing price + net flow only (pseudo-anonymous)
+    #   "price"     — clearing price only; identical information to
+    #                 "aggregate" against a deterministic AMM (the price move
+    #                 is an invertible function of the net flow) — kept as a
+    #                 separate value and unit-tested equal
+    disclosure: str = "full"
 
     def __post_init__(self):
         assert self.mech in ("seq_lmsr", "batch_lmsr", "batch_kyle")
         assert self.sizing in ("full", "competitive")
+        assert self.disclosure in ("full", "aggregate", "price")
 
 
 def run_market(env, cfg: Config) -> Dict[str, np.ndarray]:
@@ -135,6 +144,18 @@ def run_market(env, cfg: Config) -> Dict[str, np.ndarray]:
                 ts[cfg.manip_seat], b, cfg.bounty
             )
         return cap(ts)
+
+    def disclose(implied_targets: np.ndarray, first: bool) -> None:
+        """Between-round information release per cfg.disclosure."""
+        if cfg.disclosure == "full":
+            env.reveal_batch(implied_targets, state, first_time=first)
+        else:
+            # "aggregate" and "price" both reduce to the statistic
+            # T = sum_i logit(implied target_i): the net flow reveals T given
+            # the common-knowledge sizing rule, and the clearing price
+            # reveals the net flow (deterministic AMM).
+            t_total = lmsr.logit(implied_targets).sum(axis=0)
+            env.reveal_batch_anon(t_total, state, first_time=first)
 
     for r in range(cfg.rounds):
         first = r == 0
@@ -180,7 +201,7 @@ def run_market(env, cfg: Config) -> Dict[str, np.ndarray]:
             slip_own += ((pi - p)[None, :] * x_exec).T
             slip_round += ((pi - p_round_open)[None, :] * x_exec).T
             volume += np.abs(x_exec).T
-            env.reveal_batch(ts, state, first_time=first)
+            disclose(ts, first)
             p = p1
 
         elif cfg.mech == "batch_kyle":
@@ -206,7 +227,7 @@ def run_market(env, cfg: Config) -> Dict[str, np.ndarray]:
             slip_round += ((pi - p_round_open)[None, :] * x_exec).T
             volume += np.abs(x_exec).T
             implied = p[None, :] + 2.0 * lam[None, :] * x / scale_k
-            env.reveal_batch(cap(implied), state, first_time=first)
+            disclose(cap(implied), first)
             p = p1
 
         round_prices[r] = p

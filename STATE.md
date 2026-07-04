@@ -67,6 +67,42 @@ Key design notes (extension):
 
 ---
 
+# STATE — batch-amm agent, follow-up: disclosure regimes / pseudo-anonymity: COMPLETE
+
+Branch: `batch-amm-v0` (~/simulations-batch). Owner authorized merging tested work to main.
+Venv: `mechanism-design/.venv-batch/bin/python`.
+Constraint tested: NO per-trader order disclosure (traders see anonymous aggregates only).
+
+## Status: done (2026-07-04)
+- Config.disclosure in {full, aggregate, price}; aggregate==price PROVEN (deterministic AMM:
+  clearing price pins net flow; bit-identical runs, unit-tested). Attribution is the only knob.
+- Anonymous belief updaters: Gaussian mean-field inversion (N copies of s_bar, own-copy swap;
+  exact for equal signals); Galanis exact Bayes on aggregate statistic T (bit-count classes).
+- Sweeps: results/disclosure.json (N x R{2,3,5} x regime, CRN) + disclosure_manip.json
+  (bounty x regime x seat, manipulator rotated with fixed draws). 36 tests green.
+- BATCH.md: new section 9 "Disclosure regimes / pseudo-anonymity"; implications rewritten
+  (anonymity mandates batch — sequential tape attributes by timing; recommended default:
+  BATCH-LMSR damped R>=2 aggregate-disclosure + net caps + soft inversion).
+
+## Verdicts
+- Recovery: survives under (b)/(c). Gaussian: permanent but tiny plateau (logit err 0.11-0.18,
+  LL +0.0004-0.0006 vs SEQ ~borderline CI, welfare cost ~0.1%); R=2/3/5 IDENTICAL (round-1-only
+  info model) => anonymity costs zero extra rounds for ~99.9% of value, no R recovers the rest.
+  Galanis: EXACTLY free (bit-count sufficient for symmetric payoff; R=2 anon == R=2 full).
+- Manipulation delta: env-dependent sign. Gaussian: anonymity mildly DAMPENS (dPf -12%, cost +25%
+  at B=0.5 N=3). Galanis: WORSE — jamming: manipulator's inconsistent order makes whole aggregate
+  unexplainable -> strict-consistency update blocks ALL info -> R=3 floor 0.750 collapses to R=1
+  damage (0.625 at B=0.02, 0.500 at B=0.2) at LOWER manipulator cost. Denial-of-aggregation attack.
+- Seat-invariance holds under anonymity (0 violations at 1e-9, + unit test). Oscillation/damping
+  finding unchanged (full sizing still diverges; damping still required).
+
+## Caveat carried in BATCH.md
+Myopic traders never discounted anyone even under FULL, so anonymity's lost-discounting cost
+does not bind here (equilibrium-level bound: MANIPULATION.md phase 2c). Anon model mines round-1
+aggregate only; plateau is an upper bound on the aggregation cost.
+
+---
+
 # STATE — kyle-batch agent v0 (analytic + numerical corruption theory, Kyle batch decision markets) — COMPLETE
 
 (Previous STATE.md content — manipulator-sweeps + Arm G agents — was COMPLETE and merged; replaced 2026-07-04.)

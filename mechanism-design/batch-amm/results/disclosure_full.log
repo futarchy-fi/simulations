@@ -1,0 +1,22 @@
+agg gaussian N=3 R=2 done
+agg gaussian N=3 R=3 done
+agg gaussian N=3 R=5 done
+agg gaussian N=5 R=2 done
+agg gaussian N=5 R=3 done
+agg gaussian N=5 R=5 done
+agg gaussian N=10 R=2 done
+agg gaussian N=10 R=3 done
+agg gaussian N=10 R=5 done
+agg gaussian N=25 R=2 done
+agg gaussian N=25 R=3 done
+agg gaussian N=25 R=5 done
+agg galanis N=3 R=2 done
+agg galanis N=3 R=3 done
+agg galanis N=3 R=5 done
+wrote /Users/kas/simulations-batch/mechanism-design/batch-amm/results/disclosure.json
+manip gaussian N=3 R=3 done
+manip gaussian N=10 R=3 done
+manip galanis N=3 R=1 done
+manip galanis N=3 R=3 done
+wrote /Users/kas/simulations-batch/mechanism-design/batch-amm/results/disclosure_manip.json
+disclosure sweeps done in 6.5s
