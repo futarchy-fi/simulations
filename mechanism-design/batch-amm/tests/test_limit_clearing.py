@@ -136,6 +136,21 @@ def test_sell_side_eligibility():
     _conserves(p0, res)
 
 
+def test_exact_cancellation_fills_fully_at_mid():
+    """Orders that net to a pure rounding error (|X| < 1e-14 but != 0) are
+    exact cancellation: full fills crossing at mid, no alpha blow-up from
+    dividing two rounding errors (regression: manipulated Galanis rounds
+    produce exactly-offsetting flow and executed > submitted resulted)."""
+    p0 = np.array([0.7])
+    x = np.array([[1e-3 + 1e-16], [-0.5e-3], [-0.5e-3]])
+    assert 0.0 < abs(x.sum()) < 1e-14
+    limits = np.array([[INF], [0.6], [0.6]])
+    res = clear_limit_batch(p0, x, limits, B)
+    assert np.array_equal(res["x_exec"], x)
+    assert np.allclose(res["fill"], 1.0)
+    assert np.allclose(res["pi"], 0.7) and np.allclose(res["p1"], 0.7)
+
+
 def test_offsetting_tight_orders_cross_at_mid():
     p0 = np.array([0.5])
     x = _mkt_move(p0, [[0.7], [0.3]])

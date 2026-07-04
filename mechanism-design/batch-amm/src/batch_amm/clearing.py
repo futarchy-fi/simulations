@@ -146,8 +146,11 @@ def clear_limit_batch(
     x_net = x_eff.sum(axis=0)
     lp1 = np.clip(lp + x_net / b, -lmax, lmax)
     x_exec_net = b * (lp1 - lp)
+    # exact-cancellation guard, same threshold and arithmetic as the base
+    # engine: a net below the noise floor means offsetting flow crossing at
+    # mid, alpha = 1 (dividing two rounding errors would mis-scale fills)
     with np.errstate(divide="ignore", invalid="ignore"):
-        alpha = np.where(x_net != 0.0, x_exec_net / x_net, 1.0)
+        alpha = np.where(np.abs(x_net) >= 1e-14, x_exec_net / x_net, 1.0)
     x_exec = x_eff * alpha[None, :]
     p1 = lmsr.sigmoid(lp1)
     dc = lmsr.cost_to_move(p, p1, b)

@@ -219,8 +219,13 @@ def run_market(env, cfg: Config) -> Dict[str, np.ndarray]:
             x_net = x.sum(axis=0)
             lp1 = np.clip(lp + x_net / b, -_LOGIT_MAX, _LOGIT_MAX)
             x_exec_net = b * (lp1 - lp)
+            # |x_net| below the fixed-point noise floor is exact cancellation:
+            # full fills crossing at mid (alpha = 1). Guarding on != 0 alone
+            # would divide two rounding errors and mis-scale every fill.
             with np.errstate(divide="ignore", invalid="ignore"):
-                alpha = np.where(x_net != 0.0, x_exec_net / x_net, 1.0)
+                alpha = np.where(
+                    np.abs(x_net) >= 1e-14, x_exec_net / x_net, 1.0
+                )
             x_exec = x * alpha[None, :]
             p1 = lmsr.sigmoid(lp1)
             dc = lmsr.cost_to_move(p, p1, b)
