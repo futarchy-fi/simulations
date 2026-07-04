@@ -1,0 +1,2 @@
+JAX: 0.4.30 [CpuDevice(id=0)]
+structure=t3s111 iter=1000 hidden=128 ts=500

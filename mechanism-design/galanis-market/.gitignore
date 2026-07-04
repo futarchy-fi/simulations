@@ -1,0 +1,19 @@
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+results/*.pkl
+results/*.npz
+results/*.log
+# Keep the canonical 3-round / 11-action CFR run in-tree so equilibria.md
+# is reproducible; ignore other large/local runs by pattern.
+results/cfr_*.json
+!results/cfr_a11_i50_t3s111y2+t3s110+t3s111+t3s111o2ye2_r3.json
+results/cfr_*.txt
+!results/cfr_a11_i50_t3s111y2+t3s110+t3s111+t3s111o2ye2_r3.txt
+.DS_Store

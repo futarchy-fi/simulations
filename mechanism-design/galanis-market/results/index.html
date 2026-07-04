@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Equilíbrios do mercado Galanis via OpenSpiel</title>
+<style>
+  :root {
+    --fg: #1a1a1a;
+    --muted: #5a5a5a;
+    --rule: #d6d6d6;
+    --bg: #fafafa;
+    --accent: #b3261e;
+    --code-bg: #f0eee6;
+  }
+  html { background: var(--bg); }
+  body {
+    max-width: 720px;
+    margin: 3rem auto;
+    padding: 0 1.25rem;
+    color: var(--fg);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-size: 17px;
+    line-height: 1.55;
+  }
+  h1 {
+    font-size: 1.7rem;
+    margin: 0 0 0.25rem;
+    line-height: 1.2;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-style: italic;
+    margin: 0 0 1.5rem;
+  }
+  .meta {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin: 0 0 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  h2 {
+    font-size: 1.15rem;
+    margin: 2rem 0 0.5rem;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.25rem;
+  }
+  h3 { font-size: 1rem; margin: 1.25rem 0 0.25rem; }
+  p { margin: 0.6rem 0; }
+  code, pre {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: var(--code-bg);
+    font-size: 0.88em;
+  }
+  code { padding: 0 0.25em; border-radius: 2px; }
+  pre {
+    padding: 0.7rem 0.9rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    line-height: 1.45;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0.5rem 0 1rem;
+    font-size: 0.92rem;
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  }
+  th, td {
+    border-bottom: 1px solid var(--rule);
+    padding: 0.4rem 0.5rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { font-weight: 600; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  th.num { text-align: right; }
+  .callout {
+    background: var(--code-bg);
+    padding: 0.8rem 1rem;
+    border-left: 3px solid var(--accent);
+    margin: 1rem 0;
+    font-size: 0.95rem;
+  }
+  ul { margin: 0.5rem 0; padding-left: 1.4rem; }
+  li { margin: 0.2rem 0; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; }
+  a:hover { border-bottom-color: var(--accent); }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 2rem 0; }
+  .footer { color: var(--muted); font-size: 0.85rem; margin-top: 3rem; }
+</style>
+</head>
+<body>
+
+<h1>Equilíbrios do mercado Galanis (2026) via OpenSpiel</h1>
+<p class="subtitle">Resolvendo as quatro estruturas com CFR+ tabular para separar capability gap de falha de mecanismo.</p>
+<p class="meta">Maio de 2026 · <a href="https://github.com/" target="_blank" rel="noopener">galanis-market</a> · 3-round, 11-action discretisation, 50 CFR+ iters</p>
+
+<h2>A pergunta</h2>
+
+<p>
+Galanis (<a href="https://arxiv.org/abs/2604.20050" target="_blank" rel="noopener">arXiv:2604.20050</a>) mostra que LLMs trading num prediction market falham em agregar informação conforme a estrutura informacional fica mais complexa. O preço final mediano cai de ≈ 0.98 nas estruturas fáceis para ≈ 0.5 (coin toss) na Very Hard, mesmo com segurança separável e teorema do Ostrovsky 2012 garantindo agregação em algum equilíbrio Bayes-Nash.
+</p>
+
+<p>
+A pergunta que não está respondida no paper: <em>os LLMs estão longe do equilíbrio, ou o equilíbrio já não agrega bem?</em> O Ostrovsky 2012 garante que <strong>existe</strong> um NE que agrega — mas pode haver outros que não. Sem resolver o jogo, não dá pra separar essas duas hipóteses.
+</p>
+
+<h2>O que fizemos</h2>
+
+<ul>
+  <li>Implementamos o jogo Galanis como um <code>pyspiel.Game</code>: 3 jogadores em rodízio sequencial, chance node uniforme sobre 8 estados, partições conforme cada uma das 4 estruturas, LMSR (β = 0.01, grid discretizada de 11 preços-alvo).</li>
+  <li>Resolvemos via CFR+ tabular do OpenSpiel (50 iterações por estrutura, ≈ 2 min cada num laptop).</li>
+  <li>Calculamos NashConv como diagnóstico de convergência e a distribuição de preço final por ω sob a policy média.</li>
+  <li>Comparamos com (a) os benchmarks empíricos do paper e (b) um baseline analítico de melhor-resposta míope Bayes-Nash.</li>
+</ul>
+
+<p>
+Caveat formal: para jogos não-soma-zero de 3+ jogadores, CFR+ converge para um <em>coarse correlated equilibrium</em>, não Nash. Para este jogo específico esse gap é pequeno: o subsídio LMSR cria uma deviation unilateral positivamente-EV para qualquer perfil não-agregador, eliminando CCEs babbling. NashConv ficou ≤ 2 × 10⁻⁴ em todos os runs.
+</p>
+
+<h2>Resultados</h2>
+
+<table>
+  <thead>
+    <tr>
+      <th>Estrutura</th>
+      <th class="num">NashConv</th>
+      <th class="num">CFR median LE</th>
+      <th class="num">Galanis median LE</th>
+      <th class="num">Preço típico empírico (X=1)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Easy (<code>t3s111y2</code>)</td><td class="num">8.8 × 10⁻⁵</td><td class="num">0.087</td><td class="num">0.018</td><td class="num">≈ 0.98</td></tr>
+    <tr><td>Medium (<code>t3s110</code>)</td><td class="num">1.7 × 10⁻⁴</td><td class="num">0.087</td><td class="num">0.018</td><td class="num">≈ 0.98</td></tr>
+    <tr><td>Hard (<code>t3s111</code>)</td><td class="num">1.7 × 10⁻⁴</td><td class="num">0.087</td><td class="num">0.304</td><td class="num">≈ 0.75</td></tr>
+    <tr><td>Very Hard (<code>t3s111o2ye2</code>)</td><td class="num">7.1 × 10⁻⁵</td><td class="num">0.087</td><td class="num">0.718</td><td class="num">≈ 0.50</td></tr>
+  </tbody>
+</table>
+
+<p>
+O equilíbrio do CFR+ converge essencialmente para a mesma distribuição de preço por ω em todas as quatro estruturas: preço mediano ≈ 0.917 quando X = 1 e ≈ 0.083 quando X = 0. Esses 0.917 / 0.083 são o piso de discretização da grid de 11 ações (preço máximo atingível é 11/12 ≈ 0.917); com uma grid mais fina o piso desce proporcionalmente.
+</p>
+
+<p>
+Per-ω para a estrutura Very Hard (a mais difícil):
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>ω</th><th>(dₐ, dᵦ, dᶜ)</th><th class="num">X</th>
+      <th class="num">CFR mean p</th><th class="num">CFR median p</th><th class="num">Myopic Bayes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>a</td><td>(1,1,1)</td><td class="num">0</td><td class="num">0.087</td><td class="num">0.083</td><td class="num">0.000</td></tr>
+    <tr><td>b</td><td>(1,1,0)</td><td class="num">1</td><td class="num">0.914</td><td class="num">0.917</td><td class="num">1.000</td></tr>
+    <tr><td>c</td><td>(1,0,1)</td><td class="num">1</td><td class="num">0.914</td><td class="num">0.917</td><td class="num">1.000</td></tr>
+    <tr><td>d</td><td>(1,0,0)</td><td class="num">0</td><td class="num">0.086</td><td class="num">0.083</td><td class="num">0.000</td></tr>
+    <tr><td>e</td><td>(0,1,1)</td><td class="num">1</td><td class="num">0.914</td><td class="num">0.917</td><td class="num">1.000</td></tr>
+    <tr><td>f</td><td>(0,1,0)</td><td class="num">0</td><td class="num">0.086</td><td class="num">0.083</td><td class="num">0.000</td></tr>
+    <tr><td>g</td><td>(0,0,1)</td><td class="num">0</td><td class="num">0.085</td><td class="num">0.083</td><td class="num">0.000</td></tr>
+    <tr><td>h</td><td>(0,0,0)</td><td class="num">0</td><td class="num">0.085</td><td class="num">0.083</td><td class="num">0.000</td></tr>
+  </tbody>
+</table>
+
+<h2>O que isso significa</h2>
+
+<div class="callout">
+  <strong>Headline:</strong> a degradação observada por Galanis (mediana de erro saltando de 0.018 para 0.718 conforme a complexidade aumenta) <strong>não está no equilíbrio</strong> — ela é um <strong>capability gap</strong> entre os LLMs do paper e o melhor-resposta racional. O equilíbrio agrega informação em todas as quatro estruturas.
+</div>
+
+<p>
+O Galanis interpreta o resultado dele como sugerindo que <em>AI agents podem sofrer das mesmas limitações que humanos quando precisam raciocinar sobre o que os outros sabem</em>. Nosso resultado mostra que isso é uma observação sobre a capability dos LLMs atuais, não sobre uma propriedade do mecanismo. Best-response play em todas as estruturas agrega ao truth, consistente com Ostrovsky 2012.
+</p>
+
+<p>
+Implicação prática para mercados de previsão / futarchy operados por agentes LLM: o caminho de melhoria é <strong>capability</strong> (treinar agentes para fazer inferência Bayesiana correta e atualizar crenças de ordem superior corretamente), não <strong>mecanism design</strong> — o mecanismo já está fazendo o seu trabalho.
+</p>
+
+<h3>Por que CFR &gt; empírico nas estruturas fáceis</h3>
+
+<p>
+Curiosamente, o CFR mediana LE = 0.087 é <em>maior</em> que o empírico = 0.018 nas estruturas Easy/Medium. Isso é artefato da nossa discretização: a grid de 11 ações tem piso em 0.917, então log error ≥ −log(0.917) ≈ 0.087. Os LLMs operam com preços contínuos e atingem ≈ 0.99. A leitura justa é qualitativa: ambos agregam quase perfeitamente nas estruturas onde dá pra agregar.
+</p>
+
+<h2>Limitações</h2>
+
+<ul>
+  <li><strong>Só 3 rounds.</strong> CFR tabular fica intratável a 6/9 rounds (info-state count escala como <code>células × ações^(moves_antes_de_jogar_de_novo)</code>; chega em ~1.7 × 10⁹ pra Very Hard em 9 rounds com 11 ações). Próximo passo: MCCFR ou CFR em C++.</li>
+  <li><strong>Discretização de preço.</strong> Grid de 11 ações foi escolhida pra rodar em laptop. Grid mais fina (21 ou 99 ações) baixaria o piso de log error mas o resultado qualitativo (todas as estruturas agregam) é o mesmo.</li>
+  <li><strong>CCE ≈ NE, não &equiv; NE.</strong> Em 3 jogadores soma-geral, CFR+ converge formalmente pra coarse correlated equilibrium. Pra este jogo o gap é negligível (argumento via subsídio LMSR), mas é um caveat formal.</li>
+</ul>
+
+<h2>Como reproduzir</h2>
+
+<pre>git clone &lt;repo&gt;
+cd galanis-market
+pip install -e .
+pytest -q                                # 44 testes
+python scripts/solve_all.py \
+    --iterations 50 --num-actions 11 \
+    --structures t3s111y2,t3s110,t3s111,t3s111o2ye2 \
+    --rounds 3
+python scripts/write_equilibria_doc.py \
+    results/cfr_a11_i50_*.json \
+    --output results/equilibria.md</pre>
+
+<p>
+Tempo total: ≈ 8 minutos num laptop CPU.
+</p>
+
+<hr>
+
+<p class="footer">
+Código e dados em <code>galanis-market/</code> · OpenSpiel 1.6.3 · CFR+ tabular ·
+Replica direta do setup do paper original modulo discretização de preço e número de rounds.
+</p>
+
+</body>
+</html>

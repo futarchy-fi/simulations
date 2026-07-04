@@ -1,0 +1,8 @@
+pyproject.toml
+src/proposal_poker_tabular/__init__.py
+src/proposal_poker_tabular/game.py
+src/proposal_poker_tabular.egg-info/PKG-INFO
+src/proposal_poker_tabular.egg-info/SOURCES.txt
+src/proposal_poker_tabular.egg-info/dependency_links.txt
+src/proposal_poker_tabular.egg-info/requires.txt
+src/proposal_poker_tabular.egg-info/top_level.txt

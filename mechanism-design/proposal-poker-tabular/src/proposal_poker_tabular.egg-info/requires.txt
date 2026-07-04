@@ -1,0 +1,5 @@
+open_spiel>=1.6
+numpy>=1.24
+
+[dev]
+pytest>=7

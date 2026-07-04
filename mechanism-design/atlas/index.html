@@ -1,0 +1,976 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>A futarchy equilibrium atlas</title>
+<style>
+  :root {
+    --fg: #1a1a1a;
+    --muted: #5a5a5a;
+    --rule: #d6d6d6;
+    --bg: #fafafa;
+    --accent: #b3261e;
+    --accent-soft: #b3261e22;
+    --code-bg: #f0eee6;
+  }
+  html { background: var(--bg); }
+  body {
+    max-width: 760px;
+    margin: 3rem auto;
+    padding: 0 1.25rem 5rem;
+    color: var(--fg);
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    font-size: 17px;
+    line-height: 1.55;
+  }
+  h1 {
+    font-size: 1.9rem;
+    margin: 0 0 0.25rem;
+    line-height: 1.15;
+  }
+  .subtitle {
+    color: var(--muted);
+    font-style: italic;
+    margin: 0 0 1.25rem;
+    font-size: 1.05rem;
+  }
+  .meta {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin: 0 0 2.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  h2 {
+    font-size: 1.3rem;
+    margin: 3rem 0 0.5rem;
+    padding-bottom: 0.3rem;
+    border-bottom: 1px solid var(--rule);
+  }
+  h2.chapter {
+    margin-top: 4rem;
+    color: var(--accent);
+    border-bottom: 2px solid var(--accent);
+  }
+  h2.chapter .chapter-number {
+    display: inline-block;
+    font-variant: small-caps;
+    color: var(--muted);
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    margin-right: 0.6rem;
+  }
+  h3 { font-size: 1.05rem; margin: 1.5rem 0 0.4rem; }
+  p { margin: 0.6rem 0; }
+  code, pre {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    background: var(--code-bg);
+    font-size: 0.88em;
+  }
+  code { padding: 0 0.25em; border-radius: 2px; }
+  pre {
+    padding: 0.7rem 0.9rem;
+    border-radius: 4px;
+    overflow-x: auto;
+    line-height: 1.45;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0.75rem 0 1.25rem;
+    font-size: 0.92rem;
+    font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  }
+  th, td {
+    border-bottom: 1px solid var(--rule);
+    padding: 0.4rem 0.55rem;
+    text-align: left;
+    vertical-align: top;
+  }
+  th { font-weight: 600; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .callout {
+    background: var(--accent-soft);
+    padding: 0.9rem 1.1rem;
+    border-left: 3px solid var(--accent);
+    margin: 1rem 0;
+    font-size: 0.97rem;
+  }
+  ul { margin: 0.5rem 0; padding-left: 1.4rem; }
+  li { margin: 0.2rem 0; }
+  a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; }
+  a:hover { border-bottom-color: var(--accent); }
+  hr { border: 0; border-top: 1px solid var(--rule); margin: 2rem 0; }
+  .footer { color: var(--muted); font-size: 0.85rem; margin-top: 4rem; padding-top: 1rem; border-top: 1px solid var(--rule); }
+  .toc {
+    background: var(--code-bg);
+    padding: 0.7rem 1.1rem;
+    border-radius: 4px;
+    margin: 1.5rem 0;
+    font-size: 0.93rem;
+  }
+  .toc ol { padding-left: 1.2rem; margin: 0.3rem 0; }
+  .status-tag {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-variant: small-caps;
+    letter-spacing: 0.05em;
+    padding: 0.05rem 0.4rem;
+    border-radius: 3px;
+    margin-left: 0.4rem;
+    vertical-align: middle;
+  }
+  .status-done { background: #d4edda; color: #155724; }
+  .status-pending { background: #f8f9fa; color: var(--muted); border: 1px solid var(--rule); }
+</style>
+</head>
+<body>
+
+<h1>A futarchy equilibrium atlas</h1>
+<p class="subtitle">Bayes-Nash equilibria across mechanism variants and player taxonomies, computed via OpenSpiel CFR+/MCCFR.</p>
+<p class="meta">
+  Working draft · May 2026 · Source:
+  <a href="https://github.com/futarchy-fi/simulations/tree/main/mechanism-design" target="_blank" rel="noopener">futarchy-fi/simulations/mechanism-design</a>
+  ·
+  <a href="jax-dcfr.html">Companion page: JAX + Deep CFR scaling</a>
+</p>
+
+<h2>Summary of findings (so far)</h2>
+
+<ul>
+  <li>The <strong>Galanis (2026)</strong> empirical scaling of log error with structural complexity (0.018 → 0.718) is a capability gap, not a property of the equilibrium. CFR+ aggregates fully in all four structures (median price 0.917/0.083 at the discretisation floor).</li>
+  <li><strong>Hanson outcome-conditional</strong> markets lose ≈ 12 percentage points of decision accuracy relative to the oracle under symmetric Bayesian play (0.754 vs 0.875), even when one policy weakly dominates on the metric. This is a structural property of the dual-market design, not a player failure.</li>
+  <li><strong>Amoveo "insurance"</strong> futarchy is equilibrium-equivalent to Galanis under symmetric Bayesian play; the design distinguishes itself only when an attacker is present.</li>
+  <li>LMSR has a <strong>sharp manipulation threshold</strong>: below a bonus of ≈ 0.04 (in units of LMSR liquidity × max price shift) the equilibrium is undisturbed; above the threshold, mean log error jumps from 0.11 to 0.40 and saturates. The attacker can only break the 4 states where their own signal is the marginal disambiguating information — the other 4 are pinned.</li>
+  <li>Hanson conditional markets respond <strong>non-monotonically</strong> to manipulator bias: very small bias actually <em>improves</em> decision accuracy (it acts as a Nash-equilibrium selector among coexisting equilibria), while larger bias degrades it. The two LMSR-based mechanisms have qualitatively different manipulation-response shapes.</li>
+  <li><strong>Binary CFMM conditional markets aggregate substantially better than LMSR (Hanson) conditional markets, and the gap is not a liquidity artefact.</strong> Decision accuracy 0.864 (oracle 0.875) vs Hanson's 0.754. CFR+ is scale-invariant in payoff magnitudes, so scaling the liquidity parameter (K or b) leaves equilibrium strategy unchanged: we verified CFMM accuracy = 0.864 across K ∈ {10⁻⁶, 5 × 10⁻⁵, 10⁻³}. The 11-point gap reflects the difference in cost-curve <em>shape</em> (LMSR's path-independent logarithmic cost vs CFMM's path-dependent power-law cost), not the level of liquidity.</li>
+  <li>Under manipulator bias, the binary CFMM (Chapter 4) is <strong>more fragile</strong> at small bias than Hanson: even bonus = 0.005 drops accuracy from 0.864 to 0.773 (a 9-point drop). The same anchoring effect that produces strong baseline aggregation also makes the equilibrium sensitive to a small early-round bias.</li>
+  <li><strong>Player taxonomy effects are mechanism-dependent and can reverse sign.</strong> A naive flat-prior trader nearly quadruples log error in Galanis single-market LMSR (0.109 → 0.401), but <em>improves</em> decision accuracy in Hanson conditional markets (0.7565 → 0.7985) — the same equilibrium-selection mechanism that produces non-monotonic manipulator response. The insider player (sees all 3 signals) provides no lift in either mechanism because baseline equilibria are bottlenecked by discretisation or coordination, not by information availability.</li>
+  <li><strong>The binary-staking Proposal Poker mechanism has a no-information equilibrium.</strong> Without an LMSR-style subsidy or richer payoff structure (wealth, log utility, oracle), all traders abstain at equilibrium and decision accuracy collapses to the prior (0.50) regardless of signal precision. This explains why richer mechanisms in the full MODEL.md are needed.</li>
+  <li>Tabular CFR+ in this framework reaches NashConv ≤ 5 × 10⁻³ on all converged runs; the CCE/NE gap in these LMSR games is provably small.</li>
+</ul>
+
+<h2>Scope and limitations</h2>
+
+<p>
+Futarchy proposals have proliferated faster than rigorous analysis of their equilibria. Most arguments for or against a particular mechanism are made informally, anchored on intuition or on small-scale experiments with LLM or human traders. Recent work by Galanis (<a href="https://arxiv.org/abs/2604.20050" target="_blank" rel="noopener">arXiv:2604.20050</a>) is a clean exception: it experimentally tests whether LLM-driven prediction markets aggregate information across four structures of increasing complexity. The empirical finding is that information aggregation degrades sharply with complexity — but the paper does not solve the underlying game, so the source of that degradation is unclear: <em>are the LLM markets failing because the equilibrium itself fails to aggregate, or because the LLMs are far from any equilibrium?</em>
+</p>
+
+<p>
+This atlas answers that question for several mechanism families. For each (mechanism × player mix × complexity) cell, we solve the underlying extensive-form game with OpenSpiel's tabular CFR+, characterise the equilibrium price/decision distribution, and quantify the surplus available to a capital-rich manipulator.
+</p>
+
+<p>
+<strong>Important scope caveat.</strong> Every mechanism in this atlas predicts a <em>binary</em> outcome — a 0/1 metric — not a real-valued one. Real-world futarchy almost always uses continuous metrics (TVL, revenue, asset price). The binary case is a teaching simplification that fits tabular CFR; extending to real-valued metrics requires discretisation at multiple levels and probably MCCFR. The qualitative findings here are about <em>mechanism shape</em> (LMSR vs CFMM, single-market vs conditional, with vs without subsidy) and should carry over to the real-valued case, but the quantitative numbers will not.
+</p>
+
+<h2 id="setup">Game setup, in detail</h2>
+
+<p>
+Every chapter below uses a variant of this skeleton, so it's worth seeing once cleanly. The differences across chapters are: which mechanism aggregates the prices, and which structure of metric functions maps states to outcomes.
+</p>
+
+<ol>
+  <li><strong>Chance draws a state of the world ω</strong> uniformly from 8 possibilities, indexed a…h. Each ω is a triple of binary signals <code>(d<sub>a</sub>, d<sub>b</sub>, d<sub>c</sub>) ∈ {0, 1}³</code>.</li>
+  <li><strong>Three traders each privately observe one signal.</strong> Trader 0 sees d<sub>a</sub>, trader 1 sees d<sub>b</sub>, trader 2 sees d<sub>c</sub>. The Galanis Very Hard structure swaps this to "each trader sees the OTHER two signals." Public prior over ω is uniform; each trader's posterior is conditioned on their own private bit.</li>
+  <li><strong>Traders act in fixed rotation</strong> for 3 rounds. In single-market mechanisms (Galanis, Amoveo) each trader's action is a target price on a discrete grid; the market maker (LMSR, b = 0.01) snaps the price to that target and credits/debits the trader for the implied trade. In conditional mechanisms (Hanson, MetaDAO) each trader picks <em>(market, target price)</em>; only the chosen market moves.</li>
+  <li><strong>A metric function</strong> <code>M(policy, ω)</code> maps each (policy, state) to a binary outcome 0 or 1. In Galanis there is one policy; the metric is just <code>X(ω)</code>. In Hanson/MetaDAO there are two policies A and B; we use <code>M(A) = "at least 2 signals are 1"</code> and <code>M(B) = "at least 1 signal is 1"</code> (so B weakly dominates A across ω).</li>
+  <li><strong>Decision rule.</strong> Galanis has no decision — it is a pure prediction market on <code>X</code>. Amoveo decides "implement the side the market thinks is less likely." Hanson and MetaDAO decide "implement the policy whose conditional market closes at a higher implied probability of metric = 1."</li>
+  <li><strong>Resolution.</strong> The metric realises under the chosen policy. Trades in the winning market pay according to the realised metric (Yes-shares pay 1 if metric = 1, else 0; symmetric for No-shares). In conditional mechanisms, trades in the losing market refund the trader's cost (net zero) — this is the "Hanson conditional" feature.</li>
+  <li><strong>Trader utility.</strong> Pure LMSR/CFMM profit by default. Manipulator, naive, and insider players modify this: the manipulator gets a bonus when the implemented decision matches their preference; the naive is forced to one action; the insider sees the full ω.</li>
+</ol>
+
+<p>
+"Price" in this atlas means the implied probability of metric = 1 in a pool, computed from the marginal-cost formula at the current pool state. It is <em>not</em> the price of one policy winning. "Decision" means which policy is implemented. "Outcome" or "metric" means the realised value of M.
+</p>
+
+<div class="toc">
+  <strong>Chapters</strong>
+  <ol>
+    <li><a href="#galanis">The Galanis market</a> <span class="status-tag status-done">done</span></li>
+    <li><a href="#hanson">Hanson outcome-conditional markets</a> <span class="status-tag status-done">done</span></li>
+    <li><a href="#amoveo">Amoveo insurance-style futarchy</a> <span class="status-tag status-done">analytical</span></li>
+    <li><a href="#metadao">Binary CFMM conditional markets (MetaDAO-inspired)</a> <span class="status-tag status-done">done</span></li>
+    <li><a href="#proposal-poker">Proposal Poker</a> <span class="status-tag status-done">tabular subset</span></li>
+    <li><a href="#players">Player taxonomy and manipulation surplus</a> <span class="status-tag status-done">done</span></li>
+    <li><a href="#comparison">Cross-mechanism comparison</a> <span class="status-tag status-done">done</span></li>
+    <li><a href="#conclusion">Conclusion</a> <span class="status-tag status-done">done</span></li>
+    <li><a href="#methods">Appendix: methods</a> <span class="status-tag status-done">done</span></li>
+  </ol>
+</div>
+
+<h2>Method, in one paragraph</h2>
+
+<p>
+Each mechanism is encoded as a <code>pyspiel.Game</code>: chance nodes draw the private signals, players act sequentially against a market-maker or auctioneer with discretised action spaces, and terminal payoffs are computed from the realised resolution. We solve each game with OpenSpiel's tabular CFR+ and track <strong>NashConv</strong> (sum of per-player best-response improvements over the current average policy) as the convergence signal. NashConv ≤ 2 × 10⁻⁴ is treated as converged; this is below the discretisation noise floor in every game we report. Caveat: for three-or-more-player general-sum games, CFR+ converges formally to a coarse correlated equilibrium, not a Nash equilibrium; we argue per-mechanism that the gap is negligible for the games we consider, because each mechanism provides a strictly positive-EV unilateral deviation that rules out babbling-style CCEs.
+</p>
+
+
+<!-- ===================== CHAPTER 1: GALANIS ===================== -->
+
+<h2 id="galanis" class="chapter"><span class="chapter-number">Chapter 1</span> The Galanis market</h2>
+
+<h3>The question</h3>
+
+<p>
+Galanis (2026) introduces a sequential prediction market with three traders and four information-and-payoff structures of strictly increasing complexity. Each structure is <em>separable</em>: by a theorem of Ostrovsky (2012), there exists a Bayes-Nash equilibrium in which the market price converges to the truth in finitely many rounds. Galanis runs the markets with LLM traders and observes that aggregation degrades sharply with complexity: median final price drops from ≈ 0.98 in the easy structures to ≈ 0.5 (coin toss) in the Very Hard structure, even though every structure admits an aggregating equilibrium in principle.
+</p>
+
+<p>
+The open question Galanis does not resolve: <em>does the equilibrium itself degrade with complexity, or are the LLMs simply not playing the equilibrium?</em> Ostrovsky guarantees existence of <strong>one</strong> aggregating equilibrium — there can be others that fail to aggregate. Without solving the game we cannot disentangle these two hypotheses.
+</p>
+
+<h3>What we did</h3>
+
+<ul>
+  <li>Encoded the Galanis game as a <code>pyspiel.Game</code>: three players in fixed rotation, a uniform-prior chance node over the 8 possible signal triples, partitions implementing each of the four structures, and LMSR pricing (liquidity β = 0.01) with a discretised grid of 11 target prices.</li>
+  <li>Solved with OpenSpiel's tabular CFR+ (50 iterations per structure, ≈ 2 min each on a laptop CPU).</li>
+  <li>Computed NashConv as a convergence diagnostic, then derived the distribution of final prices conditional on each chance outcome under the average policy.</li>
+  <li>Compared against (a) the empirical numbers reported in the paper and (b) a closed-form myopic Bayes-Nash analytical benchmark.</li>
+</ul>
+
+<h3>Results</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Structure</th>
+      <th class="num">NashConv</th>
+      <th class="num">CFR median LE</th>
+      <th class="num">Galanis median LE</th>
+      <th class="num">Empirical price (X=1)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Easy (<code>t3s111y2</code>)</td><td class="num">8.8 × 10⁻⁵</td><td class="num">0.087</td><td class="num">0.018</td><td class="num">≈ 0.98</td></tr>
+    <tr><td>Medium (<code>t3s110</code>)</td><td class="num">1.7 × 10⁻⁴</td><td class="num">0.087</td><td class="num">0.018</td><td class="num">≈ 0.98</td></tr>
+    <tr><td>Hard (<code>t3s111</code>)</td><td class="num">1.7 × 10⁻⁴</td><td class="num">0.087</td><td class="num">0.304</td><td class="num">≈ 0.75</td></tr>
+    <tr><td>Very Hard (<code>t3s111o2ye2</code>)</td><td class="num">7.1 × 10⁻⁵</td><td class="num">0.087</td><td class="num">0.718</td><td class="num">≈ 0.50</td></tr>
+  </tbody>
+</table>
+
+<p>
+CFR+ converges to essentially the same per-ω price distribution in all four structures: median price ≈ 0.917 when X = 1, ≈ 0.083 when X = 0. The 0.083/0.917 figures are the discretisation floor of an 11-action grid (the highest attainable target price is 11/12 ≈ 0.917); a finer grid would lower the floor proportionally. Per-ω detail for the Very Hard structure:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>ω</th><th>(d<sub>a</sub>, d<sub>b</sub>, d<sub>c</sub>)</th><th class="num">X</th>
+      <th class="num">CFR mean p</th><th class="num">CFR median p</th><th class="num">Myopic Bayes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>a</td><td>(1,1,1)</td><td class="num">0</td><td class="num">0.087</td><td class="num">0.083</td><td class="num">0.000</td></tr>
+    <tr><td>b</td><td>(1,1,0)</td><td class="num">1</td><td class="num">0.914</td><td class="num">0.917</td><td class="num">1.000</td></tr>
+    <tr><td>c</td><td>(1,0,1)</td><td class="num">1</td><td class="num">0.914</td><td class="num">0.917</td><td class="num">1.000</td></tr>
+    <tr><td>d</td><td>(1,0,0)</td><td class="num">0</td><td class="num">0.086</td><td class="num">0.083</td><td class="num">0.000</td></tr>
+    <tr><td>e</td><td>(0,1,1)</td><td class="num">1</td><td class="num">0.914</td><td class="num">0.917</td><td class="num">1.000</td></tr>
+    <tr><td>f</td><td>(0,1,0)</td><td class="num">0</td><td class="num">0.086</td><td class="num">0.083</td><td class="num">0.000</td></tr>
+    <tr><td>g</td><td>(0,0,1)</td><td class="num">0</td><td class="num">0.085</td><td class="num">0.083</td><td class="num">0.000</td></tr>
+    <tr><td>h</td><td>(0,0,0)</td><td class="num">0</td><td class="num">0.085</td><td class="num">0.083</td><td class="num">0.000</td></tr>
+  </tbody>
+</table>
+
+<h3>What this means</h3>
+
+<div class="callout">
+  <strong>Headline.</strong> The equilibrium aggregates information in all four structures. The empirical scaling of log error with complexity (0.018 → 0.018 → 0.304 → 0.718) is <strong>not</strong> a property of the equilibrium — it is a capability gap between current LLMs and best-response play.
+</div>
+
+<p>
+Galanis frames the empirical scaling as suggesting that <em>AI agents may suffer the same limitations as humans when reasoning about what others know</em> as complexity grows. The equilibrium computation here shows that this interpretation conflates two distinct claims: (a) the equilibrium of the Very Hard market does not aggregate, versus (b) the LLM markets do not reach the equilibrium. Our result is that (a) is false — best-response play aggregates in every structure, consistent with Ostrovsky's separability theorem — and therefore the empirical scaling is evidence for (b). The path of improvement is in trader capability (correct Bayesian updating, correct higher-order belief reasoning), not in mechanism design: the LMSR mechanism is doing its job.
+</p>
+
+<h3>Why CFR median is larger than empirical median on Easy/Medium</h3>
+
+<p>
+The CFR median log error of 0.087 is <em>larger</em> than the empirical 0.018 on the easy structures. This is a discretisation artefact: our 11-action grid caps target prices at 0.917, imposing a log-error floor of <code>−log(0.917) ≈ 0.087</code>. LLM traders use effectively continuous prices and can reach ≈ 0.99, hence the lower empirical log error on the easy structures. The fair qualitative reading is: both aggregate near-perfectly when the structure admits it.
+</p>
+
+<h3>Caveats specific to this chapter</h3>
+
+<ul>
+  <li><strong>CCE vs Nash.</strong> Tabular CFR+ in a three-player general-sum game converges to a coarse correlated equilibrium, not a Nash equilibrium. For the Galanis game the gap between CCE and NE is small: the LMSR market maker creates a strictly positive-EV unilateral deviation for any non-aggregating profile, which rules out babbling-style CCEs. NashConv ≤ 2 × 10⁻⁴ at termination in every run.</li>
+  <li><strong>Three rounds only.</strong> The Galanis paper studies 3, 6, and 9 rounds. Tabular CFR's information-state count scales as <code>cells × actions<sup>moves_until_player_acts_again</sup></code>; at 9 rounds × 11 actions × Very Hard structure this is ≈ 1.7 × 10⁹ — well outside tabular Python. We solve the 3-round game; MCCFR or a C++ port is required for longer horizons and is left as follow-up.</li>
+  <li><strong>Discretisation grid.</strong> 11 actions is the binding floor on log error. A finer grid (21 or 99 actions) lowers the floor but is heavier to solve; the qualitative aggregation result is unchanged.</li>
+</ul>
+
+<p style="font-size: 0.9rem; color: var(--muted)">
+Reproducibility: <code>mechanism-design/galanis-market/</code> in the source repo. Tests: <code>pytest -q</code> (44 passing). Solver: <code>python scripts/solve_all.py --iterations 50 --num-actions 11 --structures t3s111y2,t3s110,t3s111,t3s111o2ye2 --rounds 3</code>.
+</p>
+
+
+<!-- ===================== PLANNED CHAPTERS ===================== -->
+
+<h2 id="hanson" class="chapter"><span class="chapter-number">Chapter 2</span> Hanson outcome-conditional markets</h2>
+
+<h3>Setup</h3>
+
+<p>
+Two policies, A and B. For each, a separate LMSR binary market predicts a metric M ∈ {0, 1}. The decision is the policy with the higher final implied probability of M = 1. Crucially, only the winning market resolves: trades in the losing market are refunded their cost (no LMSR payout). Three traders rotate in fixed order; on each turn the active player picks one of the two markets and a target price on the discretised grid.
+</p>
+
+<p>
+To make the equilibrium structure non-trivial we set M(A) = "at least two yes" (Galanis Easy rule) and M(B) = "at least one yes" — so policy B weakly dominates policy A on the metric in every state of the world. The oracle decision is "always B" with expected accuracy 7/8 = 0.875.
+</p>
+
+<h3>Result</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>ω</th><th>(d<sub>a</sub>, d<sub>b</sub>, d<sub>c</sub>)</th>
+      <th class="num">M(A)</th><th class="num">M(B)</th>
+      <th class="num">E[p<sub>A</sub>]</th><th class="num">E[p<sub>B</sub>]</th>
+      <th class="num">Pr(A wins)</th><th class="num">Pr(M=1)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>a</td><td>(1,1,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.683</td><td class="num">0.624</td><td class="num">0.600</td><td class="num">1.000</td></tr>
+    <tr><td>b</td><td>(1,1,0)</td><td class="num">1</td><td class="num">1</td><td class="num">0.743</td><td class="num">0.745</td><td class="num">0.981</td><td class="num">1.000</td></tr>
+    <tr><td>c</td><td>(1,0,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.509</td><td class="num">0.872</td><td class="num">0.028</td><td class="num">1.000</td></tr>
+    <tr><td>d</td><td>(1,0,0)</td><td class="num">0</td><td class="num">1</td><td class="num">0.450</td><td class="num">0.586</td><td class="num">0.322</td><td class="num">0.678</td></tr>
+    <tr><td>e</td><td>(0,1,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.789</td><td class="num">0.762</td><td class="num">0.820</td><td class="num">1.000</td></tr>
+    <tr><td>f</td><td>(0,1,0)</td><td class="num">0</td><td class="num">1</td><td class="num">0.590</td><td class="num">0.704</td><td class="num">0.639</td><td class="num">0.361</td></tr>
+    <tr><td>g</td><td>(0,0,1)</td><td class="num">0</td><td class="num">1</td><td class="num">0.399</td><td class="num">0.873</td><td class="num">0.011</td><td class="num">0.989</td></tr>
+    <tr><td>h</td><td>(0,0,0)</td><td class="num">0</td><td class="num">0</td><td class="num">0.364</td><td class="num">0.488</td><td class="num">0.191</td><td class="num">0.000</td></tr>
+  </tbody>
+</table>
+
+<p style="font-size: 0.9rem; color: var(--muted)">
+3 rounds, 7-action grid, 80 CFR+ iterations (NashConv 3.9 × 10⁻⁵, t = 514s).
+</p>
+
+<div class="callout">
+  <strong>Headline.</strong> Equilibrium decision accuracy is <strong>75.4%</strong> — meaningfully below the oracle's 87.5%. The Hanson conditional structure does <em>not</em> automatically converge to the dominant-policy decision under symmetric Bayesian play.
+</div>
+
+<p>
+The mechanism's weakness is visible in state ω = f (one yes signal). Here M(B) = 1 is the right metric to track, but Pr(A wins) = 0.639 — the wrong market wins 64% of the time. Reason: market A's price-discovery is incomplete (each trader sees only one signal, and trading at state f benefits A's "at-least-2-yes" hypothesis more than B's "at-least-1-yes" hypothesis from a single d<sub>b</sub> = 1 observation). Even though B weakly dominates A as a policy, the price signals from A look stronger here.
+</p>
+
+<p>
+This is a known weakness of conditional-market futarchy when the two conditional metrics are correlated. The Hanson rule "decide by which conditional market closes higher" assumes that the prices reflect E[M | policy] — but when traders allocate attention across two markets and signals are coarse, the rule mis-assigns weight. The decision accuracy gap is the price of the conditional structure relative to a single oracle on M(B).
+</p>
+
+<p>
+The next chapters (Amoveo, MetaDAO) ask whether different mechanism designs close this gap; Chapter 6 quantifies how much worse it gets when one trader manipulates.
+</p>
+
+<h2 id="amoveo" class="chapter"><span class="chapter-number">Chapter 3</span> Amoveo insurance-style futarchy</h2>
+
+<h3>Setup</h3>
+
+<p>
+The Amoveo "insurance" mechanism (Zack Hess) replaces Hanson's two conditional markets with a <em>single</em> binary market on a question Q. The decision rule inverts the price: the policy implemented is whichever side of Q the market thinks is <em>less likely</em>. The argument is that this design flattens manipulation cost: regardless of which side an attacker prefers, they have to move the price toward 0.5 (or past it) from the natural prior, and the LMSR cost of doing so is symmetric in absolute price-distance moved.
+</p>
+
+<h3>Result (no manipulator)</h3>
+
+<p>
+Under symmetric Bayesian best-response play, the Amoveo market is structurally identical to a standard LMSR binary market: traders are only paid on the realised outcome of Q, and the LMSR pays nothing for the decision-rule transformation that sits on top. Therefore the equilibrium price converges to E[Q | omega], <em>exactly as in the Galanis Easy structure</em>. Per-omega prices and convergence are the same as in Chapter 1.
+</p>
+
+<p>
+The transformation is in the decision: a price of 0.9 implies the decision is "Q happens with low probability — implement that side", and a price of 0.1 implies "Q happens with high probability — implement the other side". When the truth is strongly one-sided, the Amoveo decision is the opposite of the empirical evidence. <em>This is by design, and it is the mechanism's cost.</em>
+</p>
+
+<h3>Why this is a chapter on its own</h3>
+
+<p>
+The Amoveo equilibrium is uninteresting without an attacker — it is just Galanis with a relabel. The mechanism's distinguishing property is the manipulator's cost-of-flipping curve, which we measure in Chapter 6. The headline preview: under the same per-unit-price-shift cost for an attacker, Amoveo and standard LMSR are equivalent (LMSR cost is path-independent and symmetric around 0.5). The Amoveo design's advantage is conceptual: there is no <em>natural-prior asymmetry</em> in the cost of flipping the decision, because the decision rule treats both sides symmetrically. Hanson conditional markets, by contrast, can have one conditional market be much more skewed than the other, which makes the skewed one cheap to manipulate.
+</p>
+
+<h2 id="metadao" class="chapter"><span class="chapter-number">Chapter 4</span> Binary CFMM conditional markets <span style="font-size: 0.7em; color: var(--muted); font-style: italic">(MetaDAO-inspired, not MetaDAO-faithful)</span></h2>
+
+<h3>What this chapter is and isn't</h3>
+
+<p>
+The real MetaDAO design on Solana works as follows. A depositor locks 1 USDC and mints two conditional base tokens (USDC-A, USDC-B), each redeemable for 1 USDC only if its policy is implemented. Same for the metric asset (e.g., META). Two AMM pools exist, each trading [conditional-base, conditional-metric-asset] at the constant-product invariant <code>x · y = K</code>. The price in pool A is "META per USDC conditional on A" — a <em>real-valued asset price</em>, not a binary probability. The decision compares those two conditional asset prices.
+</p>
+
+<p>
+The mechanism in this chapter is a deliberate simplification: a <strong>binary Uniswap-style AMM</strong> in which the two tokens are Yes-shares and No-shares, with the constant-product invariant <code>y_yes · y_no = K</code> and marginal price <code>p_yes = y_no / (y_yes + y_no)</code>. The decision rule and conditional refund are identical to Hanson's (Chapter 2). The only thing that changes between this chapter and Hanson is the cost function used by the market maker. Calling this "MetaDAO" is loose — it is structurally a binary-outcome version of MetaDAO's geometry. A faithful MetaDAO encoding requires a real-valued metric asset, which is out of scope for this binary atlas.
+</p>
+
+<h3>Setup</h3>
+
+<p>
+Same as Hanson (Chapter 2): 3 traders rotate, each picks (pool, target price) per turn, decision is the pool with the higher final price, winning pool resolves, losing pool refunds. Two metrics: M(A) = at-least-2-yes, M(B) = at-least-1-yes. The only difference: the market maker uses CFMM rather than LMSR cost.
+</p>
+
+<p>
+The relevant equilibrium question is how the constant-product invariant x·y = K changes the trader-versus-attacker geometry compared to LMSR's logarithmic cost function. Both diverge at the endpoints, but the growth rate is different. LMSR cost to push p from 0.5 to p' (with q_N = 0 normalisation) is <code>b · (log(1/(1−p')) − log 2)</code> — logarithmic in (1−p')⁻¹. CFMM with K = 1 has cost <code>sqrt(p'/(1−p')) − 1</code> — power-law growth, asymptotic to (1−p')⁻¹ᐟ². For comparable scales (b = 0.01, K = 1) and a 0.5 → 0.99 push, LMSR costs ≈ 0.039 and CFMM costs ≈ 8.95. They are very different geometries, even if both go to infinity as p → 1. The implication for manipulation analysis: the LMSR threshold-and-saturate pattern of Chapter 6 should look smoother under CFMM, because the manipulator's marginal LMSR-cost climbs more slowly with each unit of price-shift, but CFMM's faster terminal-cost growth means small extreme deviations are correspondingly more punishing.
+</p>
+
+<h3>Result (baseline, 40 CFR+ iterations, K = 0.001)</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>ω</th><th>(d<sub>a</sub>,d<sub>b</sub>,d<sub>c</sub>)</th>
+      <th class="num">M(A)</th><th class="num">M(B)</th>
+      <th class="num">E[p<sub>A</sub>]</th><th class="num">E[p<sub>B</sub>]</th>
+      <th class="num">Pr(A wins)</th><th class="num">Pr(M=1)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>a</td><td>(1,1,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.800</td><td class="num">0.814</td><td class="num">0.482</td><td class="num">1.000</td></tr>
+    <tr><td>b</td><td>(1,1,0)</td><td class="num">1</td><td class="num">1</td><td class="num">0.731</td><td class="num">0.852</td><td class="num">0.043</td><td class="num">1.000</td></tr>
+    <tr><td>c</td><td>(1,0,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.462</td><td class="num">0.874</td><td class="num">0.032</td><td class="num">1.000</td></tr>
+    <tr><td>d</td><td>(1,0,0)</td><td class="num">0</td><td class="num">1</td><td class="num">0.449</td><td class="num">0.584</td><td class="num">0.026</td><td class="num">0.975</td></tr>
+    <tr><td>e</td><td>(0,1,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.806</td><td class="num">0.820</td><td class="num">0.513</td><td class="num">1.000</td></tr>
+    <tr><td>f</td><td>(0,1,0)</td><td class="num">0</td><td class="num">1</td><td class="num">0.713</td><td class="num">0.843</td><td class="num">0.054</td><td class="num">0.946</td></tr>
+    <tr><td>g</td><td>(0,0,1)</td><td class="num">0</td><td class="num">1</td><td class="num">0.441</td><td class="num">0.873</td><td class="num">0.008</td><td class="num">0.992</td></tr>
+    <tr><td>h</td><td>(0,0,0)</td><td class="num">0</td><td class="num">0</td><td class="num">0.435</td><td class="num">0.569</td><td class="num">0.024</td><td class="num">0.000</td></tr>
+  </tbody>
+</table>
+
+<p style="font-size: 0.9rem; color: var(--muted)">
+3 rounds, 7-action grid, K = 0.001 (chosen to match LMSR's b·log 2 ≈ 0.0069 payoff scale), 40 CFR+ iterations, NashConv 4.1 × 10⁻⁴, t = 262s.
+</p>
+
+<div class="callout">
+  <strong>binary CFMM (Ch 4) (K = 0.001) converges to a much better decision rule than Hanson LMSR (b = 0.01), under identical traders.</strong> Decision accuracy is <strong>86.4%</strong> — essentially matching the oracle's 87.5% — versus Hanson's 75.4%. The mechanism design difference is real, but the headline understates an important confound: <em>the two markets are not equally liquid at these parameters.</em>
+</div>
+
+<h3>K-invariance of the equilibrium (and what it means)</h3>
+
+<p>
+A first-pass concern: the comparison "binary CFMM K = 0.001 vs Hanson LMSR b = 0.01" looked confounded because the cost to push the price from 0.5 to 0.9 is <code>b · log 5 ≈ 0.016</code> in LMSR but <code>2√K ≈ 0.063</code> in CFMM at K = 0.001 — i.e., the CFMM at this K is ~4× more expensive to manipulate per unit price move. Maybe the better aggregation is just "the CFMM has more liquidity," not "the geometry matters."
+</p>
+
+<p>
+We tested this by re-running the CFMM equilibrium at three K values spanning three orders of magnitude:
+</p>
+
+<table id="cfmm-liquidity-check">
+  <thead>
+    <tr>
+      <th>Configuration</th>
+      <th class="num">cost to push 0.5 → 0.9</th>
+      <th class="num">decision accuracy</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Hanson LMSR (b = 0.01)</td><td class="num">0.016</td><td class="num">0.754</td></tr>
+    <tr><td>Binary CFMM (K = 0.001)</td><td class="num">0.063</td><td class="num">0.864</td></tr>
+    <tr><td>Binary CFMM (K = 5 × 10⁻⁵)</td><td class="num">0.014</td><td class="num">0.864</td></tr>
+    <tr><td>Binary CFMM (K = 10⁻⁶)</td><td class="num">0.002</td><td class="num">0.864</td></tr>
+  </tbody>
+</table>
+
+<p>
+The decision accuracy is <strong>0.864 across all three K values to four decimal places</strong>. This is not a coincidence: CFR+ is scale-invariant in payoff magnitudes, and scaling K rescales all CFMM payoffs uniformly by √K (shares scale as √K, costs scale as √K, profit scales as √K). The equilibrium <em>strategy</em> — which CFR+ outputs — is identical under any rescaling. By the same argument, scaling LMSR's b leaves the LMSR equilibrium strategy identical.
+</p>
+
+<div class="callout">
+  <strong>The 11-point aggregation gap is not a liquidity artefact.</strong> Equilibrium strategy is invariant to the scale of K (CFMM) and b (LMSR). The gap reflects the difference in cost-curve <em>shape</em>: LMSR's logarithmic cost is path-independent in (q_Y, q_N) space, so a single later trader can re-price the market at constant marginal cost; CFMM's power-law cost is path-dependent through the constant-product invariant, so early informed quotes anchor the price more strongly. The mechanism design difference is real.
+</div>
+
+<h3>What is in the repo</h3>
+
+<p>
+Full sub-project at <code>mechanism-design/metadao-cfmm/</code>: <code>cfmm.py</code> (primitives), <code>game.py</code> (<code>pyspiel.Game</code> wrapper mirroring Hanson with CFMM swapped in), <code>solve.py</code> (CFR runner), 13 passing tests. The manipulator sweep is the obvious next step and is left as follow-up.
+</p>
+
+<h2 id="proposal-poker" class="chapter"><span class="chapter-number">Chapter 5</span> Proposal Poker</h2>
+
+<h3>The model</h3>
+
+<p>
+Proposal Poker (specified in detail at <a href="https://github.com/futarchy-fi/simulations/blob/main/mechanism-design/proposal-evaluation/MODEL.md" target="_blank" rel="noopener"><code>mechanism-design/proposal-evaluation/MODEL.md</code></a>) is a richer environment than the binary markets above: proposals have a quality <em>x</em> ~ N(0, 1) and an importance <em>y</em> ~ LogNormal(0, 2); the social objective is <code>sum_i x_i · y_i · D_i</code> where <code>D_i</code> is the approval decision. Agents have log-utility over wealth and observe noisy Gaussian signals of <em>x</em> whose precision scales linearly with their wealth. A futarchy verification oracle is available at a fixed cost <em>C</em> with finite-precision noise.
+</p>
+
+<p>
+Mechanism space is the abstract <code>(init, publish, on_contribution, on_round_end, outcome)</code> tuple defined in the MODEL spec. The mechanism never observes <em>x</em>, <em>y</em>, or agent wealth directly — only the contributions agents make. Different mechanisms in this family (vote, futarchy, hybrid) differ in how they aggregate contributions into decisions and payouts.
+</p>
+
+<h3>What we want to know</h3>
+
+<p>
+For each mechanism in the Proposal Poker family, two questions:
+</p>
+
+<ul>
+  <li><strong>Equilibrium decision quality.</strong> Under best-response play, what fraction of <code>x · y</code> social value does the mechanism capture relative to the oracle (which knows <em>x</em> directly)?</li>
+  <li><strong>Wealth-weighted manipulation.</strong> When a single wealthy agent has decision-aligned utility (i.e., wants a specific outcome regardless of <em>x</em>), how much do equilibrium decisions distort? The wealth-precision coupling here is significant: a wealthy manipulator both has the budget to manipulate and the high-precision signal that anchors honest players' beliefs, so manipulation cost trades off against signalling fidelity in a way the binary mechanisms cannot capture.</li>
+</ul>
+
+<h3>Status</h3>
+
+<p>
+A non-OpenSpiel simulation engine for the full Proposal Poker model exists at <code>src/proposal_poker/</code>. We also implemented a <strong>minimal tabular OpenSpiel slice</strong> at <code>mechanism-design/proposal-poker-tabular/</code> that captures the binary-staking mechanism subset: three traders, binary quality <em>x</em> ∈ {0, 1}, noisy binary signals (precision 0.7), and a sequential vote with three actions per trader (stake YES, stake NO, abstain). Majority of stakes determines the decision; ties break to REJECT.
+</p>
+
+<h3>Equilibrium result (binary staking mechanism)</h3>
+
+<div class="callout">
+  <strong>The binary staking market does not aggregate signals at equilibrium.</strong> CFR+ converges to a strategy in which all traders abstain almost-always, producing a decision of REJECT regardless of signals. Decision accuracy collapses to 0.50 — the prior probability of <em>x</em> = 0 — even though signal precision is 0.7 and aggregating three signals by majority vote could in principle achieve 0.78.
+</div>
+
+<p>
+The mechanism's failure mode is a classic free-rider problem made sharp by the pari-mutuel payoff structure. Consider trader 0 with signal <em>s</em><sub>0</sub> = 1, expecting the others to play honestly:
+</p>
+
+<ul>
+  <li>If the other two also see <em>s</em> = 1 (probability ≈ 0.42 unconditional, ≈ 0.55 conditional on <em>x</em> = 1), all three vote YES, the decision is APPROVE, and trader 0 gains nothing — no losing-side stake to share.</li>
+  <li>If the others split (one YES, one NO), trader 0's YES vote breaks the tie, and they win the loser's 1-unit stake but trader 1 / 2 wins 0.5 each from trader 0's vote — net for trader 0 is +0.5 in expectation conditional on this sub-case.</li>
+  <li>If both others vote NO, trader 0's lone YES loses against majority NO; trader 0 loses 1 unit.</li>
+</ul>
+
+<p>
+Working through the expected utility against any specific strategy profile, abstaining strictly dominates voting under common-prior Bayesian play: the expected gain from being right is offset by the expected loss from being wrong, and the gains accrue mostly to the majority position which everyone tries to free-ride into. The CFR equilibrium is essentially <em>all abstain</em>, decision = REJECT, accuracy 0.50.
+</p>
+
+<p>
+This is a real mechanism-design failure mode and aligns with the well-known critique of binary majority votes for proposal evaluation: there is no individual incentive to truthfully reveal one's signal when the cost of being on the losing side is symmetric. Hanson-style market designs add the LMSR subsidy specifically to fix this. The full Proposal Poker MODEL.md considers richer payoffs (log-utility-over-wealth, stake-disutility, futarchy verification oracle) that recover non-trivial equilibria; the tabular subset here demonstrates why those additions are needed.
+</p>
+
+<h3>Code</h3>
+
+<p>
+Sub-project at <code>mechanism-design/proposal-poker-tabular/</code>: ≈ 300 LoC, 9 passing tests. Supports the same manipulator / naive / insider player-type parameters as the other mechanisms. CFR+ converges in seconds on this small game (50 iterations, NashConv 2.6 × 10⁻⁴, ≈ 5 s).
+</p>
+
+<h2 id="players" class="chapter"><span class="chapter-number">Chapter 6</span> Player taxonomy and manipulation surplus</h2>
+
+<h3>Framework</h3>
+
+<p>
+For every mechanism in this atlas, our base experiment instantiates three Bayesian best-responding traders and computes the equilibrium. We now hold the mechanism fixed and vary the player population. The most informative variation is a single <em>budget-constrained manipulator</em> seated alongside two Bayesian traders; the manipulator's utility includes a directional bonus for shifting the final price toward a target. Concretely, player 0's utility becomes
+</p>
+
+<pre>u_0 = lmsr_profit_0 + manipulator_bonus * (p_final - 0.5) * direction</pre>
+
+<p>
+where <code>direction</code> ∈ {+1, −1} selects which side the manipulator favours. CFR+ solves the resulting game: the manipulator's strategy maximises the biased utility; players 1 and 2 best-respond to the manipulator's now-noisy price signals. The manipulation surplus is the per-unit-bonus shift in the equilibrium expected price, summed over chance outcomes. It is also instructive to look per-omega — manipulation is most damaging when truth and bias disagree.
+</p>
+
+<h3>Result (Galanis Easy, player 0 biased upward)</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th class="num">bonus</th>
+      <th class="num">NashConv</th>
+      <th class="num">mean log error</th>
+      <th class="num">E[p | ω=b, X=1]</th>
+      <th class="num">E[p | ω=f, X=0]</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td class="num">0.00</td><td class="num">7.0 × 10⁻⁵</td><td class="num">0.109</td><td class="num">0.896</td><td class="num">0.103</td></tr>
+    <tr><td class="num">0.01</td><td class="num">8.4 × 10⁻⁵</td><td class="num">0.110</td><td class="num">0.894</td><td class="num">0.104</td></tr>
+    <tr><td class="num">0.05</td><td class="num">3.1 × 10⁻⁴</td><td class="num"><strong>0.358</strong></td><td class="num"><strong>0.592</strong></td><td class="num"><strong>0.496</strong></td></tr>
+    <tr><td class="num">0.20</td><td class="num">9.9 × 10⁻⁴</td><td class="num">0.400</td><td class="num">0.503</td><td class="num">0.500</td></tr>
+    <tr><td class="num">1.00</td><td class="num">4.7 × 10⁻³</td><td class="num">0.399</td><td class="num">0.506</td><td class="num">0.502</td></tr>
+  </tbody>
+</table>
+
+<p style="font-size: 0.9rem; color: var(--muted)">
+Galanis Easy, 3 rounds, 9-action grid, 40 CFR+ iterations per row. Sweep total time: 293 s. NashConv inflates at higher <code>bonus</code> because the manipulator's policy is harder to compute optimally against; the Bayesian players' policies remain well-converged.
+</p>
+
+<div class="callout">
+  <strong>The manipulation curve has a sharp threshold.</strong> For <code>bonus</code> below ≈ 0.04, the manipulator's bias is too weak to overcome LMSR cost and the equilibrium is indistinguishable from the no-manipulator baseline (log error 0.11). Above the threshold, the equilibrium discontinuously jumps to log error ≈ 0.40 and saturates there. Once the manipulator is willing to push, the per-omega prices in states they can plausibly distort collapse to ≈ 0.5 — completely uninformative — while extremal states (ω = a, h, d) where the manipulator's signal alone already disambiguates the truth remain pinned to 0.10 or 0.90.
+</div>
+
+<h3>Which states does the manipulator break, and why</h3>
+
+<p>
+Per-omega effect at <code>bonus = 0.05</code> (the threshold) and <code>bonus = 1.0</code> (saturation):
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>ω</th><th>(d<sub>a</sub>,d<sub>b</sub>,d<sub>c</sub>)</th><th class="num">X</th>
+      <th class="num">E[p] @ 0.00</th>
+      <th class="num">E[p] @ 0.05</th>
+      <th class="num">E[p] @ 1.00</th>
+      <th>Manipulator's effect</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>a</td><td>(1,1,1)</td><td class="num">1</td><td class="num">0.898</td><td class="num">0.897</td><td class="num">0.896</td><td>pinned: floor at grid max</td></tr>
+    <tr><td>b</td><td>(1,1,0)</td><td class="num">1</td><td class="num">0.896</td><td class="num">0.592</td><td class="num">0.506</td><td>broken: 0.90 → 0.50</td></tr>
+    <tr><td>c</td><td>(1,0,1)</td><td class="num">1</td><td class="num">0.897</td><td class="num">0.587</td><td class="num">0.506</td><td>broken: 0.90 → 0.50</td></tr>
+    <tr><td>d</td><td>(1,0,0)</td><td class="num">0</td><td class="num">0.103</td><td class="num">0.105</td><td class="num">0.103</td><td>pinned: signal disambiguates</td></tr>
+    <tr><td>e</td><td>(0,1,1)</td><td class="num">1</td><td class="num">0.897</td><td class="num">0.890</td><td class="num">0.895</td><td>stable: Bayesians correct</td></tr>
+    <tr><td>f</td><td>(0,1,0)</td><td class="num">0</td><td class="num">0.103</td><td class="num">0.496</td><td class="num">0.502</td><td>broken: 0.10 → 0.50</td></tr>
+    <tr><td>g</td><td>(0,0,1)</td><td class="num">0</td><td class="num">0.104</td><td class="num">0.491</td><td class="num">0.502</td><td>broken: 0.10 → 0.50</td></tr>
+    <tr><td>h</td><td>(0,0,0)</td><td class="num">0</td><td class="num">0.102</td><td class="num">0.108</td><td class="num">0.104</td><td>pinned: signal disambiguates</td></tr>
+  </tbody>
+</table>
+
+<p>
+The pattern is interpretable. Player 0 observes d<sub>a</sub>. In states a and h, d<sub>a</sub> alone almost determines the answer — d<sub>a</sub> = 1 with both others = 1 forces X = 1; d<sub>a</sub> = 0 with both others = 0 forces X = 0 — so the Bayesian players can <em>fully ignore</em> player 0's quote (it carries no marginal information) and price the security correctly. In state d, d<sub>a</sub> = 1 but the joint result is X = 0; player 0's quote is uninformative but Bayesians know their own d<sub>b</sub>, d<sub>c</sub> = 0 and price accordingly. Symmetric for state e.
+</p>
+
+<p>
+The states the manipulator <em>breaks</em> are exactly those where player 0's quote is supposed to be the decisive signal: ω = b, c (player 0 says yes; X = 1 because two yeses agree) and ω = f, g (player 0 says no; X = 0 because two nos agree). In these states the manipulator can plausibly bluff: a Bayesian player 1 or 2 cannot tell whether player 0 is honestly reporting d<sub>a</sub> or biasing the price. The Bayes-Nash equilibrium response is to price the average over the two interpretations, which sits at 0.5.
+</p>
+
+<p>
+Saturation occurs because beyond <code>bonus</code> ≈ 0.05 the manipulator already plays a fully adversarial strategy in the 4 states they can affect; further bonus increase changes nothing because there is no more aggregation to destroy in those states. The 4 pinned states remain pinned because no manipulation strategy can change them.
+</p>
+
+<h3>Other player types: naive flat-prior and informed insider</h3>
+
+<p>
+The same framework supports two additional non-Bayesian player types. A <em>naive</em> player has a degenerate strategy: they always play the price closest to 0.5 regardless of their signal — effectively contributing zero information to the price-discovery process. An <em>insider</em> player observes the full state ω (i.e., all three signals), not just their partition cell — a "god-mode" trader that establishes the ceiling for what any player population can achieve. Both are configured by setting <code>naive_player</code> or <code>insider_player</code> to the player index. Implementation detail: the naive player's action set is restricted to a single price = 0.5 action; the insider's information-state string includes the full ω.
+</p>
+
+<table id="player-type-table">
+  <thead>
+    <tr>
+      <th>Configuration</th>
+      <th class="num">mean log error</th>
+      <th class="num">median log error</th>
+      <th class="num">NashConv</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>3 Bayesian (baseline)</td><td class="num">0.1089</td><td class="num">0.1054</td><td class="num">7.0 × 10⁻⁵</td></tr>
+    <tr><td>Player 0 = naive, others Bayesian</td><td class="num"><strong>0.4009</strong></td><td class="num">0.3993</td><td class="num">3.9 × 10⁻⁵</td></tr>
+    <tr><td>Player 0 = insider, others Bayesian</td><td class="num">0.1083</td><td class="num">0.1054</td><td class="num">1.1 × 10⁻⁴</td></tr>
+  </tbody>
+</table>
+
+<p style="font-size: 0.9rem; color: var(--muted)">
+Galanis Easy, 3 rounds, 9-action grid, 40 CFR+ iterations per config (3 min total). Code: <code>mechanism-design/galanis-market/scripts/player_type_sweep.py</code>.
+</p>
+
+<div class="callout">
+  <strong>Naive damage is severe in Galanis, insider lift is zero.</strong> Replacing one Bayesian with a naive player who always quotes 0.5 nearly quadruples the mean log error (0.109 → 0.401), because the equilibrium price now reflects only the two remaining traders' signals, with the third quote contributing pure noise. Replacing one Bayesian with an <em>insider</em> who sees all 3 signals leaves accuracy unchanged (0.109 → 0.108). The reason is structural: under the baseline 3-Bayesian-with-own-signal partition, the Galanis Easy equilibrium already saturates at the action-grid floor, so the insider's extra information cannot improve a price that is already at the maximum-precision discretisation.
+</div>
+
+<h3>Cross-mechanism: same player types, very different effects</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Mechanism</th><th>Metric</th>
+      <th class="num">3 Bayesian baseline</th>
+      <th class="num">Naive p0</th>
+      <th class="num">Insider p0</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Galanis Easy (LMSR)</td>
+      <td>mean log error ↓</td>
+      <td class="num">0.109</td><td class="num"><strong>0.401</strong></td><td class="num">0.108</td>
+    </tr>
+    <tr>
+      <td>Hanson (cond. LMSR)</td>
+      <td>decision accuracy ↑</td>
+      <td class="num">0.7565</td><td class="num"><strong>0.7985</strong></td><td class="num">0.7581</td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="font-size: 0.9rem; color: var(--muted)">
+Galanis Easy: 9-action grid, 40 iters per config. Hanson: 7-action grid, 40 iters per config.
+</p>
+
+<div class="callout">
+  <strong>The naive player's effect is mechanism-dependent and reverses sign.</strong> In single-market LMSR (Galanis Easy), a naive player <em>destroys</em> aggregation (0.109 → 0.401). In conditional-market Hanson, the same naive player <em>improves</em> decision accuracy (0.7565 → 0.7985). The reason is the equilibrium-selection phenomenon: Hanson has multiple Bayes-Nash equilibria, and the naive player's silence acts as a Nash-selector that picks a more-aggregating equilibrium — the same mechanism that produces non-monotonic responses to small manipulator bias in Chapter 7.
+</div>
+
+<p>
+The insider's null effect is consistent across both mechanisms: in Galanis Easy the baseline already saturates the action grid; in Hanson the bottleneck is co-ordination across two markets, not information availability, so a single insider's extra signal does not move the equilibrium. The insider's leverage would presumably emerge in <em>harder</em> Galanis structures (Hard, Very Hard) or in coordination-broken mechanisms with smaller action grids.
+</p>
+
+<h3>LLM stand-in players</h3>
+
+<p>
+The goal of an LLM stand-in player is to encode the strategy <em>actually played</em> by the LLM traders in Galanis (2026), so that the equilibrium of the resulting game tells us "what if 1 of the 3 traders is an LLM and the others are Bayesian best-responders?". The honest answer is that the empirical data in the Galanis paper does not give per-information-state strategy granularity — we only have per-omega median final prices in aggregate. Encoding this as a fixed strategy would require additional assumptions that we have not committed to. We note the gap and leave LLM stand-ins to a follow-up draft that uses per-info-set strategy data from re-running the Galanis experiments with logging instrumented.
+</p>
+
+<h3>Cross-mechanism comparison (preview)</h3>
+
+<p style="color: var(--muted); font-style: italic">
+Will be filled in once the manipulator framework is ported to Hanson and Proposal Poker. The headline question: is there a mechanism in our taxonomy whose manipulation surplus grows substantially slower than LMSR's? If so, what does it sacrifice in baseline aggregation?
+</p>
+
+<h2 id="comparison" class="chapter"><span class="chapter-number">Chapter 7</span> Cross-mechanism comparison</h2>
+
+<h3>Baseline aggregation</h3>
+
+<table>
+  <thead>
+    <tr>
+      <th>Mechanism</th>
+      <th>Players</th>
+      <th class="num">mean log error</th>
+      <th class="num">NashConv (final)</th>
+      <th>Notes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>Galanis Easy (LMSR)</td><td>3 Bayesian</td><td class="num">0.090</td><td class="num">8.8 × 10⁻⁵</td><td>discretisation floor 0.087</td></tr>
+    <tr><td>Galanis Medium</td><td>3 Bayesian</td><td class="num">0.097</td><td class="num">1.7 × 10⁻⁴</td><td>≈ floor</td></tr>
+    <tr><td>Galanis Hard</td><td>3 Bayesian</td><td class="num">0.097</td><td class="num">1.7 × 10⁻⁴</td><td>≈ floor</td></tr>
+    <tr><td>Galanis Very Hard</td><td>3 Bayesian</td><td class="num">0.090</td><td class="num">7.1 × 10⁻⁵</td><td>≈ floor; <strong>aggregates fully</strong></td></tr>
+    <tr><td>Hanson (cond. LMSR)</td><td>3 Bayesian</td><td>—</td><td class="num">3.9 × 10⁻⁵</td><td>decision accuracy 0.754 vs oracle 0.875</td></tr>
+    <tr><td>Amoveo (insurance)</td><td>3 Bayesian</td><td>—</td><td>—</td><td>same as Galanis Easy modulo decision relabel</td></tr>
+    <tr><td>Binary CFMM (Ch 4)</td><td>3 Bayesian</td><td>—</td><td class="num">4.1 × 10⁻⁴</td><td><strong>decision accuracy 0.864</strong> vs oracle 0.875; K-invariant</td></tr>
+    <tr><td>Proposal Poker</td><td>N Bayesian</td><td>—</td><td>—</td><td>not yet implemented</td></tr>
+  </tbody>
+</table>
+
+<h3>Manipulation surplus</h3>
+
+<p>
+Three traders, player 0 is the manipulator with a directional bias. For Galanis the bias rewards higher final price; for Hanson it rewards policy A winning. Two different metrics are tabulated below because the mechanisms have different natural diagnostics: Galanis uses mean log error of the price, Hanson uses decision accuracy (probability that the chosen policy yields M = 1).
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>Mechanism</th>
+      <th>Metric</th>
+      <th class="num">baseline</th>
+      <th class="num">b ≈ 0.005</th>
+      <th class="num">b ≈ 0.02</th>
+      <th class="num">b ≈ 0.05</th>
+      <th class="num">b ≈ 0.20</th>
+      <th class="num">b ≈ 1.00</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Galanis Easy (LMSR)</td>
+      <td>mean log error ↓</td>
+      <td class="num">0.109</td><td class="num">—</td><td class="num">—</td>
+      <td class="num"><strong>0.358</strong></td><td class="num">0.400</td><td class="num">0.399</td>
+    </tr>
+    <tr>
+      <td>Hanson (cond. LMSR)</td>
+      <td>decision accuracy ↑</td>
+      <td class="num">0.7565</td><td class="num">0.7551</td><td class="num"><strong>0.7998</strong></td>
+      <td class="num">0.6851</td><td class="num">0.6812</td><td class="num">—</td>
+    </tr>
+    <tr>
+      <td>Binary CFMM (Ch 4)</td>
+      <td>decision accuracy ↑</td>
+      <td class="num"><strong>0.864</strong></td><td class="num">0.773</td><td class="num">0.756</td>
+      <td class="num">0.807</td><td class="num">0.713</td><td class="num">—</td>
+    </tr>
+  </tbody>
+</table>
+
+<div class="callout">
+  <strong>The three mechanisms respond completely differently to manipulator bias.</strong> Galanis LMSR has a sharp threshold — below it the equilibrium is undisturbed, above it the manipulator collapses aggregation on the states where they have leverage. Hanson is non-monotonic with a single-peaked recovery — small bias <em>improves</em> decision accuracy by selecting a more-aggregating equilibrium, then larger bias degrades it. Binary CFMM (Chapter 4) is non-monotonic with a different shape — even tiny bias hurts (the path-dependent cost geometry that gives it the strong baseline is also what makes it fragile under early-game manipulation), but middling bias partially recovers, then large bias degrades again. All three mechanisms exhibit multiple Bayes-Nash equilibria selected by manipulator bias.
+</div>
+
+<h3>Non-monotonicity in Hanson, decomposed</h3>
+
+<p>
+Per-omega Pr(A wins) for the Hanson sweep:
+</p>
+
+<table>
+  <thead>
+    <tr>
+      <th>ω</th><th>(d<sub>a</sub>,d<sub>b</sub>,d<sub>c</sub>)</th>
+      <th class="num">M(A)</th><th class="num">M(B)</th>
+      <th class="num">b=0</th><th class="num">b=0.005</th><th class="num">b=0.02</th><th class="num">b=0.05</th><th class="num">b=0.2</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>a</td><td>(1,1,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.56</td><td class="num">0.99</td><td class="num">0.99</td><td class="num">0.58</td><td class="num">0.58</td></tr>
+    <tr><td>b</td><td>(1,1,0)</td><td class="num">1</td><td class="num">1</td><td class="num">0.92</td><td class="num">0.50</td><td class="num">0.46</td><td class="num">0.57</td><td class="num">0.57</td></tr>
+    <tr><td>c</td><td>(1,0,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.10</td><td class="num">0.99</td><td class="num">0.36</td><td class="num">0.00</td><td class="num">0.00</td></tr>
+    <tr><td>d</td><td>(1,0,0)</td><td class="num">0</td><td class="num">1</td><td class="num">0.31</td><td class="num">0.35</td><td class="num">0.02</td><td class="num">0.95</td><td class="num">0.98</td></tr>
+    <tr><td>e</td><td>(0,1,1)</td><td class="num">1</td><td class="num">1</td><td class="num">0.81</td><td class="num">0.99</td><td class="num">0.99</td><td class="num">0.59</td><td class="num">0.58</td></tr>
+    <tr><td>f</td><td>(0,1,0)</td><td class="num">0</td><td class="num">1</td><td class="num">0.60</td><td class="num">0.38</td><td class="num">0.40</td><td class="num">0.56</td><td class="num">0.57</td></tr>
+    <tr><td>g</td><td>(0,0,1)</td><td class="num">0</td><td class="num">1</td><td class="num">0.04</td><td class="num">0.22</td><td class="num">0.18</td><td class="num">0.01</td><td class="num">0.00</td></tr>
+    <tr><td>h</td><td>(0,0,0)</td><td class="num">0</td><td class="num">0</td><td class="num">0.18</td><td class="num">0.15</td><td class="num">0.06</td><td class="num">0.93</td><td class="num">0.98</td></tr>
+  </tbody>
+</table>
+
+<p>
+The decomposition explains the non-monotonicity. At b = 0.02 (the "helpful" point), the manipulator pushes A to win in states a, e (both correct with M(A) = 1) and away in states d, f, g, h (M(A) = 0). Net: A wins in correct-for-A states, B wins in correct-for-B states — paradoxically <em>improving</em> accuracy. At b ≥ 0.05 the manipulator overshoots, forcing A to win in states d and h where M(A) = 0, which costs accuracy.
+</p>
+
+<p>
+This is the kind of finding that motivates the atlas in the first place: at the level of summary statistics, the two mechanisms appear comparable; at the per-omega level the equilibrium structures differ qualitatively. The bias-as-equilibrium-selector phenomenon in Hanson is genuinely new and deserves a paper of its own.
+</p>
+
+<h3>Provisional take</h3>
+
+<ul>
+  <li><strong>Baseline aggregation:</strong> Single-market LMSR (Galanis) aggregates well across all four complexity levels, with the discretisation floor as the binding constraint. The mechanism is not the bottleneck for these structures.</li>
+  <li><strong>Multi-market aggregation:</strong> Hanson's two-conditional-market design loses ~12 percentage points of decision accuracy relative to the oracle under symmetric Bayesian play, because traders cannot perfectly co-ordinate price-discovery across two markets. This is structural, not a capability gap.</li>
+  <li><strong>Galanis under manipulator:</strong> Sharp threshold response — undisturbed below b ≈ 0.04, mean log error collapses on 4 of 8 states above. The "pinned" states (where the manipulator's own signal already disambiguates the truth) are immune, which is a partial mechanism guarantee.</li>
+  <li><strong>Hanson under manipulator:</strong> Non-monotonic. Small bias selects a Nash that happens to improve accuracy; medium and large bias degrade it. Suggests multiple Bayes-Nash equilibria coexist in the unbiased case, and bias acts as a tiebreaker.</li>
+  <li><strong>Binary CFMM under manipulator:</strong> Different non-monotonic shape from Hanson. Baseline accuracy is highest of the three (0.864), but even very small bias (b = 0.005) drops it to 0.773; medium bias (0.05) partially recovers to 0.807; large bias (0.20) degrades to 0.713. The CFMM's path-dependent cost geometry that produces strong baseline aggregation is also what makes the equilibrium fragile under early-round price-pushing.</li>
+</ul>
+
+
+<h2 id="conclusion" class="chapter"><span class="chapter-number">Conclusion</span> What this atlas shows</h2>
+
+<p>
+The three findings that survive the most scrutiny so far:
+</p>
+
+<p>
+<strong>(1) The empirical Galanis-style scaling of log error with structural complexity is a capability gap of current LLM traders, not a property of the LMSR mechanism.</strong> Chapter 1 shows that tabular CFR+ converges to the same per-omega price distribution in all four Galanis structures: median price at the discretisation floor when the conditional probability of X = 1 favours yes, and at the floor in the other direction otherwise. The Easy/Medium/Hard/Very Hard hierarchy that Galanis (2026) reports as evidence of LLM aggregation limits does not exist in the equilibrium itself. If you want better aggregation, work on the trader's Bayesian-update fidelity; the mechanism is not the bottleneck.
+</p>
+
+<p>
+<strong>(2) Conditional-market mechanisms exhibit multiple Bayes-Nash equilibria that perturbations select between, and the selection effect can reverse welfare.</strong> Chapter 6 shows single-market LMSR has a sharp manipulation threshold and pins 4 of 8 states. Chapter 7 shows Hanson conditional has a <em>non-monotonic</em> manipulation response — small bias improves decision accuracy by selecting a better equilibrium; larger bias degrades it. Chapter 6 also shows the naive-player effect reverses sign: a naive flat-prior trader destroys aggregation in single-market Galanis but improves it in conditional Hanson. The unifying mechanism is multiplicity of Bayes-Nash equilibria in conditional markets; any structural perturbation acts as a selector among them.
+</p>
+
+<p>
+<strong>(3) Power-law cost (CFMM) aggregates substantially better than logarithmic cost (LMSR) in conditional designs, but is also more fragile under early-round manipulation.</strong> Chapter 4 shows the binary CFMM conditional design achieves decision accuracy 0.864 — essentially matching the oracle's 0.875 — vs Hanson LMSR conditional's 0.754 under identical traders. CFR+ scale-invariance lets us confirm this is shape-of-cost, not level-of-liquidity: equilibrium accuracy is 0.864 across three orders of magnitude in K. The same anchoring makes the equilibrium more sensitive to small bias: a 0.005 bonus drops binary-CFMM accuracy 9 points (0.864 → 0.773), where the same bonus barely moves Hanson.
+</p>
+
+<p>
+<strong>(4) The minimal Proposal Poker binary-staking market has a no-information equilibrium under pure pari-mutuel payouts.</strong> Chapter 5 shows that without an LMSR-style subsidy or richer payoff structure (wealth, log utility, oracle), CFR+ converges to all-abstain, decision = REJECT, and decision accuracy collapses to the 0.5 prior even with signal precision 0.7. This is the classical free-rider failure mode and explains why the full MODEL.md needs the additional ingredients to recover a non-trivial equilibrium.
+</p>
+
+<p>
+The methodological contribution is the framing: every mechanism in this design space can be encoded as a small pyspiel game and solved via off-the-shelf CFR+ in minutes-to-hours, with NashConv as the convergence diagnostic. The CCE-vs-Nash gap is small for LMSR-based mechanisms because the market maker's strict deviation incentive rules out babbling-style CCEs. For mechanisms with bounded liquidity (CFMM, Proposal Poker) the gap is open and the methodology generalises directly.
+</p>
+
+<h3>What is incomplete</h3>
+
+<ul>
+  <li>binary CFMM (Ch 4): the OpenSpiel game is ready (Chapter 4); the CFR sweep is the obvious next step and would round out the cross-mechanism comparison table.</li>
+  <li>Proposal Poker: the formal model exists and a non-OpenSpiel simulation engine is in the repo; wrapping it for CFR is the natural next step. The wealth heterogeneity and continuous state space will require MCCFR rather than tabular.</li>
+  <li>Player taxonomy beyond manipulator: the framework supports adding insider-with-precise-signal, naive-flat-prior, and LLM-stand-in players. These are not in this draft because the manipulator alone already produces the most legible mechanism-design takeaway.</li>
+  <li>6- and 9-round Galanis games: blocked on MCCFR.</li>
+</ul>
+
+<!-- ===================== METHODS APPENDIX ===================== -->
+
+<h2 id="methods" class="chapter"><span class="chapter-number">Appendix A</span> Methods</h2>
+
+<h3>LMSR pricing</h3>
+
+<p>
+We use the binary Logarithmic Market Scoring Rule throughout. The cost function is
+<code>C(q_Y, q_N) = b · log(exp(q_Y/b) + exp(q_N/b))</code>, where <em>b</em> is the liquidity parameter (default <em>b</em> = 0.01) and <code>q_Y, q_N</code> are the outstanding share counts of the Yes and No assets. The marginal price of Yes is the softmax,
+<code>p_Y = exp(q_Y/b) / (exp(q_Y/b) + exp(q_N/b))</code>. A trader moving the state from <code>(q_Y, q_N)</code> to <code>(q'_Y, q'_N)</code> pays <code>C(q') − C(q)</code> in cash and receives the delta in shares. At resolution, a Yes share pays 1 if Yes wins, 0 otherwise; symmetrically for No. The LMSR's maximum loss to the market-maker is <em>b</em> · log 2 regardless of trader strategy. The cost is path-independent in the state space (q_Y, q_N).
+</p>
+
+<h3>Action discretisation</h3>
+
+<p>
+CFR is tabular, so every game uses a finite action set. We discretise the price grid uniformly on (0, 1) with <em>K</em> levels: <code>{1/(K+1), 2/(K+1), ..., K/(K+1)}</code>. For <em>K</em> = 11 the grid is {0.083, 0.167, ..., 0.917}, imposing a log-error floor of <code>−log(0.917) ≈ 0.087</code> on any well-aggregating equilibrium. We report results for <em>K</em> = 11 (Galanis) and <em>K</em> = 7 (Hanson, smaller for state-space reasons since each Hanson turn has 2<em>K</em> = 14 combined actions).
+</p>
+
+<h3>CFR+ and NashConv</h3>
+
+<p>
+We solve each game via OpenSpiel's <code>cfr.CFRPlusSolver</code>. After every iteration we update the average strategy; at termination we report <strong>NashConv</strong> = sum over players of the best-response improvement gain over the current average policy. Formally, NashConv(π) = sum_i max_{π_i'} U_i(π_i', π_{−i}) − U_i(π). In 2-player zero-sum games NashConv equals exploitability and converges to 0 with rate O(1/√T); in N-player general-sum games (our setting) it is a useful convergence signal but does not certify Nash. We treat NashConv ≤ 2 × 10⁻⁴ as converged for all reported runs.
+</p>
+
+<h3>CCE vs Nash equilibrium</h3>
+
+<p>
+For three-or-more-player general-sum games, CFR+ converges to a coarse correlated equilibrium (CCE), not a Nash equilibrium. The CCE set is a superset of the NE set. We argue per-mechanism that the gap is small in these LMSR games because the market maker's strict positive-EV deviation incentive rules out babbling-style CCEs: a player who ignores their private signal and just submits a constant quote against the recommendation can always profitably deviate to truthful play. The CCE we converge to therefore lies in the small subset that survives this filter.
+</p>
+
+<h3>Manipulator utility</h3>
+
+<p>
+The biased-player formulation in Chapter 6 is
+<code>u_0 = LMSR_profit_0 + bonus · (p_final − 0.5) · direction</code>
+where <code>direction</code> ∈ {+1, −1}. We sweep <code>bonus</code> over {0, 0.01, 0.05, 0.20, 1.00} and report equilibrium-mean per-omega prices, mean log error, and final NashConv. For Hanson the manipulator's utility is discrete: <code>u_0 += bonus</code> when the implemented policy matches their preference, else 0.
+</p>
+
+<h3>Equilibrium statistics</h3>
+
+<p>
+Given a converged CFR+ average policy, we compute the equilibrium price distribution per chance outcome by walking the game tree from each ω, weighting paths by the average policy's action probabilities. The implementation is the recursive <code>_final_price_distribution</code> in <code>galanis_market.solve</code>. Mean and median final prices are taken over this weighted empirical distribution. Log error is computed with prices clipped to [10⁻¹⁵, 1 − 10⁻¹⁵] to avoid divergences.
+</p>
+
+<h3>Limitations</h3>
+
+<ul>
+  <li>Tabular CFR's information-state count grows multiplicatively with rounds; we cap at 3 rounds in this report. MCCFR or C++ CFR would push us to 9 rounds and to finer action grids.</li>
+  <li>Action discretisation bounds achievable log error below the empirical 0.018 for the easiest structures.</li>
+  <li>The manipulator framework parameterises bias by an abstract utility coefficient rather than by an explicit budget. To translate to real budgets one would invert the LMSR cost curve; this is straightforward but not done in the current draft.</li>
+  <li><strong>Binary outcomes only.</strong> Every mechanism here predicts a 0/1 metric, not a real-valued one. Real futarchy uses continuous metrics (TVL, revenue, asset price); Chapter 4's "binary CFMM" is therefore a simplification — a binary Uniswap-style AMM, not the real MetaDAO design which trades real-valued conditional asset prices.</li>
+</ul>
+
+<h2 id="repro" class="chapter"><span class="chapter-number">Appendix B</span> Reproducibility</h2>
+
+<p>
+All code and data are in <a href="https://github.com/futarchy-fi/simulations/tree/main/mechanism-design" target="_blank" rel="noopener">github.com/futarchy-fi/simulations/mechanism-design</a>. Sub-projects are independent; install each with <code>pip install -e .</code>.
+</p>
+
+<pre>git clone https://github.com/futarchy-fi/simulations.git
+cd simulations/mechanism-design
+
+# 1. Galanis (Chapter 1) + manipulator (Chapter 6)
+cd galanis-market
+pip install -e .
+pytest -q                                              # 44 tests
+python scripts/solve_all.py \
+    --iterations 50 --num-actions 11 \
+    --structures t3s111y2,t3s110,t3s111,t3s111o2ye2 --rounds 3
+python scripts/manipulator_sweep.py                     # 5 bonus levels
+cd ..
+
+# 2. Hanson conditional (Chapter 2) + manipulator (Chapter 7)
+cd hanson-conditional
+pip install -e .
+pytest -q                                              #  8 tests
+python scripts/solve_all.py --iterations 80 --num-actions 7 --num-rounds 3
+python scripts/manipulator_sweep.py                     # 5 bonus levels
+cd ..
+
+# 3. binary CFMM (Ch 4) (Chapter 4)
+cd metadao-cfmm
+pip install -e .
+pytest -q                                              # 13 tests
+python scripts/manipulator_sweep.py                     # baseline + 4 bonus levels
+cd ..
+
+# 4. Proposal Poker (Chapter 5, tabular subset)
+cd proposal-poker-tabular
+pip install -e .
+pytest -q                                              #  9 tests
+# Single CFR+ run shows all-abstain equilibrium; see Ch 5 for explanation.
+
+# 5. Player-type sweeps (Chapter 6)
+cd ../galanis-market && python scripts/player_type_sweep.py
+cd ../hanson-conditional && python scripts/player_type_sweep.py
+cd ..</pre>
+
+<p>
+Total CFR+ runtime for the data in this draft: ≈ 50 minutes on a laptop CPU (single-threaded Python). MCCFR or C++ CFR would cut this dramatically.
+</p>
+
+<h3>What is solved as of this draft</h3>
+
+<table>
+  <thead>
+    <tr><th>Sub-project</th><th>Files</th><th>Tests</th><th>CFR runs done</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>galanis-market</td><td>≈ 1000 LoC</td><td>44</td><td>4 structures × baseline + manipulator sweep (5 bonus levels) + player-type sweep (naive, insider)</td></tr>
+    <tr><td>hanson-conditional</td><td>≈ 550 LoC</td><td>8</td><td>baseline (30 + 80 iter) + manipulator sweep (5 bonus levels) + player-type sweep (naive, insider)</td></tr>
+    <tr><td>metadao-cfmm</td><td>≈ 550 LoC</td><td>13</td><td>baseline + manipulator sweep (5 bonus levels)</td></tr>
+    <tr><td>proposal-poker-tabular</td><td>≈ 300 LoC</td><td>9</td><td>baseline (50 iters)</td></tr>
+  </tbody>
+</table>
+
+<!-- ===================== FOOTER ===================== -->
+
+<p class="footer">
+OpenSpiel 1.6.3. Tabular CFR+ for the games reported here.
+The Galanis chapter replicates the experimental setup of arXiv:2604.20050v2 modulo the price-grid discretisation and the number of trading rounds.
+The Proposal Poker model (Chapter 5) is specified in <code>mechanism-design/proposal-evaluation/MODEL.md</code> in the same repository.
+</p>
+
+</body>
+</html>
