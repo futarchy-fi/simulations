@@ -69,6 +69,7 @@ from scipy.special import expit as _sigmoid
 from scipy.special import logit as _logit
 from scipy.stats import norm
 
+from batch_amm.clearing import clear_limit_batch
 from galanis_market.structures import STATES, STRUCTURES, Structure
 
 PRICE_EPS = 1e-4  # global price clip: p in [PRICE_EPS, 1 - PRICE_EPS]
@@ -231,7 +232,9 @@ class GalanisEnv:
         )  # (8 reps, 3 traders)
 
     def make_state(self) -> Dict:
-        return {"belief": np.full((8, 8), 1.0 / 8.0)}  # (rep, omega)
+        # "jams": count of (rep, round) anonymous updates rejected as
+        # unexplainable (denial-of-aggregation instrumentation, BATCH.md §9)
+        return {"belief": np.full((8, 8), 1.0 / 8.0), "jams": 0}  # (rep, omega)
 
     def _target_given_cell(self, i: int, cell: int, belief_row: np.ndarray) -> float:
         mask = self.cells[:, i] == cell  # cell_of depends only on omega
@@ -327,6 +330,60 @@ class GalanisEnv:
             z = new.sum()
             if z > 0:
                 state["belief"][rep] = new / z
+            else:
+                state["jams"] += 1
+
+    def reveal_batch_anon_limit(
+        self,
+        p_open: np.ndarray,
+        x_obs: np.ndarray,
+        state: Dict,
+        b: float,
+        scale: float,
+        slack: float,
+        first_time: bool,
+    ) -> None:
+        """ANONYMOUS price-only disclosure under LIMIT orders: exact update.
+
+        Observers see only the clearing price, which inverts to the EXECUTED
+        net flow X; submitted-but-unfilled quantities are invisible to them.
+        Keep the omegas whose honest limit-order profile (given the
+        round-open belief, mirroring the engine's sizing/limit arithmetic)
+        clears to the observed X; an unexplainable X (manipulation) leaves
+        the belief unchanged and counts a jam, as in reveal_batch_anon.
+        Consistency is checked in flow units at scale*b*1e-6 — the image of
+        reveal_batch_anon's 1e-6 aggregate-logit tolerance.
+        """
+        del first_time  # Galanis updates on every round (see module doc)
+        tol = scale * b * 1e-6
+        for rep in range(8):
+            row = state["belief"][rep]
+            support = np.where(row > 0.0)[0]
+            p_vec = np.full(len(support), float(p_open[rep]))
+            ts = np.empty((self.n, len(support)))
+            for j, w in enumerate(support):
+                for i in range(self.n):
+                    ts[i, j] = self._cap(
+                        self._target_given_cell(i, self.cells[w, i], row)
+                    )
+            x = scale * b * (_logit(ts) - _logit(p_vec)[None, :])
+            if np.isinf(slack):
+                lims = np.where(x >= 0.0, np.inf, -np.inf)
+            else:
+                lims = np.where(
+                    x >= 0.0,
+                    np.minimum(ts + slack, 1.0),
+                    np.maximum(ts - slack, 0.0),
+                )
+            x_pred = clear_limit_batch(p_vec, x, lims, b)["x_exec"].sum(axis=0)
+            mask = np.zeros(8, dtype=bool)
+            mask[support] = np.abs(x_pred - float(x_obs[rep])) < tol
+            new = row * mask
+            z = new.sum()
+            if z > 0:
+                state["belief"][rep] = new / z
+            else:
+                state["jams"] += 1
 
     def full_info_price(self) -> np.ndarray:
         return self._cap(self.payout.copy())  # all 3 bits determine X exactly

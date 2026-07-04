@@ -328,6 +328,7 @@ def run_market(env, cfg: Config) -> Dict[str, np.ndarray]:
         "slip_round": slip_round,
         "volume": volume,
         "volume_submitted": volume_submitted,
+        "jams": state.get("jams", 0),
     }
 
 

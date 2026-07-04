@@ -293,6 +293,49 @@ def test_engine_seat_invariance_with_manip():
     )
 
 
+def test_galanis_limit_updater_matches_market_run_when_limits_never_bind():
+    """slack=1.0 puts every limit at the price bounds (never binds), but the
+    engine still routes disclosure through the exact limit-order consistency
+    updater — it must land on the market-order anonymous run's prices."""
+    env = GalanisEnv()
+    res_m = run_market(
+        env, Config(mech="batch_lmsr", rounds=2, b=0.01,
+                    sizing="competitive", disclosure="price"))
+    res_l = run_market(
+        env, Config(mech="batch_lmsr_limit", rounds=2, b=0.01,
+                    sizing="competitive", disclosure="price",
+                    limit_slack=1.0))
+    np.testing.assert_allclose(res_l["final_price"], res_m["final_price"],
+                               atol=1e-9)
+    assert res_l["jams"] == 0
+
+
+def test_galanis_tight_limits_honest_run_keeps_decision_accuracy():
+    env = GalanisEnv()
+    res = run_market(
+        env, Config(mech="batch_lmsr_limit", rounds=2, b=0.01,
+                    sizing="competitive", disclosure="price",
+                    limit_slack=0.0))
+    assert res["jams"] == 0  # honest play is always self-consistent
+    s = summarize(env, res)
+    assert s["decision_acc"] == 1.0
+
+
+def test_galanis_jam_counter_market_order_anon_manip():
+    """BATCH.md section 9: a manipulated anonymous aggregate is unexplainable
+    under strict consistency -> the update jams (belief frozen)."""
+    env = GalanisEnv()
+    res_h = run_market(
+        env, Config(mech="batch_lmsr", rounds=3, b=0.01,
+                    sizing="competitive", disclosure="price"))
+    assert res_h["jams"] == 0
+    res_m = run_market(
+        env, Config(mech="batch_lmsr", rounds=3, b=0.01,
+                    sizing="competitive", disclosure="price",
+                    manip_seat=0, bounty=0.2))
+    assert res_m["jams"] > 0
+
+
 def test_engine_tight_limits_drop_like_minded_fills():
     """With correlated one-directional flow and slack=0, some honest traders
     must drop out of the fill (the execution-quality question, Q2)."""
