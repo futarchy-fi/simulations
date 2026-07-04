@@ -55,6 +55,10 @@ class Params:
                                #   "none"   -> no entrant at all (presence uncertainty; entry T1/T2)
                                #   "honest" -> entrant present but honest-type (type uncertainty; T2u analog;
                                #               only sensible with manip="informed")
+    mm: str = "kyle"           # "kyle": competitive linear-projection MM (p = lam (y - mu));
+                               # "fixed": exogenous price-impact curve p = kappa * y (linearised
+                               #          subsidised AMM/LMSR; no inference, no mean subtraction)
+    kappa: float = 0.0         # price impact when mm == "fixed"
 
     @property
     def se2(self) -> float:
@@ -273,7 +277,10 @@ def solve_equilibrium(p: Params, damping: float = 0.5, tol: float = 1e-11,
         else:
             a_e, b_e = 0.0, 0.0
         tgt = Profile(a_h, b_h, a_m, b_m, prof.lam, prof.mu, a_e, b_e)
-        lam, mu = mm_update(tgt, p)
+        if p.mm == "fixed":
+            lam, mu = p.kappa, 0.0
+        else:
+            lam, mu = mm_update(tgt, p)
         new = Profile(a_h, b_h, a_m, b_m, lam, mu, a_e, b_e)
         vec_old, vec_new = prof.vec(), new.vec()
         vec = damping * vec_new + (1 - damping) * vec_old
@@ -397,3 +404,56 @@ def bayes_mm_metrics(prof: Profile, p: Params, present: bool, n_gh: int = 200) -
         "approval_prob": float(np.sum(w * q)),
         "decision_quality": float(np.sum(w * Ev_given_y * q)),
     }
+
+
+def _bayes_manip_utility(a: float, prof_eq: Profile, p: Params, n_gh: int = 200) -> float:
+    """Present manipulator's exact expected utility of deviating to intercept
+    `a` (signal slope frozen at prof_eq.b_m) against the exact Bayesian
+    mixture MM built from the EQUILIBRIUM profile.  All terms reduce to 1-d
+    quadrature over y."""
+    bs = Basis(p)
+    mmm = BayesMM(prof_eq, p)
+    # actual present-state flow with deviated intercept
+    prof_dev = Profile(prof_eq.a_h, prof_eq.b_h, a, prof_eq.b_m,
+                       prof_eq.lam, prof_eq.mu, prof_eq.a_e, prof_eq.b_e)
+    y_aff = _flow(bs, prof_dev, True)
+    mu_y, var_y = bs.mean(y_aff), bs.varof(y_aff)
+    cov_vy = bs.cov(bs.v, y_aff)
+    s_m_aff = bs.s_m
+    cov_sy = bs.cov(s_m_aff, y_aff)
+    sd = np.sqrt(var_y)
+    z, w = np.polynomial.hermite_e.hermegauss(n_gh)
+    w = w / np.sqrt(2 * np.pi)
+    y = mu_y + sd * z
+    pr = mmm.price(y)
+    Ev_y = cov_vy / var_y * (y - mu_y)
+    Es_y = cov_sy / var_y * (y - mu_y)
+    # E[(a + b s_m)(v - P(y))] = a(0 - E[P]) + b(E[s_m v] - E[E[s_m|y] P(y)])
+    b = prof_eq.b_m
+    trading = (a * (0.0 - np.sum(w * pr))
+               + b * (1.0 - np.sum(w * Es_y * pr)))
+    bounty = p.B * np.sum(w * logistic_q(pr, p.tau))
+    # NOTE: E[s_m v] = 1; E[v P] not needed (enters via a and b terms only after
+    # writing x = a + b s_m and conditioning on y).
+    return float(trading + bounty)
+
+
+def bayes_manip_fixed_point(p: Params, prof_lin: Profile,
+                            tol: float = 1e-9, max_iter: int = 200) -> Profile:
+    """Manipulator's intercept best response against the exact Bayesian
+    mixture MM, iterated to a fixed point.  Honest strategies and the
+    manipulator's signal slope are frozen at the linear-MM equilibrium
+    (stated approximation).  Returns the profile with the converged a_m;
+    price function is BayesMM(returned_profile, p)."""
+    prof = Profile(prof_lin.a_h, prof_lin.b_h, prof_lin.a_m, prof_lin.b_m,
+                   prof_lin.lam, prof_lin.mu, prof_lin.a_e, prof_lin.b_e)
+    for _ in range(max_iter):
+        res = optimize.minimize_scalar(
+            lambda a: -_bayes_manip_utility(a, prof, p),
+            bounds=(-50.0, 50.0), method="bounded", options={"xatol": 1e-10})
+        a_new = float(res.x)
+        if abs(a_new - prof.a_m) < tol:
+            prof.a_m = a_new
+            return prof
+        prof.a_m = 0.5 * prof.a_m + 0.5 * a_new
+    raise RuntimeError("bayes manipulator fixed point did not converge")
