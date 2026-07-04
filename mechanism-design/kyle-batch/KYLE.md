@@ -25,7 +25,7 @@ All results are affine-strategy equilibria validated by Monte Carlo and by unila
 
 **Equilibrium concept.** All traders play affine strategies x = a + b·s; the MM plays the best linear rule p = λ(y − μ) under its belief (μ absorbs the anticipated push). Honest best responses are *exactly* affine (their conditional problem is quadratic), so the restriction binds only on the manipulator, whose bounty term makes the true best response nonlinear; the resulting error is measured, not assumed away (§ Validation). Solved by damped fixed point; manipulator's affine best response by exact-gradient root finding (Gauss–Hermite quadrature for all q-expectations).
 
-**Code:** `src/kyle_batch/{closed_forms,decision,onebatch,mc,twap}.py`; sweeps `scripts/run_sweeps.py`; raw outputs `results/*.json`; tests `tests/` (18 assertion-heavy tests, all green).
+**Code:** `src/kyle_batch/{closed_forms,decision,onebatch,mc,twap}.py`; sweeps `scripts/{run_sweeps,run_windowed,run_subsidy}.py`; raw outputs `results/*.json`; tests `tests/` (31 assertion-heavy tests, all green).
 
 ## Validation discipline
 
@@ -35,7 +35,7 @@ Every equilibrium reported below passes:
 2. **Grid deviation test** (MC, common random numbers, 21×21 affine grid of half-width 0.5 around equilibrium, n = 4·10⁵): max estimated gain 0 within MC noise for every role at every spot checked.
 3. **Sup deviation test** (dominates any grid): the deviator's conditional problem is solved *pointwise in the signal* — closed form for honest traders, 1-d numerical optimization + quadrature for the manipulator — giving the exact supremum over all measurable strategies.
 
-Bounds across all reported tables: **honest traders ≤ 10⁻²²** (affine BR is exact); **manipulator's nonlinear sup gain ≤ 0.17% of its equilibrium payoff for B ≤ 2, ≤ 1.1% for B ≤ 5, ≤ 2.6% at B = 10** (worst case ρ=1, B=10). The affine equilibria are near-equilibria of the unrestricted game at these tolerances; the manipulator's unexploited nonlinear margin is to push *more when the decision is marginal*, which would add a small state-dependent distortion on top of the results below.
+Bounds across all reported tables: **honest traders ≤ 10⁻²²** (affine BR is exact); **manipulator's nonlinear sup gain ≤ 0.17% of its equilibrium payoff for B ≤ 2 at reference depth, ≤ 0.38% across the Q6 subsidy grid (worst: thin noise, S=0.2), ≤ 1.1% for B ≤ 5, ≤ 2.6% at B = 10** (worst case ρ=1, B=10). The Q4/Q4b multi-round attacker is an exact open-loop optimum (stationarity ‖∇U‖ < 10⁻⁷ asserted in-solver, 1200 random-perturbation deviation checks in `test_windowed.py`, MC agreement at every T). The affine equilibria are near-equilibria of the unrestricted game at these tolerances; the manipulator's unexploited nonlinear margin is to push *more when the decision is marginal*, which would add a small state-dependent distortion on top of the results below.
 
 ---
 
@@ -169,7 +169,34 @@ T batches, same signals, fresh noise u_t each batch; **myopic** round-by-round l
 
 **Verdict: TWAP-of-batches does NOT dominate last-batch — the sequential result reverses.** TWAP's corruption damage is only marginally lower (e.g. 0.0028 vs 0.0032 at T=4, B=5) while its *baseline* quality is strictly worse at every T (early, less-informed prices are remembered by the average: 0.2711 vs 0.2839 at T=4), and the baseline gap exceeds the damage gap everywhere swept — under attack at B=5, last-batch still delivers higher absolute DQ (0.2807 vs 0.2683). The reason is structural: the two things TWAP fixed in the sequential mechanism are already absent in batch. (i) No trade owns the last print — the MM prices the entire final batch simultaneously, so a last-batch push pays full quadratic impact cost and moves the (deep, well-informed, low-λ_T) final price only slightly. (ii) Pushes self-correct: honest traders trade β_t(s_i − m_{t−1}) against the *public* price, so an early bias decays geometrically (honest flow leans against the inflated public posterior) even though nobody knows the manipulator exists. The manipulator's optimal timing confirms both: under last-price it back-loads (α = [0.01, 0.05, 0.14, 0.31] at T=4, B=2), under TWAP it front-loads and even *unwinds* in the final batch (α = [0.17, 0.14, 0.08, −0.04]).
 
-What *does* buy corruption resistance is **T itself**: damage at B=5 falls 30× from T=1 to T=8 under either statistic (each batch adds an independent noise draw and a correction opportunity — the multi-batch market is a deeper market in aggregate). Design rule for batch oversight markets: **run more batches and read the last one; don't average.** (Caveats: myopic equilibrium; the CFR result that TWAP costs nothing at baseline came from a 3-trade grid where the average had too few distinct values to lose resolution — with a real posterior process the averaging cost is first-order.)
+What *does* buy corruption resistance is **T itself**: damage at B=5 falls 30× from T=1 to T=8 under either statistic (each batch adds an independent noise draw and a correction opportunity — the multi-batch market is a deeper market in aggregate). Design rule for batch oversight markets: **run more batches and read the last one; don't average.** (Caveats: myopic equilibrium; the CFR result that TWAP costs nothing at baseline came from a 3-trade grid where the average had too few distinct values to lose resolution — with a real posterior process the averaging cost is first-order. Scope caveat: this table compares only K=1 vs K=T — see Q4b for the windowed version, which unbundles "averaging" from "remembering early rounds".)
+
+### Q4b — Windowed TWAP: averaging over the *last K* batches only
+
+The K∈{1,T} comparison above confounds two things: an average is bad because it *remembers early, less-informed prices*, and possibly bad (or good) because *averaging per se* changes what a push buys. The windowed sweep separates them: settlement statistic = mean of the last K batch prices, K ∈ {1, 2, 4, T}, T ∈ {4, 8, 16}, same covert uninformed open-loop attacker, same exact affine propagation (fast solver: price means are linear in the push vector, `push_response`/`solve_manipulator_fast`; matches the original Nelder–Mead solver to 2·10⁻⁵ and MC-verified at every T — `results/twap_windowed.json`, `tests/test_windowed.py`).
+
+**K\*(T, B) — the optimal window.** K\* = 1 at every (T, B) swept with B ≤ 10: T ∈ {4,8,16} × B ∈ {0.5, 1, 2, 5, 10}. The single exception on the extended grid is (T=4, B=20 ≈ 150× a seat's honest profit), where K\*=2 (DQ 0.2480 vs 0.2468). **The anti-TWAP verdict does not flip for late windows — it sharpens.** The old verdict is superseded only in its *reasoning*, not its conclusion: the damage reduction that full-TWAP showed in the table above was almost entirely an artifact of diluting the statistic with early prices (which is also exactly what costs baseline quality), not a benefit of averaging.
+
+Decomposition at B=5 (baseline cost = DQ(K,0) − DQ(1,0); damage reduction = damage(1,B) − damage(K,B)):
+
+| T | K | baseline cost | damage(B=5) | damage reduction vs K=1 | net |
+|---|---|---|---|---|---|
+| 4 | 2 | −0.0019 | 0.00286 | +0.00035 | −0.0016 |
+| 4 | 4 | −0.0128 | 0.00284 | +0.00037 | −0.0124 |
+| 8 | 2 | −0.0003 | 0.00083 | +0.00000 | −0.0003 |
+| 8 | 4 | −0.0012 | 0.00085 | −0.00002 | −0.0012 |
+| 8 | 8 | −0.0083 | 0.00076 | +0.00007 | −0.0083 |
+| 16 | 2 | −0.0001 | 0.00024 | −0.00003 | −0.0001 |
+| 16 | 4 | −0.0002 | 0.00029 | −0.00008 | −0.0003 |
+| 16 | 16 | −0.0048 | 0.00020 | +0.00001 | −0.0048 |
+
+![windowed twap](results/fig_twap_windowed.png)
+
+**Why late windows buy ~nothing:** batch prices are posterior updates — a push just *before* the window persists into every price inside it (the bias enters all K terms nearly fully; honest correction decays it only geometrically), so a short average does not dilute the manipulation, it only dilutes the information by mixing in staler prices. The manipulator's optimal timing confirms it: at (T=4, K=2, B=5) the push is α = [0.07, 0.26, **0.70**, 0.04] — it moves the attack from the last batch to the *window's opening batch* and rides the persistence, leaving the statistic bias essentially unchanged (+0.139 vs +0.148 at K=1). At T ∈ {8, 16}, K ∈ {2, 4} the damage reduction is zero to slightly *negative*. Windowed averaging only starts to pay when the bounty is extreme enough that the quadratic trading cost of the re-timed, more concentrated push binds (T=4, B ≥ 20).
+
+**Concealed window.** If the designer draws K uniformly from {1, 2, 4} *after* trading (manipulator knows the distribution, not the draw), the single compromise push (it hedges: α = [0.17, 0.24, 0.42, 0.24] at T=4, B=5, vs an all-in α₃ when K is known) recovers **~30–40% of the manipulation damage** relative to the same mixture with a K-informed attacker: ΔDQ +0.0011/+0.0002/+0.0001 at B=5 for T=4/8/16 (+0.0106/+0.0034/+0.0010 at B=20). But at plausible bounties concealment does not rescue window randomization as a *policy*: committing to K=1 still delivers higher DQ than the concealed mixture at every T for B ≤ 5 (e.g. 0.2807 vs 0.2772 at T=4, B=5), because the mixture's baseline cost of sometimes reading K∈{2,4} exceeds what concealment claws back. The ordering flips at extreme bounties: for B ≥ 10 (T=8,16) or B ≥ 20 (T=4), the concealed-window mixture beats **every** deterministic window including K=1 (T=8, B=20: 0.2814 vs 0.2786) — randomizing the settlement statistic is a real defence exactly where the stakes are catastrophic, and only there.
+
+**Corrected design rule:** read the last batch; if you must fear bounties an order of magnitude above seat profits, *randomize* the window (concealment, not averaging, is what buys the protection).
 
 ---
 
@@ -194,6 +221,41 @@ Replace the inference-running Kyle MM with a **non-updating price curve p = κ·
 
 ---
 
+## Q6 — Two subsidy instruments, one budget: noise flow vs AMM depth
+
+Q2's frontier and Q5's AMM each bought corruption resistance with money, in different currencies. This section puts them in a single accounting frame: a per-market subsidy budget **S**, spent either as
+
+* **(a) Noise flow** — σ_u sized so the expected informed transfer (the noise flow's expected loss, which is what pays the informed seats) equals the budget: λσ_u² = S ⟹ σ_u = S/λ₀(σ_u=1) exactly (the covert affine equilibrium scales in σ_u units; identity verified to 10⁻⁸ per row, `test_noise_sizing_identity`).
+* **(b) AMM depth** — the Q5 fixed-impact curve, re-parametrized by budget. The bridge is exact, not an approximation: an LMSR with liquidity b quotes π(Q) = logistic(Q/b), and read in v-units through the market's own logistic rule (p = τ·logit(π)) that **is** the linear curve p = (τ/b)·Q (`test_lmsr_logit_bridge_exact`). LMSR's worst-case maker loss is b·ln2, so b = S/ln2, κ = τ·ln2/S; κ equals the Kyle-equilibrium λ* at S ≈ 0.51. (Bridge caveat: the loss bound is the bounded binary LMSR's; our curve settles at unbounded v.)
+
+Headline threat model is apples-to-apples covert (ρ→0: neither the price rule nor the honest traders know the manipulator exists), reference bounty B=2, N=3, σ_ε=1, τ=0.3; the honest-aware AMM (ρ=1, the Q5 Hanson frame) is the third row. All rows MC-verified (2·10⁶ draws, 4 s.e.) with deviation certificates (honest sup ≤ 10⁻²³; manipulator nonlinear sup gain ≤ 4.5·10⁻³ ≈ 0.4% of payoff, worst at noise S=0.2). `results/subsidy.json`, `scripts/run_subsidy.py`.
+
+| S | noise: dq₀ / −ΔDQ / bias | AMM covert: dq₀ / −ΔDQ / bias | AMM aware: dq₀ / −ΔDQ | AMM E[maker loss] at B=0 |
+|---|---|---|---|---|
+| 0.1 | 0.259 / 0.0777 / +0.60 | 0.110 / 0.0030 / +0.37 | 0.102 / 0.0006 | −2.01 (profits) |
+| 0.2 | 0.259 / 0.0254 / +0.33 | 0.183 / 0.0083 / +0.30 | 0.171 / 0.0018 | −0.91 (profits) |
+| 0.4 | 0.259 / 0.0066 / +0.17 | 0.245 / 0.0081 / +0.20 | 0.234 / 0.0018 | −0.26 (profits) |
+| 0.8 | 0.259 / 0.0017 / +0.086 | 0.274 / 0.0033 / +0.114 | 0.264 / 0.0008 | 0.26 |
+| 1.6 | 0.259 / 0.0004 / +0.043 | 0.283 / 0.0009 / +0.059 | 0.274 / 0.0002 | 0.91 |
+| 3.2 | 0.259 / 0.0001 / +0.022 | 0.285 / 0.0002 / +0.030 | 0.277 / 0.0001 | 2.02 |
+
+![subsidy](results/fig_subsidy.png)
+
+**Resistance per dollar (the narrow question).** At matched worst-case budget S ≥ 0.4, the noise instrument buys strictly more corruption resistance: its damage at B=2 is 1.2× lower at S=0.4 and settles at **2.0–2.3× lower for S ≥ 0.8** (e.g. 0.00042 vs 0.00095 at S=1.6), with proportionally smaller bias. Below S ≈ 0.3 the ranking inverts on damage (noise damage explodes as λ ∝ 1/σ_u; 26× worse at S=0.1) — but there the AMM's baseline quality is so degraded (0.11 vs 0.26) that neither instrument is usable that thin.
+
+**But the two instruments buy different second goods, and this decides the overall winner.**
+
+* **Noise dollars buy resistance only.** Baseline DQ is exactly flat in S (0.2586 at every S, the σ_u-invariance of Q1 extended to the covert-manipulator baseline, `test_noise_baseline_dq_sigma_u_invariant`): informed traders scale β up to eat the noise, so depth is informationally free — and informationally *useless* at baseline.
+* **AMM dollars buy resistance *and* aggregation.** A shallower curve (κ < λ*) under-charges informed flow, so informed traders trade harder and the price carries more signal: baseline DQ rises from 0.245 (S=0.4) to 0.285 (S=3.2), *above* the Kyle-MM covert baseline. The maker's expected loss is what pays for it — and note the budget asymmetry: the worst-case-S sizing spends only ≈ 0.26/0.91/2.02 in expectation at S = 0.8/1.6/3.2 (and *profits* for S ≤ 0.4, where κ > λ* extracts from flow). Re-accounted per **expected** dollar, the deep-end AMM roughly matches or beats the noise instrument even on damage (AMM at E[loss]=0.91 has damage 0.00095 vs noise at S=0.9 ≈ 0.0013).
+* **Absolute decision quality under attack** (dq₀ − damage at B=2) therefore crosses: **noise wins for S ≲ 0.5** (0.2520 vs 0.2370 at S=0.4), **AMM depth wins for S ≥ 0.8** (0.2707 vs 0.2569 at S=0.8; 0.2852 vs 0.2585 at S=3.2).
+* **Awareness is worth more than depth at the AMM:** honest traders who know B counter-trade (Q5) and cut AMM damage ≈ 4× at every S (0.0002 vs 0.0009 at S=1.6) at a small baseline cost — but aware-honest *with a Kyle MM* would neutralize completely (Q2, ρ=1), so the awareness comparison favors the inference-running MM whenever awareness is plausible.
+
+**Verdict.** Per worst-case dollar of subsidy, noise flow is the more efficient pure *hardening* instrument (2× at realistic budgets); AMM depth is the more efficient *market* instrument once budgets clear ≈ 0.6 per market, because the same dollars simultaneously deepen aggregation. A designer who can only fear corruption should buy noise; a designer who also wants the market to be right should buy depth.
+
+**The equilibrium-rescaling caveat (honest flag, open experiment).** Everything the noise instrument delivers rests on informed traders scaling β ∝ σ_u — an equilibrium best response, not a behavioral given. The repo's LLM decision-market experiments ([results/llm-decision-market/RESULTS.md](../../results/llm-decision-market/RESULTS.md), v1 finding 4) found **no within-market strategic adaptation**: agents' stakes and beliefs did not respond to market conditions at all. If traders do *not* rescale, the noise instrument turns toxic exactly where it is supposed to protect: with strategies frozen at their σ_u=1 levels (MM re-fitting λ to the actual flow), baseline corr(p,v) falls 0.77 → 0.59 → 0.19 and baseline DQ collapses 0.259 → 0.171 → 0.023 at S = 0.8/1.6/3.2 (dashed line in the figure). The AMM instrument degrades far more gracefully under the same behavioral failure: p = κy is a *rescaling* of the same flow, so frozen-strategy depth changes only the calibration the rule reads, never corr(p,v) — behavioral robustness favors depth even where equilibrium efficiency favors noise. Whether real (LLM) traders scale up against deeper noise is precisely the experiment the behavioral arm should run next: same market, σ_u × {1, 4}, measure the stake response.
+
+---
+
 ## Comparison with MANIPULATION.md's CFR findings
 
 | CFR finding (sequential, discrete, tabular, 3 traders) | Kyle-batch analog (continuous, Gaussian, N traders) | Reproduces? |
@@ -205,7 +267,7 @@ Replace the inference-running Kyle MM with a **non-updating price curve p = κ·
 | Manipulation-as-subsidy: transfer holds (77–91% captured in decision markets, 15% single-market), accuracy half fails | Transfer depends on counterparty responsiveness: 81% captured at the AMM (responsive), 7–20% under covert Kyle MM (blind); accuracy half fails smoothly (bias) or not at all (ρ=1) | **Yes, sharpened** — capture share = f(who can respond), CFR's 15%-vs-91% spread explained |
 | Entry never hurts if honest side can answer; floor = information-exclusion (BASE-2) | Entry never hurts at ρ=1 and floor = **BASE-3** (no exclusion); covert entry crosses BASE-2 only at B\* ≈ 54× seat profit (ρ=0.25) and **never** at ρ=0.5 (bias self-saturates) | **Yes, strengthened** |
 | Bribed **last-mover** catastrophic: any bounty → 0.500 < BASE-2, information-free channel | Structurally absent: no seats, MM prices each whole batch; worst known-entry outcome = no-entry baseline | **Yes** (the channel is confirmed to be sequential-only) |
-| **TWAP** kills the last-mover attack, zero baseline cost, slightly worse vs early pushes | TWAP-of-batches: marginal damage reduction, first-order baseline cost, dominated by last-batch at all swept (T,B); resistance comes from T itself | **No — reversed**; TWAP's value was repairing a sequential defect that batch clearing removes natively |
+| **TWAP** kills the last-mover attack, zero baseline cost, slightly worse vs early pushes | TWAP-of-batches: marginal damage reduction, first-order baseline cost, dominated by last-batch at all swept (T,B); resistance comes from T itself. Windowed version (Q4b): late-window averaging buys ~zero damage reduction (pushes persist through the posterior into every window price); K\*=1 for all B ≤ 10; only *randomizing* the window helps, and only at extreme bounties | **No — reversed**; TWAP's value was repairing a sequential defect that batch clearing removes natively |
 | **T2u** type uncertainty: decisions exactly neutral (= known mixture to 4 dp); prices "blurry" — bribed type pools & keeps influence, honest type discounted | Closed form: bias\|bribed = λ(1−ρ)(α_m−α_e), bias\|honest = −λρ(α_m−α_e); honest type partially impersonates (α_e > 0); decisions neutral to first order, second-order loss ≈ 10⁻⁴ at B=1 | **Yes** — "blind → blurry" is general; exact decision-neutrality was grid rounding |
 | Thresholds liquidity-relative ("a few × cost-to-move") | Made exact: damage ∝ (B·q′·λ)², λ = √(cN(...))/σ_u — the noise-budget frontier | **Yes, quantified** |
 
@@ -225,7 +287,9 @@ Replace the inference-running Kyle MM with a **non-updating price curve p = κ·
 ```
 cd mechanism-design/kyle-batch
 python -m venv ../.venv-kyle && ../.venv-kyle/bin/pip install -e .[dev]
-../.venv-kyle/bin/python -m pytest            # 18 tests
+../.venv-kyle/bin/python -m pytest            # 31 tests
 ../.venv-kyle/bin/python scripts/run_sweeps.py all   # ~2 min, writes results/*.json
+../.venv-kyle/bin/python scripts/run_windowed.py     # Q4b windowed TWAP (~2 s)
+../.venv-kyle/bin/python scripts/run_subsidy.py      # Q6 subsidy comparison (~3 s)
 ../.venv-kyle/bin/python scripts/make_plots.py       # figures
 ```

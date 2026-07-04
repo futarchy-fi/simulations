@@ -19,14 +19,39 @@ Venv: `mechanism-design/.venv-kyle/bin/python`. Never touch other worktrees.
    noise-subsidy may dampen aggregation — mark open experiment; quantify frozen-beta pessimistic bound.
 Validation discipline unchanged: MC + unilateral-deviation tests with stated bounds per table.
 
-## Extension progress
+## Extension progress — COMPLETE 2026-07-04
 - [x] Oriented: read KYLE.md, twap.py, onebatch.py, closed_forms.py, decision.py, mc.py, run_sweeps.py, tests
-- [ ] twap.py: windowed statistic (win:K), push-response-matrix fast solver + gradient, concealed mixture
-- [ ] tests/test_windowed.py green
-- [ ] windowed sweep -> results/twap_windowed.json + figure
-- [ ] subsidy sweep -> results/subsidy.json + figure (sizing identities tested)
-- [ ] KYLE.md Q4 rewrite + new Q6 subsidy section; STATE.md final
-- [ ] full pytest green, commit/push kyle-batch-v0, merge to main
+- [x] twap.py: windowed statistic (win:K), push-response-matrix fast solver + gradient, concealed mixture
+- [x] tests/test_windowed.py green (8 tests: endpoint reductions, D-matrix identities, solver x-check,
+      1200 perturbation deviation checks, MC agreement, concealed-mixture consistency)
+- [x] windowed sweep -> results/twap_windowed.json + fig_twap_windowed.png (B grid extended to 20)
+- [x] subsidy sweep -> results/subsidy.json + fig_subsidy.png; tests/test_subsidy.py green (5 tests:
+      noise sizing identity to 1e-8, sigma_u-invariance to 1e-9, exact LMSR logit bridge, kappa=lam* anchor)
+- [x] KYLE.md: Q4b section (supersedes old Q4 reasoning, verdict sharpened), Q6 section, validation
+      bounds updated, CFR table TWAP row extended, repro updated (31 tests)
+- [x] full pytest 31/31 green; committed incrementally on kyle-batch-v0
+
+## Extension findings
+1. K*(T,B) = 1 EVERYWHERE for B <= 10 (T in {4,8,16}); sole exception (T=4, B=20 ~ 150x seat profit): K*=2.
+   Anti-TWAP verdict does NOT flip for late windows — it sharpens. Kelvin's confound resolved:
+   late-window averaging buys ~ZERO damage reduction (T=8/16: 0 to negative) because a push at the
+   window's opening batch persists through the posterior into every window price (manip re-times:
+   alpha=[.07,.26,.70,.04] at T=4 K=2). Old full-TWAP "damage reduction" was early-price dilution.
+2. Concealed window (uniform K in {1,2,4} drawn after trading) recovers 30-40% of manipulation damage
+   vs K-informed attacker, but K=1 committed still beats the concealed mixture for B<=5 (baseline cost
+   of reading K in {2,4} sometimes > concealment gain). At B>=10 (T=8,16) / B>=20 (T=4) the concealed
+   mixture beats EVERY deterministic window incl. K=1 — randomization is the extreme-bounty defence.
+3. Subsidy comparison (covert, B_ref=2, S grid 0.1..3.2): noise damage 2.0-2.3x LOWER than AMM-depth
+   at matched worst-case budget S>=0.8 (per-dollar hardening winner: noise). BUT AMM dollars also buy
+   baseline aggregation (dq0 0.245->0.285; noise flat 0.2586 by sigma_u-invariance) and its expected
+   spend < worst-case budget (0.26/0.91/2.02 at S=0.8/1.6/3.2; maker PROFITS for S<=0.4): absolute DQ
+   under attack crosses — noise wins S<~0.5, AMM wins S>=0.8 (0.2852 vs 0.2585 at S=3.2).
+   Aware honest traders cut AMM damage ~4x (Hanson counter-trade).
+4. Behavioral caveat quantified: frozen-beta noise leg collapses (corr 0.77->0.19, dq0 0.259->0.023 at
+   S=3.2) while frozen-beta AMM depth only miscalibrates (corr invariant under p=kappa*y rescaling) —
+   behavioral robustness favors depth; LLM RESULTS.md v1-4 (no within-market adaptation) makes this the
+   flagged open experiment (sigma_u x {1,4} stake-response test).
+- [x] merged to main + pushed (see git log)
 
 Key design notes (extension):
 - Price means are LINEAR in push vector alpha (affine propagation, alpha enters constants only):
