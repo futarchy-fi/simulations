@@ -25,7 +25,7 @@ All results are affine-strategy equilibria validated by Monte Carlo and by unila
 
 **Equilibrium concept.** All traders play affine strategies x = a + b·s; the MM plays the best linear rule p = λ(y − μ) under its belief (μ absorbs the anticipated push). Honest best responses are *exactly* affine (their conditional problem is quadratic), so the restriction binds only on the manipulator, whose bounty term makes the true best response nonlinear; the resulting error is measured, not assumed away (§ Validation). Solved by damped fixed point; manipulator's affine best response by exact-gradient root finding (Gauss–Hermite quadrature for all q-expectations).
 
-**Code:** `src/kyle_batch/{closed_forms,decision,onebatch,mc,twap}.py`; sweeps `scripts/{run_sweeps,run_windowed,run_subsidy}.py`; raw outputs `results/*.json`; tests `tests/` (31 assertion-heavy tests, all green).
+**Code:** `src/kyle_batch/{closed_forms,decision,onebatch,mc,twap,arrival}.py`; sweeps `scripts/{run_sweeps,run_windowed,run_subsidy,run_arrival}.py`; raw outputs `results/*.json`; tests `tests/` (42 assertion-heavy tests, all green).
 
 ## Validation discipline
 
@@ -198,6 +198,8 @@ Decomposition at B=5 (baseline cost = DQ(K,0) − DQ(1,0); damage reduction = da
 
 **Corrected design rule:** read the last batch; if you must fear bounties an order of magnitude above seat profits, *randomize* the window (concealment, not averaging, is what buys the protection).
 
+(Scope caveat: everything above is a static-information model — all signals exist at t=0, which is exactly what lets a push persist into a late window. Q7 re-runs this sweep with information arriving *during* the window and finds the K\*=1 verdict survives, and under public-signal arrival sharpens.)
+
 ---
 
 ## Q5 — AMM variant (brief): subsidized fixed-impact curve
@@ -256,6 +258,56 @@ Headline threat model is apples-to-apples covert (ρ→0: neither the price rule
 
 ---
 
+## Q7 — TWAP under information arrival: does K\* = 1 survive when the market learns during the window?
+
+Q4b's K\*=1 result was derived in a **static-information** model: every private signal exists at t=0, so a manipulator's push enters the posterior and persists (decaying only through honest correction), and the attacker defeats any late window by re-timing the push to the window's opening batch. The hypothesis tested here (raised by the project owner): in realistic decision markets — "will firing the CEO raise the stock?" — information about v keeps arriving *while trading is open*; arriving information should wash out an early push, forcing the manipulator to pay per-batch to *sustain* it across a TWAP window, so windowed averaging should recover value proportional to the arrival rate.
+
+**Model extension.** Same T-batch myopic dynamics and covert uninformed open-loop manipulator as Q4/Q4b, with a fraction φ ∈ {0, ¼, ½, ¾} of a **fixed total fundamental precision Π = 3** (the Q4 reference N=3, σ_ε=1 budget) arriving after batch 1, through one of two channels:
+
+* **(b) Public signal stream** (headline variant — the "live stock price"): at the start of each batch t = 2..T a public observation z_t = v + η_t is released and the MM conditions the price on it (honest traders too); private signals carry the remaining (1−φ)Π. The market's z-innovation z_t − m_{t−1} contains no push, so it is biased *against* any outstanding push — the wash-out channel.
+* **(a) Staggered private signals**: N=4 traders, n_late = φN of their signals arrive spread across batches 2..T (a trader trades nothing until its signal exists); per-round heterogeneous-β myopic equilibrium solved as a linear system with a λ fixed point.
+
+φ=0 reproduces the Q4b model **exactly** (asserted to 10⁻¹²). Push linearity survives (α enters constants only), so the exact D-matrix solver, windowed statistics, and concealed-K machinery carry over; the read rules stay price-only (z enters only through the price — no attribution anywhere). Code: `src/kyle_batch/arrival.py`, sweep `scripts/run_arrival.py`, `results/arrival.json`. Validation: in-solver stationarity ‖∇U‖ < 10⁻⁷; 600-direction perturbation deviation checks; exact BR dominates every named restricted schedule; MC agreement (4 s.e., 4·10⁵ draws) at all 16 (variant, T, φ) cells; total-precision identity and the φ=0 / all-at-batch-1 reductions unit-tested (`tests/test_arrival.py`, 42 tests total).
+
+**The wash-out premise is TRUE — in both variants.** A unit push at batch 1 decays strictly faster the more information arrives (T=8: half-life 1.90 → 1.67 batches for public, 2.02 → 1.62 for staggered as φ goes 0 → ¾; end-of-window residual bias −30% to −45%). The manipulator's re-timing lever is genuinely blunted.
+
+**The conclusion drawn from it is FALSE for the realistic public-stream case — and only conditionally true for the staggered case.** K\*(T, B, φ), damage at the last-batch read, and the baseline cost of full TWAP (covert manipulator's exact best response per cell):
+
+| variant | T | φ | dq₀ (K=1) | damage K=1, B=5 | damage K=1, B=20 | manip cost B=5 | baseline cost K=T | K\* B≤5 | K\* B=10 | K\* B=20 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| public | 4 | 0 | 0.2839 | 0.0032 | 0.0372 | 0.147 | −0.0128 | 1 | 1 | 2 |
+| public | 4 | ¼ | 0.2877 | 0.0020 | 0.0256 | 0.115 | −0.0180 | 1 | 1 | **1** |
+| public | 4 | ½ | 0.2907 | 0.0011 | 0.0154 | 0.086 | −0.0244 | 1 | 1 | **1** |
+| public | 4 | ¾ | 0.2933 | 0.0005 | 0.0069 | 0.055 | −0.0330 | 1 | 1 | **1** |
+| public | 8 | 0 | 0.2906 | 0.0008 | 0.0121 | 0.075 | −0.0083 | 1 | 1 | 1 |
+| public | 8 | ¾ | 0.2944 | 0.0001 | 0.0023 | 0.031 | −0.0288 | 1 | 1 | 1 |
+| staggered | 4 | 0 | 0.2840 | 0.0031 | 0.0361 | 0.145 | −0.0114 | 1 | 1 | 2 |
+| staggered | 4 | ½ | 0.2771 | 0.0061 | 0.0576 | 0.204 | −0.0251 | 1 | 2 | 2 |
+| staggered | 4 | ¾ | 0.2744 | 0.0075 | 0.0653 | 0.226 | −0.0394 | 1 | 1 | 2 |
+| staggered | 8 | 0 | 0.2904 | 0.0008 | 0.0123 | 0.075 | −0.0077 | 1 | 1 | 1 |
+| staggered | 8 | ¼ | 0.2900 | 0.0011 | 0.0150 | 0.084 | −0.0148 | 1 | 1 | 2 |
+| staggered | 8 | ½ | 0.2838 | 0.0034 | 0.0387 | 0.151 | −0.0183 | 1 | **2** | **3** |
+| staggered | 8 | ¾ | 0.2837 | 0.0036 | 0.0405 | 0.156 | −0.0288 | 1 | **2** | **3** |
+
+(Full grid φ×{K=1..T}×B∈{0,½,1,2,5,10,20} in `results/arrival.json`; T=4 K\* at B=10 is non-monotone in φ because the coarse 4-batch grid moves which batch hosts an arrival.)
+
+![arrival](results/fig_arrival.png)
+
+Two opposite regimes, one mechanism:
+
+* **Public arrival HARDENS the last-batch read — K\*=1 everywhere, including the old exception.** Damage at K=1, B=5 falls **7×** (0.0032 → 0.0005 at T=4) as φ → ¾, the statistic bias falls 0.148 → 0.056, and the manipulator *spends less trying* (cost 0.147 → 0.055 — pushing became a worse trade, not a harder-fought one). Meanwhile averaging gets *more* costly at baseline (K=T cost −0.0128 → −0.0330 at T=4): early prices are now missing information that hadn't arrived yet, so a window remembers even staler prices. Both legs move against TWAP, and even Q4b's single K\*>1 cell (T=4, B=20) reverts to K\*=1 for every φ > 0. The wash-out is real but *symmetric* — it protects the last price at least as much as any window, because what it destroys is the persistence the re-timed attack was riding.
+* **Staggered arrival SOFTENS the last-batch read — K\*>1 finally emerges, but only at extreme bounties.** Damage at K=1 *rises* with φ (0.0008 → 0.0036 at T=8, B=5), and K\* climbs to 2 at B=10 and 3 at B=20 for φ ≥ ½ — the first systematic K\*>1 region in this project. The gains are material only at B=20 ≈ 150× a seat's honest profit (+0.021 at T=8, φ=½; at B=10 only +0.005; at B≤5 zero).
+* **Why the sign flips: it is not the arrival *rate* that matters but the arrival *channel* — where the arriving information enters the price.** The cost of buying end-of-window bias is ≈ bias²/λ_T. A public stream feeds the price *around* the order flow: the flow channel starves, λ_T falls (0.054 → 0.024 at T=8, φ=¾), and end-of-window bias becomes expensive. Staggered private signals must still be aggregated *through* the flow: late arrivals keep the flow channel informative, λ_T stays hot (0.054 → 0.144 — a late-arriving trader's aggressive first trades make the MM price late flow steeply), and the last price becomes *cheap* to corrupt. Only then does averaging pay.
+* **The hypothesized sustained-push mechanism does operate — exactly where predicted.** Against a win:2 read at T=8, B=5, the static and public-arrival attackers still re-time (α₇ ≈ +0.63 with an *unwind* α₈ ≈ −0.15; restricted-schedule values: re-time 2.5349 > sustained 2.5279 at φ=½ public), but the staggered-arrival attacker abandons re-timing for a sustained schedule (α₇, α₈ ≈ +0.57, +0.32, no unwind; sustained 2.5789 > re-time 2.5669 at φ=¾) — arriving information does force the manipulator to pay per-batch. It is just that at plausible bounties the per-batch payment is still cheaper than what averaging costs the *honest* baseline.
+* **A settlement buffer beats a settlement window.** The staggered K\*>1 region is driven by fresh private information arriving *at or near the read batch*: with the same φ=½–¾ arrival mass moved 2 batches away from the read (arrivals (1,1,3,6) / (1,2,4,6) instead of (1,1,2,8) / (1,2,5,8), T=8), λ_T falls back to 0.08, damage at K=1 drops ~2.4× (0.039 → 0.020 at B=20), K\* returns to 1 at B=10, and the residual K\*=2 advantage at B=20 shrinks to +0.0015 (from +0.021). Reading a couple of quiet batches after arrivals stop buys nearly everything averaging buys, without averaging's baseline cost.
+* **Concealed window under arrival.** The Q4b extreme-bounty defence (randomize K ∈ {1,2,4} after trading) survives where the last price is fragile: it beats every deterministic window at B=20 for staggered T=4 and ties K\* at staggered T=8 (0.2657 vs 0.2661 at φ=½) — a reasonable robust choice there since K\* itself varies with φ and B. Under public arrival it is dominated by committed K=1 for every φ > ¼ even at B=20 (e.g. 0.2864 vs 0.2747 at T=4, φ=¾): once arrival hardens the last read, concealment has nothing left to protect.
+
+**Verdict.** The Q4b headline — *read the last batch, don't average* — **survives information arrival at all plausible bounties (B ≤ 5 ≈ 37× seat profit: K\*=1 in every cell of both variants), and is *strengthened*, not weakened, by the realistic version of the hypothesis.** The owner's proposed mechanism is real (pushes decay faster; the sustained-push schedule becomes the attacker's best response under staggered arrival) but its conclusion inverts for the public-stream case because wash-out is symmetric between read rules while averaging's staleness cost grows with arrival. The Q4b result is therefore *not* an artifact of static information — what it is scoped to is the *arrival channel*: K\*>1 emerges only when (i) new **private** information keeps entering through the order flow near the read, **and** (ii) bounties are an order of magnitude above seat profits. Corrected design rule: read the last batch; if a live public signal exists, condition the market on it (it is itself a corruption defence — 7× damage reduction at φ=¾); if late private information is expected, prefer a short **settlement buffer** (stop arrivals ≥ 2 batches before the read) or the concealed random window over TWAP averaging; reach for K ≈ 2–3 windows only in the flow-channel-arrival, extreme-bounty corner.
+
+(Caveats: same myopic-equilibrium and open-loop-manipulator scope as Q4/Q4b; the public-stream MM treats z_t as manipulation-free — a manipulator who can also distort the public signal source is a different, worse threat model; the fixed-Π parameterization makes baseline quality rise mechanically with φ in the public variant since the public channel bypasses noisy flow aggregation — the K\* comparison is within-φ, so this does not drive the frontier.)
+
+---
+
 ## Comparison with MANIPULATION.md's CFR findings
 
 | CFR finding (sequential, discrete, tabular, 3 traders) | Kyle-batch analog (continuous, Gaussian, N traders) | Reproduces? |
@@ -267,7 +319,7 @@ Headline threat model is apples-to-apples covert (ρ→0: neither the price rule
 | Manipulation-as-subsidy: transfer holds (77–91% captured in decision markets, 15% single-market), accuracy half fails | Transfer depends on counterparty responsiveness: 81% captured at the AMM (responsive), 7–20% under covert Kyle MM (blind); accuracy half fails smoothly (bias) or not at all (ρ=1) | **Yes, sharpened** — capture share = f(who can respond), CFR's 15%-vs-91% spread explained |
 | Entry never hurts if honest side can answer; floor = information-exclusion (BASE-2) | Entry never hurts at ρ=1 and floor = **BASE-3** (no exclusion); covert entry crosses BASE-2 only at B\* ≈ 54× seat profit (ρ=0.25) and **never** at ρ=0.5 (bias self-saturates) | **Yes, strengthened** |
 | Bribed **last-mover** catastrophic: any bounty → 0.500 < BASE-2, information-free channel | Structurally absent: no seats, MM prices each whole batch; worst known-entry outcome = no-entry baseline | **Yes** (the channel is confirmed to be sequential-only) |
-| **TWAP** kills the last-mover attack, zero baseline cost, slightly worse vs early pushes | TWAP-of-batches: marginal damage reduction, first-order baseline cost, dominated by last-batch at all swept (T,B); resistance comes from T itself. Windowed version (Q4b): late-window averaging buys ~zero damage reduction (pushes persist through the posterior into every window price); K\*=1 for all B ≤ 10; only *randomizing* the window helps, and only at extreme bounties | **No — reversed**; TWAP's value was repairing a sequential defect that batch clearing removes natively |
+| **TWAP** kills the last-mover attack, zero baseline cost, slightly worse vs early pushes | TWAP-of-batches: marginal damage reduction, first-order baseline cost, dominated by last-batch at all swept (T,B); resistance comes from T itself. Windowed version (Q4b): late-window averaging buys ~zero damage reduction (pushes persist through the posterior into every window price); K\*=1 for all B ≤ 10; only *randomizing* the window helps, and only at extreme bounties. Robust to in-window information arrival (Q7): a public signal stream *hardens* K=1 (7× damage cut at φ=¾); K\*>1 needs late private-through-flow arrival AND B ≥ 10 | **No — reversed**; TWAP's value was repairing a sequential defect that batch clearing removes natively |
 | **T2u** type uncertainty: decisions exactly neutral (= known mixture to 4 dp); prices "blurry" — bribed type pools & keeps influence, honest type discounted | Closed form: bias\|bribed = λ(1−ρ)(α_m−α_e), bias\|honest = −λρ(α_m−α_e); honest type partially impersonates (α_e > 0); decisions neutral to first order, second-order loss ≈ 10⁻⁴ at B=1 | **Yes** — "blind → blurry" is general; exact decision-neutrality was grid rounding |
 | Thresholds liquidity-relative ("a few × cost-to-move") | Made exact: damage ∝ (B·q′·λ)², λ = √(cN(...))/σ_u — the noise-budget frontier | **Yes, quantified** |
 
@@ -287,9 +339,10 @@ Headline threat model is apples-to-apples covert (ρ→0: neither the price rule
 ```
 cd mechanism-design/kyle-batch
 python -m venv ../.venv-kyle && ../.venv-kyle/bin/pip install -e .[dev]
-../.venv-kyle/bin/python -m pytest            # 31 tests
+../.venv-kyle/bin/python -m pytest            # 42 tests
 ../.venv-kyle/bin/python scripts/run_sweeps.py all   # ~2 min, writes results/*.json
 ../.venv-kyle/bin/python scripts/run_windowed.py     # Q4b windowed TWAP (~2 s)
 ../.venv-kyle/bin/python scripts/run_subsidy.py      # Q6 subsidy comparison (~3 s)
+../.venv-kyle/bin/python scripts/run_arrival.py      # Q7 information arrival (~5 s)
 ../.venv-kyle/bin/python scripts/make_plots.py       # figures
 ```

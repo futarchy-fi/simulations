@@ -268,6 +268,73 @@ def fig_subsidy():
     print("wrote fig_subsidy.png")
 
 
+def fig_arrival():
+    data = json.loads((RES / "arrival.json").read_text())
+    fig, axes = plt.subplots(1, 3, figsize=(12.8, 3.8), constrained_layout=True)
+    phis = [0.0, 0.25, 0.5, 0.75]
+
+    # (1) wash-out is real: survival of a batch-1 unit push, public stream, T=8
+    ax = axes[0]
+    for i, phi in enumerate(phis):
+        r = next(r for r in data["half_life"]
+                 if r["variant"] == "public" and r["T"] == 8
+                 and r["phi"] == phi)
+        path = np.array(r["bias_path"]) / r["impact"]
+        ax.plot(range(1, 9), path, "-o", color=SERIES[i],
+                label=f"φ={phi:g} (HL {r['half_life_batches']:.2f})")
+    ax.set_yscale("log")
+    ax.set_xlabel("batch t")
+    ax.set_ylabel("price bias / impact (log)")
+    ax.set_title("Batch-1 push decays faster under arrival\n(public stream, T=8)",
+                 loc="left")
+    ax.legend(frameon=False, fontsize=8, title="arrival fraction",
+              title_fontsize=8)
+
+    # (2) the divergence: damage at the LAST-batch read vs phi, B=5
+    ax = axes[1]
+    styles = {4: "-o", 8: "--s"}
+    for i, variant in enumerate(("public", "staggered")):
+        for T in (4, 8):
+            rows = sorted([r for r in data["known_K"]
+                           if r["variant"] == variant and r["T"] == T
+                           and r["K"] == 1 and r["B"] == 5.0],
+                          key=lambda r: r["phi"])
+            ax.plot([r["phi"] for r in rows], [r["damage"] for r in rows],
+                    styles[T], color=SERIES[2 * i],
+                    label=f"{variant}, T={T}")
+    ax.set_xlabel("arrival fraction φ")
+    ax.set_ylabel("damage −ΔDQ at K=1, B=5")
+    ax.set_title("Arrival channel decides who hardens:\nlast-batch read, "
+                 "public ↓ vs staggered ↑", loc="left")
+    ax.legend(frameon=False, fontsize=8)
+
+    # (3) K* frontier vs phi (T=8): flow-channel arrival buys windows,
+    #     public-channel arrival does not
+    ax = axes[2]
+    for i, (variant, B) in enumerate((("staggered", 20.0), ("staggered", 10.0),
+                                      ("staggered", 5.0), ("public", 20.0))):
+        rows = sorted([r for r in data["K_star"]
+                       if r["variant"] == variant and r["T"] == 8
+                       and r["B"] == B], key=lambda r: r["phi"])
+        off = (i - 1.5) * 0.006          # unhide coincident flat lines
+        ax.plot([r["phi"] for r in rows], [r["K_star"] + off for r in rows],
+                "-o" if variant == "staggered" else "--s", color=SERIES[i],
+                label=f"{variant}, B={B:g}")
+    ax.set_yticks([1, 2, 3, 4])
+    ax.set_ylim(0.7, 4.0)
+    ax.set_xlabel("arrival fraction φ")
+    ax.set_ylabel("optimal window K*")
+    ax.set_title("K* frontier: K*>1 needs flow-channel\narrival AND extreme "
+                 "bounties (T=8)", loc="left")
+    ax.legend(frameon=False, fontsize=8, loc="upper left")
+
+    fig.suptitle("Q7 — windowed TWAP under in-window information arrival "
+                 "(fixed total precision Π=3, τ=0.3, covert uninformed "
+                 "open-loop manipulator)", x=0.01, ha="left", fontsize=10.5)
+    fig.savefig(RES / "fig_arrival.png", dpi=160)
+    print("wrote fig_arrival.png")
+
+
 if __name__ == "__main__":
     fig_corruption()
     fig_frontier()
@@ -275,3 +342,4 @@ if __name__ == "__main__":
     fig_twap()
     fig_twap_windowed()
     fig_subsidy()
+    fig_arrival()

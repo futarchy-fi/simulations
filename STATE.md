@@ -1,3 +1,69 @@
+# STATE — twap-info-arrival agent (Q7: TWAP under information arrival)
+
+Branch: `exp/twap-info-arrival` in ~/simulations-twap-info. Merge to origin/main when tested (pre-authorized).
+Venv: `mechanism-design/.venv-kyle/bin/python` (create fresh in THIS worktree — worktrees don't share venvs).
+Never touch ~/simulations or other worktrees.
+
+## Task (owner hypothesis, 2026-07-04)
+Q4b's K*=1 may be an artifact of ZERO info arrival during the window (static model: all signals at t=0,
+push enters posterior and persists -> attacker re-times to window start). With info arriving during
+trading (live stock price), a push should wash out; sustaining it costs per batch -> TWAP may recover value.
+Extend kyle-batch with arrival, re-run windowed-TWAP comparison:
+(a) staggered private signals (trader i's signal arrives at t_i); (b) PRIORITY: public stream z_t = v + eta_t
+each batch, MM conditions on it. Sweep: arrival fraction phi in {0,.25,.5,.75}, B grid, K in 1..T, T in {4,8}.
+Manipulator best-responds (exact open-loop optimum; also report re-time-to-window-start + sustained schedules).
+Read rules: last, win:K, full TWAP, concealed uniform-K from Q4b. Metrics: damage/-dDQ vs manip cost,
+baseline cost per K, push half-life vs phi, K*(phi) frontier. Deliverable: KYLE.md "Q7" section + verdict on
+whether Q4b headline survives / is scoped to static info. Price-only disclosure (no attribution) throughout.
+
+## Design decisions
+- Parameterization: hold TOTAL end-of-window fundamental info fixed at reference (N=3, sig_eps=1 => private
+  precision Pi=3). phi = fraction of Pi arriving via public stream during batches 2..T, spread evenly:
+  private sig_eps^2 = N/((1-phi)Pi); each z_t (t=2..T) precision phi*Pi/(T-1). phi=0 == exact Q4b model.
+- z_t released at START of batch t (before clearing), so p_t reflects z_t. Read rules stay price-only.
+- Push linearity survives (alpha enters constants only) => reuse push-response D-matrix fast solver,
+  stat_weights, concealed-mixture machinery from twap.py. Actual z contains NO push => z-innovation
+  z_t - m_{t-1} is biased AGAINST the push (market overpredicts z) — this is the wash-out channel.
+- Staggered variant (a): N=4, arrival times spread over 2..T for n_late = phi*N traders; per-round
+  heterogeneous-beta myopic fixed point (linear system given lambda, damped iteration on lambda).
+
+## Progress — COMPLETE 2026-07-04
+- [x] Oriented: KYLE.md (esp Q4b), twap.py, decision.py, run_windowed.py, test_windowed.py read
+- [x] venv installed; 31 pre-existing tests green
+- [x] src/kyle_batch/arrival.py — BOTH variants: (b) public stream (obs order y1,z2,y2,...;
+      Mrows/Grows raw-obs functionals) + (a) staggered (per-trader G rows, per-round
+      heterogeneous-beta linear system + lambda fixed point); shared evaluate/push_response/
+      mixture/named-schedule helpers reusing twap fast solver
+- [x] tests/test_arrival.py green (11 tests: phi=0 == Q4b to 1e-12, all-at-1 staggered ==
+      symmetric to 1e-9, precision identity, D-matrix linearity, MC x2, washout monotone,
+      600-dir deviation checks, schedules dominated, concealed consistency); full suite 42/42
+- [x] scripts/run_arrival.py -> results/arrival.json (both variants x T{4,8} x phi{0,.25,.5,.75}
+      x K 1..T x B{0,.5,1,2,5,10,20} + schedules + concealed + buffer sub-sweep + 16 MC checks all 4se)
+- [x] fig_arrival.png (make_plots.fig_arrival, dataviz palette validated); KYLE.md Q7 section +
+      Q4b scope note + CFR row + repro updated
+
+## Findings (Q7)
+1. WASH-OUT PREMISE TRUE: push half-life falls with arrival rate phi in BOTH variants
+   (T=8: 1.90->1.67 public, 2.02->1.62 staggered); staggered attacker switches from re-time
+   to SUSTAINED schedule (the hypothesized mechanism operates).
+2. BUT HYPOTHESIS CONCLUSION INVERTS for public-stream arrival (the realistic "live stock
+   price" case): arrival HARDENS the last-batch read (damage at K=1,B=5 falls 7x at phi=.75;
+   lam_T 0.054->0.024 starves the flow channel) and RAISES averaging's baseline cost
+   (early prices miss not-yet-arrived info). K*=1 EVERYWHERE incl. the old (T=4,B=20)
+   exception. Q4b headline STRENGTHENED, not weakened.
+3. K*>1 emerges ONLY in staggered (private-through-flow) variant at extreme B: K*=2 at B=10,
+   K*=3 at B=20 for phi>=.5 (T=8); late arrivals keep lam_T hot (0.054->0.144) => last price
+   cheap to corrupt. Net gains material only at B=20~150x seat profit (+0.021).
+4. Decisive quantity is NOT arrival rate but arrival CHANNEL (cost of end-window bias
+   ~ b^2/lam_T): public feeds price AROUND flow (lam_T down), staggered THROUGH flow (lam_T up).
+5. SETTLEMENT BUFFER > settlement window: moving arrivals 2 batches off the read batch
+   ((1,1,3,6) vs (1,1,2,8)) cuts K=1 damage 2.4x, restores K*=1 at B=10, shrinks B=20
+   window gain to +0.0015. Concealed-K still the robust extreme-bounty choice where last
+   price is fragile; dominated by committed K=1 under public arrival.
+- [ ] commit, merge to main, push (in progress)
+
+---
+
 # STATE — kyle-batch EXTENSION agent (windowed TWAP + subsidy comparison)
 
 Branch: `kyle-batch-v0` in ~/simulations-kyle (previously merged to main; merge again when tested — owner authorized).

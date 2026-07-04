@@ -6,5 +6,6 @@ Modules:
     onebatch      -- one-batch linear-Gaussian equilibrium machinery (baseline, corruption, entry)
     mc            -- Monte Carlo verification + unilateral-deviation tests
     twap          -- T-batch myopic-lambda dynamics, TWAP vs last-batch decision statistic
+    arrival       -- Q7: in-window information arrival (public stream / staggered signals)
     amm           -- fixed-impact (linearised LMSR) AMM variant
 """
