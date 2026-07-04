@@ -72,6 +72,7 @@ class GaussianEnv:
     """v ~ N(0,1); s_i = v + eps_i; security pays 1{v > 0}."""
 
     exact = False
+    target_bounds = (PRICE_EPS, 1.0 - PRICE_EPS)
 
     def __init__(self, n: int, m: int, sigma_eps: float = 1.0, seed: int = 0):
         self.n = n
@@ -164,11 +165,19 @@ _CONSISTENCY_TOL = 1e-6
 
 
 class GalanisEnv:
-    """3 traders, 1 bit each, X = 1{>=2 bits}; 8 states enumerated exactly."""
+    """3 traders, 1 bit each, X = 1{>=2 bits}; 8 states enumerated exactly.
+
+    ``cap`` bounds every posted quote to [cap, 1-cap] (default 0.1/0.9),
+    mirroring the 9-point tabular grid floor of the galanis-market CFR+
+    results (mechanism-design/MANIPULATION.md), so log-loss and PnL scales
+    are directly comparable (their baseline log err 0.105 = ln(1/0.9)).
+    """
 
     exact = True
 
-    def __init__(self, structure: Structure = None):
+    def __init__(self, structure: Structure = None, cap: float = 0.1):
+        self.cap = cap
+        self.target_bounds = (cap, 1.0 - cap)
         self.structure = structure or STRUCTURES["t3s111y2"]
         self.n = 3
         self.m = 8
@@ -193,13 +202,16 @@ class GalanisEnv:
             return 0.5
         return float((belief_row[mask] * self.payout[mask]).sum() / z)
 
+    def _cap(self, p):
+        return np.clip(p, self.target_bounds[0], self.target_bounds[1])
+
     def honest_target(self, i: int, state: Dict) -> np.ndarray:
         out = np.empty(8)
         for rep in range(8):
             out[rep] = self._target_given_cell(
                 i, self.cells[rep, i], state["belief"][rep]
             )
-        return clip_price(out)
+        return self._cap(out)
 
     def _consistent_mask(
         self, i: int, implied: float, belief_row: np.ndarray
@@ -208,10 +220,12 @@ class GalanisEnv:
         ok_cells = [
             c
             for c in range(self.structure.cells_per_trader)
-            # compare in observable (clipped-price) space: targets of 0/1 are
-            # posted as PRICE_EPS / 1-PRICE_EPS, so clip before matching
+            # compare in observable (capped-price) space: targets of 0/1 are
+            # posted at the cap, so cap before matching; if two cells collide
+            # at the cap both stay consistent (partial revelation, like the
+            # tabular grid floor)
             if abs(
-                float(clip_price(self._target_given_cell(i, c, belief_row)))
+                float(self._cap(self._target_given_cell(i, c, belief_row)))
                 - implied
             )
             < _CONSISTENCY_TOL
@@ -243,7 +257,7 @@ class GalanisEnv:
                 state["belief"][rep] = new / z
 
     def full_info_price(self) -> np.ndarray:
-        return clip_price(self.payout.copy())  # all 3 bits determine X exactly
+        return self._cap(self.payout.copy())  # all 3 bits determine X exactly
 
     def with_trader_order(self, perm) -> "GalanisEnv":
         """Same states, seat k now observes original trader perm[k]'s bit."""

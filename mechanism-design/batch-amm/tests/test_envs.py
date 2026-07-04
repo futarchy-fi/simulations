@@ -85,7 +85,8 @@ def test_galanis_seq_matches_myopic_reference():
     env = GalanisEnv()
     res = run_market(env, Config(mech="seq_lmsr", rounds=1, b=B))
     ref = myopic_final_prices(STRUCTURES["t3s111y2"], num_rounds=3)
-    ref_arr = clip_price(np.array([ref[k] for k in "abcdefgh"]))
+    # quotes are capped to the env's 0.1/0.9 grid-comparable bounds
+    ref_arr = np.clip(np.array([ref[k] for k in "abcdefgh"]), *env.target_bounds)
     assert np.allclose(res["final_price"], ref_arr, atol=1e-9)
 
 

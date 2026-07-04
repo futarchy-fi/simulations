@@ -109,6 +109,14 @@ def run_market(env, cfg: Config) -> Dict[str, np.ndarray]:
       volume (M,N)     — sum |shares| traded.
     """
     n, m, b = env.n, env.m, cfg.b
+    lo, hi = getattr(env, "target_bounds", (PRICE_EPS, 1.0 - PRICE_EPS))
+
+    def cap(t):
+        # all posted quotes respect the env's quote bounds (e.g. the 0.1/0.9
+        # tabular-grid floor in the Galanis env); the market price itself may
+        # exceed them in batch (netted flow of several capped quotes)
+        return np.clip(t, lo, hi)
+
     state = env.make_state()
     p = np.full(m, 0.5)
     cash = np.zeros((m, n))
@@ -126,7 +134,7 @@ def run_market(env, cfg: Config) -> Dict[str, np.ndarray]:
             ts[cfg.manip_seat] = manip_target_lmsr(
                 ts[cfg.manip_seat], b, cfg.bounty
             )
-        return ts
+        return cap(ts)
 
     for r in range(cfg.rounds):
         first = r == 0
@@ -136,9 +144,9 @@ def run_market(env, cfg: Config) -> Dict[str, np.ndarray]:
             for i in range(n):
                 q = env.honest_target(i, state)
                 if cfg.manip_seat == i:
-                    t = manip_target_lmsr(q, b, cfg.bounty)
+                    t = cap(manip_target_lmsr(q, b, cfg.bounty))
                 else:
-                    t = clip_price(q)
+                    t = cap(q)
                 shares = lmsr.shares_to_move(p, t, b)
                 cost = lmsr.cost_to_move(p, t, b)
                 cash[:, i] -= cost
@@ -182,7 +190,8 @@ def run_market(env, cfg: Config) -> Dict[str, np.ndarray]:
             x = scale_k * (ts - p[None, :]) / (2.0 * lam[None, :])
             if cfg.manip_seat is not None:
                 i = cfg.manip_seat
-                x[i] = scale_k * (ts[i] - p + cfg.bounty * lam) / (2.0 * lam)
+                t_m = cap(ts[i] + cfg.bounty * lam)  # implied manip quote, capped
+                x[i] = scale_k * (t_m - p) / (2.0 * lam)
             x_net = x.sum(axis=0)
             p1 = clip_price(p + lam * x_net)
             x_exec_net = (p1 - p) / lam
@@ -197,7 +206,7 @@ def run_market(env, cfg: Config) -> Dict[str, np.ndarray]:
             slip_round += ((pi - p_round_open)[None, :] * x_exec).T
             volume += np.abs(x_exec).T
             implied = p[None, :] + 2.0 * lam[None, :] * x / scale_k
-            env.reveal_batch(clip_price(implied), state, first_time=first)
+            env.reveal_batch(cap(implied), state, first_time=first)
             p = p1
 
         round_prices[r] = p
