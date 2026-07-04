@@ -50,7 +50,11 @@ class Params:
     tau: float = 0.3           # logistic implementation temperature
     B: float = 0.0             # bounty paid to manipulator iff approved
     manip: str = "none"        # "none" | "informed" | "uninformed"
-    rho: float = 1.0           # MM's (and honest traders') prior that manipulator is present
+    rho: float = 1.0           # MM's (and honest traders') prior that the entrant is BRIBED
+    absent: str = "none"       # complementary state w.p. 1-rho:
+                               #   "none"   -> no entrant at all (presence uncertainty; entry T1/T2)
+                               #   "honest" -> entrant present but honest-type (type uncertainty; T2u analog;
+                               #               only sensible with manip="informed")
 
     @property
     def se2(self) -> float:
@@ -73,9 +77,12 @@ class Profile:
     b_m: float
     lam: float
     mu: float     # flow mean subtracted by the MM (belief-weighted)
+    a_e: float = 0.0  # honest-type entrant (only used when Params.absent == "honest")
+    b_e: float = 0.0
 
     def vec(self) -> np.ndarray:
-        return np.array([self.a_h, self.b_h, self.a_m, self.b_m, self.lam, self.mu])
+        return np.array([self.a_h, self.b_h, self.a_m, self.b_m,
+                         self.lam, self.mu, self.a_e, self.b_e])
 
 
 # --------------------------------------------------------------------------
@@ -147,12 +154,17 @@ class Basis:
 
 
 def _flow(bs: Basis, prof: Profile, present: bool):
-    """Net order flow y as an affine object, given actual presence."""
+    """Net order flow y as an affine object.  `present`=True: bribed-type
+    entrant trades (a_m, b_m).  `present`=False: no entrant (absent="none")
+    or an honest-type entrant trading (a_e, b_e) (absent="honest")."""
     p = bs.p
     xs = [Basis.lin(prof.a_h, bs.s(i), prof.b_h) for i in range(p.N)]
     xs.append(bs.u)
-    if present and p.has_manip:
-        xs.append(Basis.lin(prof.a_m, bs.s_m, prof.b_m))
+    if p.has_manip:
+        if present:
+            xs.append(Basis.lin(prof.a_m, bs.s_m, prof.b_m))
+        elif p.absent == "honest":
+            xs.append(Basis.lin(prof.a_e, bs.s_m, prof.b_e))
     return Basis.add(*xs)
 
 
@@ -183,9 +195,25 @@ def honest_br(prof: Profile, p: Params) -> tuple[float, float]:
     rho_v = 1.0 / (1.0 + p.se2)
     rho = p.rho if p.has_manip else 0.0
     lam, mu = prof.lam, prof.mu
-    # E[y_{-i}|s] = (N-1)(a_h + b_h rho_v s) + rho (a_m + b_m rho_v s)
-    a = (mu - (p.N - 1) * prof.a_h - rho * prof.a_m) / 2.0
-    b = (rho_v - lam * rho_v * ((p.N - 1) * prof.b_h + rho * prof.b_m)) / (2.0 * lam)
+    # expected entrant strategy under the type prior
+    a_x = rho * prof.a_m
+    b_x = rho * prof.b_m
+    if p.has_manip and p.absent == "honest":
+        a_x += (1 - rho) * prof.a_e
+        b_x += (1 - rho) * prof.b_e
+    # E[y_{-i}|s] = (N-1)(a_h + b_h rho_v s) + (a_x + b_x rho_v s)
+    a = (mu - (p.N - 1) * prof.a_h - a_x) / 2.0
+    b = (rho_v - lam * rho_v * ((p.N - 1) * prof.b_h + b_x)) / (2.0 * lam)
+    return a, b
+
+
+def entrant_honest_br(prof: Profile, p: Params) -> tuple[float, float]:
+    """Affine best response of the honest-TYPE entrant (trading utility only;
+    knows own type; faces N incumbents and the MM rule)."""
+    rho_v = 1.0 / (1.0 + p.se2)
+    lam, mu = prof.lam, prof.mu
+    a = (mu - p.N * prof.a_h) / 2.0
+    b = (rho_v - lam * rho_v * p.N * prof.b_h) / (2.0 * lam)
     return a, b
 
 
@@ -232,16 +260,21 @@ def solve_equilibrium(p: Params, damping: float = 0.5, tol: float = 1e-11,
         if p.manip == "informed" else baseline(max(p.N, 1), p.sigma_eps, p.sigma_u)
     prof = Profile(a_h=0.0, b_h=ref.beta, a_m=0.0,
                    b_m=ref.beta if p.manip == "informed" else 0.0,
-                   lam=ref.lam, mu=0.0)
+                   lam=ref.lam, mu=0.0,
+                   a_e=0.0, b_e=ref.beta if p.absent == "honest" else 0.0)
     for it in range(max_iter):
         a_h, b_h = honest_br(prof, p)
         if p.has_manip:
             a_m, b_m = manip_br(prof, p)
         else:
             a_m, b_m = 0.0, 0.0
-        tgt = Profile(a_h, b_h, a_m, b_m, prof.lam, prof.mu)
+        if p.has_manip and p.absent == "honest":
+            a_e, b_e = entrant_honest_br(prof, p)
+        else:
+            a_e, b_e = 0.0, 0.0
+        tgt = Profile(a_h, b_h, a_m, b_m, prof.lam, prof.mu, a_e, b_e)
         lam, mu = mm_update(tgt, p)
-        new = Profile(a_h, b_h, a_m, b_m, lam, mu)
+        new = Profile(a_h, b_h, a_m, b_m, lam, mu, a_e, b_e)
         vec_old, vec_new = prof.vec(), new.vec()
         vec = damping * vec_new + (1 - damping) * vec_old
         prof = Profile(*vec)
@@ -287,6 +320,11 @@ def metrics(prof: Profile, p: Params, present: bool) -> dict:
         out["manip_trading_pnl"] = tp
         out["manip_bounty"] = p.B * out["approval_prob"]
         out["manip_total"] = tp + out["manip_bounty"]
+        out["profit_mm"] = -(p.N * out["profit_honest_each"] + tp + noise_profit)
+    elif p.has_manip and p.absent == "honest":
+        x_e = Basis.lin(prof.a_e, bs.s_m, prof.b_e)
+        tp = (bs.cov(x_e, bs.v) - bs.cov(x_e, price) - bs.mean(x_e) * m_p)
+        out["entrant_honest_pnl"] = tp
         out["profit_mm"] = -(p.N * out["profit_honest_each"] + tp + noise_profit)
     else:
         out["profit_mm"] = -(p.N * out["profit_honest_each"] + noise_profit)
@@ -337,7 +375,7 @@ class BayesMM:
         return w * m1 + (1 - w) * m0
 
 
-def bayes_mm_metrics(prof: Profile, p: Params, present: bool, n_gh: int = 400) -> dict:
+def bayes_mm_metrics(prof: Profile, p: Params, present: bool, n_gh: int = 200) -> dict:
     """Decision quality / approval / bias under the exact Bayesian mixture MM,
     for a fixed affine trader profile (honest side frozen; see module docstring).
     1-d Gauss-Legendre over the actual y-distribution."""

@@ -37,10 +37,13 @@ def simulate(prof: Profile, p: Params, present: bool, n: int, seed: int = 0) -> 
     x_h = prof.a_h + prof.b_h * s
     y = x_h.sum(axis=0) + u
     x_m = np.zeros(n)
-    if present and p.has_manip:
+    if p.has_manip:
         s_m = v + rng.standard_normal(n) * p.sigma_eps
-        x_m = prof.a_m + prof.b_m * s_m
-        y = y + x_m
+        if present:
+            x_m = prof.a_m + prof.b_m * s_m
+            y = y + x_m
+        elif p.absent == "honest":
+            y = y + prof.a_e + prof.b_e * s_m
     price = prof.lam * (y - prof.mu)
     q = logistic_q(price, p.tau)
     approve = rng.random(n) < q
@@ -86,9 +89,10 @@ def grid_deviation_mc(prof: Profile, p: Params, role: str, n: int = 400_000,
     x_m = (prof.a_m + prof.b_m * s_m) if p.has_manip else np.zeros(n)
 
     if role == "honest":
-        # honest trader's belief: manipulator present w.p. rho -> simulate presence
+        # honest trader's belief: entrant bribed w.p. rho -> simulate the type
         pres = rng.random(n) < (p.rho if p.has_manip else 0.0)
-        others = x_h_all[1:].sum(axis=0) + u + np.where(pres, x_m, 0.0)
+        x_alt = (prof.a_e + prof.b_e * s_m) if (p.has_manip and p.absent == "honest") else np.zeros(n)
+        others = x_h_all[1:].sum(axis=0) + u + np.where(pres, x_m, x_alt)
         sig = s[0]
         a0, b0 = prof.a_h, prof.b_h
         bounty = 0.0
