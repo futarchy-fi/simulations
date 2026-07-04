@@ -44,7 +44,8 @@ Tier2 = MC deviation test incl. manipulator's nonlinear pointwise best response 
 - [x] 18 tests green (test_baseline, test_corruption, test_twap_amm).
 - [x] sweeps done: results/{baseline,corruption,frontier,entry,twap,amm}.json + 4 figures (dataviz-palette PNGs)
 - [x] KYLE.md complete (model, Q1-Q5, CFR comparison table, limitations, repro)
-- [ ] final: pytest green -> merge kyle-batch-v0 to main, push (IN PROGRESS)
+- [x] final: 18 tests green post-merge; merged origin/main (batch-amm) into branch, resolved STATE.md
+      (stacked both agents); fast-forwarded main to b844252 and pushed. TASK COMPLETE 2026-07-04.
 
 ## Extra findings (beyond the list above, all in KYLE.md)
 6. Frontier quantified: damage ∝ σ_u^{-1.8}, subsidy ∝ σ_u, baseline quality flat. 61x resistance per 10x subsidy at B=2.
