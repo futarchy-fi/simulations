@@ -40,6 +40,23 @@ BATCH-LMSR — each round, every trader simultaneously observes the posted
       single-trader equivalence still holds; N identical targets clear
       exactly AT the target. This is the headline batch arm.
 
+BATCH-LMSR-LIMIT — BATCH-LMSR where every order carries a limit price. Each
+  trader submits (x_i, l_i) with x_i sized exactly as in BATCH-LMSR; a buy
+  fills only if the uniform clearing price pi <= l_i, a sell only if
+  pi >= l_i. Clearing is the uniform-price call auction against the curve
+  (clearing.py): pi is the crossing of phi(D(pi)) with D(pi) the eligible
+  net demand; at a jump the marginal order's limit IS the price and marginal
+  orders fill pro-rata. Honest limits: posterior +/- Config.limit_slack
+  (slack 0 = "never trade past my belief"; slack = inf recovers BATCH-LMSR
+  bit-exactly — unit-tested). Manipulator: same bounty target, order scaled
+  by Config.manip_scale (best-response knob), limit +/-inf (they want
+  fills). Disclosure must be price-only/aggregate — with partial anonymous
+  fills, per-trader attribution is undefined; observers invert the EXECUTED
+  net flow from the price move (unfilled orders are invisible to them):
+  Gaussian keeps the mean-field inversion on t_total_obs =
+  X_exec/(s b) + N logit p; Galanis uses the exact consistency update
+  reveal_batch_anon_limit on X_exec.
+
 BATCH-KYLE — same batch protocol against a linear conditional-expectation
   market maker instead of a curve (bridge case). Posted price p; depth
   matched to the LMSR's local depth: lambda = p(1-p)/b (the LMSR's dp/dq at
@@ -67,6 +84,7 @@ from typing import Dict, Optional
 import numpy as np
 
 from batch_amm import lmsr_np as lmsr
+from batch_amm.clearing import clear_limit_batch
 from batch_amm.envs import PRICE_EPS, clip_price
 
 _LOGIT_MAX = float(lmsr.logit(1.0 - PRICE_EPS))
@@ -85,12 +103,17 @@ def manip_target_lmsr(q: np.ndarray, b: float, bounty: float) -> np.ndarray:
 
 @dataclass
 class Config:
-    mech: str  # "seq_lmsr" | "batch_lmsr" | "batch_kyle"
+    mech: str  # "seq_lmsr" | "batch_lmsr" | "batch_lmsr_limit" | "batch_kyle"
     rounds: int = 1
     b: float = 0.1
     sizing: str = "competitive"  # "full" | "competitive" (batch arms only)
     manip_seat: Optional[int] = None
     bounty: float = 0.0
+    # batch_lmsr_limit only: honest limit = posterior +/- limit_slack
+    # (0 = tight, inf = market orders); manipulator order scaled by
+    # manip_scale (limit stays +/-inf)
+    limit_slack: float = 0.0
+    manip_scale: float = 1.0
     # what traders observe between batch rounds:
     #   "full"      — per-trader orders (attributed)
     #   "aggregate" — clearing price + net flow only (pseudo-anonymous)
@@ -101,9 +124,14 @@ class Config:
     disclosure: str = "full"
 
     def __post_init__(self):
-        assert self.mech in ("seq_lmsr", "batch_lmsr", "batch_kyle")
+        assert self.mech in (
+            "seq_lmsr", "batch_lmsr", "batch_lmsr_limit", "batch_kyle"
+        )
         assert self.sizing in ("full", "competitive")
         assert self.disclosure in ("full", "aggregate", "price")
+        if self.mech == "batch_lmsr_limit":
+            # partial anonymous fills make per-trader attribution undefined
+            assert self.disclosure in ("aggregate", "price")
 
 
 def run_market(env, cfg: Config) -> Dict[str, np.ndarray]:
@@ -115,7 +143,9 @@ def run_market(env, cfg: Config) -> Dict[str, np.ndarray]:
       slip_own (M,N)   — execution cost above the trader's ARRIVAL price
                           (turn-open price in SEQ, posted price in BATCH),
       slip_round (M,N) — execution cost above the ROUND-OPEN price,
-      volume (M,N)     — sum |shares| traded.
+      volume (M,N)     — sum |shares| traded (executed),
+      volume_submitted (M,N) — sum |shares| submitted (differs from volume
+                          only under limit-order drop-outs / cap rationing).
     """
     n, m, b = env.n, env.m, cfg.b
     lo, hi = getattr(env, "target_bounds", (PRICE_EPS, 1.0 - PRICE_EPS))
@@ -134,6 +164,7 @@ def run_market(env, cfg: Config) -> Dict[str, np.ndarray]:
     slip_own = np.zeros((m, n))
     slip_round = np.zeros((m, n))
     volume = np.zeros((m, n))
+    volume_submitted = np.zeros((m, n))
     round_prices = np.zeros((cfg.rounds, m))
 
     def targets_all() -> np.ndarray:
@@ -176,6 +207,7 @@ def run_market(env, cfg: Config) -> Dict[str, np.ndarray]:
                 slip_own[:, i] += cost - p * shares
                 slip_round[:, i] += cost - p_round_open * shares
                 volume[:, i] += np.abs(shares)
+                volume_submitted[:, i] += np.abs(shares)
                 env.reveal(i, t, state, first_time=first)
                 p = t.copy()
 
@@ -201,7 +233,59 @@ def run_market(env, cfg: Config) -> Dict[str, np.ndarray]:
             slip_own += ((pi - p)[None, :] * x_exec).T
             slip_round += ((pi - p_round_open)[None, :] * x_exec).T
             volume += np.abs(x_exec).T
+            volume_submitted += np.abs(x).T
             disclose(ts, first)
+            p = p1
+
+        elif cfg.mech == "batch_lmsr_limit":
+            scale = 1.0 if cfg.sizing == "full" else 1.0 / n
+            ts = targets_all()
+            lp = lmsr.logit(p)
+            x = scale * b * (lmsr.logit(ts) - lp[None, :])  # (N, M)
+            slack = cfg.limit_slack
+            if np.isinf(slack):
+                limits = np.where(x >= 0.0, np.inf, -np.inf)
+            else:
+                # honest limit: never trade past posterior +/- slack
+                limits = np.where(
+                    x >= 0.0,
+                    np.minimum(ts + slack, 1.0),
+                    np.maximum(ts - slack, 0.0),
+                )
+            if cfg.manip_seat is not None:
+                i = cfg.manip_seat
+                x[i] = cfg.manip_scale * x[i]
+                limits[i] = np.where(x[i] >= 0.0, np.inf, -np.inf)
+            res = clear_limit_batch(p, x, limits, b)
+            pi, x_exec, p1 = res["pi"], res["x_exec"], res["p1"]
+            dc = lmsr.cost_to_move(p, p1, b)
+            cash -= (pi[None, :] * x_exec).T
+            holdings += x_exec.T
+            mm_cash += dc
+            slip_own += ((pi - p)[None, :] * x_exec).T
+            slip_round += ((pi - p_round_open)[None, :] * x_exec).T
+            volume += np.abs(x_exec).T
+            volume_submitted += np.abs(x).T
+            # price-only disclosure. With slack=inf and an unscaled (or no)
+            # manipulator, no limit ever binds and the executed flow pins
+            # down the market-order aggregate exactly — share batch_lmsr's
+            # statistic verbatim (keeps the bit-exact equivalence across
+            # rounds). Otherwise observers invert only the EXECUTED net
+            # flow from the price move; unfilled orders are invisible.
+            if np.isinf(slack) and (
+                cfg.manip_seat is None or cfg.manip_scale == 1.0
+            ):
+                disclose(ts, first)
+            else:
+                x_obs = b * (lmsr.logit(p1) - lp)
+                if hasattr(env, "reveal_batch_anon_limit"):
+                    env.reveal_batch_anon_limit(
+                        p, x_obs, state, b, scale, slack, first_time=first
+                    )
+                else:
+                    # mean-field: read X_exec as N fully-filled market orders
+                    t_total_obs = x_obs / (scale * b) + n * lp
+                    env.reveal_batch_anon(t_total_obs, state, first_time=first)
             p = p1
 
         elif cfg.mech == "batch_kyle":
@@ -226,6 +310,7 @@ def run_market(env, cfg: Config) -> Dict[str, np.ndarray]:
             slip_own += ((pi - p)[None, :] * x_exec).T
             slip_round += ((pi - p_round_open)[None, :] * x_exec).T
             volume += np.abs(x_exec).T
+            volume_submitted += np.abs(x).T
             implied = p[None, :] + 2.0 * lam[None, :] * x / scale_k
             disclose(cap(implied), first)
             p = p1
@@ -242,6 +327,7 @@ def run_market(env, cfg: Config) -> Dict[str, np.ndarray]:
         "slip_own": slip_own,
         "slip_round": slip_round,
         "volume": volume,
+        "volume_submitted": volume_submitted,
     }
 
 

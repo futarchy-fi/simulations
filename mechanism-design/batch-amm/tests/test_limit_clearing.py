@@ -10,6 +10,7 @@ marginal orders fill pro-rata (standard uniform-price treatment).
 """
 
 import numpy as np
+import pytest
 
 from batch_amm import lmsr_np as lmsr
 from batch_amm.clearing import avg_price, clear_limit_batch
@@ -181,3 +182,132 @@ def test_price_cap_rationing_conserves_cash():
     f = res["x_exec"][:, 0] / x[:, 0]
     assert np.allclose(f, f[0]) and f[0] < 1.0
     _conserves(p0, res)
+
+
+# --------------------------------------------------------------------------- #
+# engine-level: the batch_lmsr_limit mechanism
+# --------------------------------------------------------------------------- #
+
+from batch_amm.engine import Config, run_market  # noqa: E402
+from batch_amm.envs import GalanisEnv, GaussianEnv  # noqa: E402
+from batch_amm.metrics import summarize  # noqa: E402
+
+
+def _pnl(env, res):
+    return res["holdings"] * env.payout[:, None] + res["cash"]
+
+
+@pytest.mark.parametrize("r", [1, 3])
+@pytest.mark.parametrize("sizing", ["competitive", "full"])
+def test_engine_infinite_slack_reproduces_market_orders_bitexact(r, sizing):
+    env = GaussianEnv(n=5, m=400, sigma_eps=1.0, seed=11)
+    res_m = run_market(
+        env, Config(mech="batch_lmsr", rounds=r, b=B, sizing=sizing,
+                    disclosure="price"))
+    res_l = run_market(
+        env, Config(mech="batch_lmsr_limit", rounds=r, b=B, sizing=sizing,
+                    disclosure="price", limit_slack=np.inf))
+    for key in ("final_price", "round_prices", "cash", "holdings", "mm_cash"):
+        assert np.array_equal(res_m[key], res_l[key]), key
+
+
+def test_engine_infinite_slack_manip_bitexact_galanis():
+    env = GalanisEnv()
+    res_m = run_market(
+        env, Config(mech="batch_lmsr", rounds=3, b=0.01, sizing="competitive",
+                    disclosure="price", manip_seat=0, bounty=0.05))
+    res_l = run_market(
+        env, Config(mech="batch_lmsr_limit", rounds=3, b=0.01,
+                    sizing="competitive", disclosure="price", manip_seat=0,
+                    bounty=0.05, limit_slack=np.inf))
+    for key in ("final_price", "round_prices", "cash", "holdings", "mm_cash"):
+        assert np.array_equal(res_m[key], res_l[key]), key
+
+
+def test_engine_single_trader_never_executes_past_posterior():
+    env = GaussianEnv(n=1, m=800, sigma_eps=1.0, seed=13)
+    posterior = env.honest_target(0, env.make_state())
+    res = run_market(
+        env,
+        Config(mech="batch_lmsr_limit", rounds=1, b=B, limit_slack=0.0,
+               disclosure="price"),
+    )
+    buys = res["holdings"][:, 0] > 0
+    sells = res["holdings"][:, 0] < 0
+    pi_paid = np.where(
+        res["holdings"][:, 0] != 0.0,
+        res["cash"][:, 0] / -np.where(res["holdings"][:, 0] != 0, res["holdings"][:, 0], 1.0),
+        0.5,
+    )
+    assert np.all(pi_paid[buys] <= posterior[buys] + 1e-9)
+    assert np.all(pi_paid[sells] >= posterior[sells] - 1e-9)
+    # alone, phi(full move) never reaches the posterior: full fill at N=1
+    assert np.allclose(res["final_price"], posterior)
+
+
+def test_engine_manip_extreme_limit_fills_fully_under_tight_honest_limits():
+    env = GaussianEnv(n=3, m=500, sigma_eps=1.0, seed=17)
+    cfg = Config(mech="batch_lmsr_limit", rounds=1, b=B, limit_slack=0.0,
+                 disclosure="price", manip_seat=0, bounty=0.5)
+    res = run_market(env, cfg)
+    # the manipulator's +/-inf limit is never the marginal one: full fill
+    # (auction fill; the rare price-cap rationing is the only haircut)
+    sub = res["volume_submitted"][:, 0]
+    got = res["volume"][:, 0]
+    capped = np.isclose(res["final_price"], 1.0 - 1e-4) | np.isclose(
+        res["final_price"], 1e-4
+    )
+    assert np.all(got[~capped] >= sub[~capped] - 1e-12)
+
+
+@pytest.mark.parametrize("slack", [0.0, 0.05, np.inf])
+def test_engine_conservation_and_welfare_identity(slack):
+    env = GaussianEnv(n=5, m=400, sigma_eps=1.0, seed=19)
+    res = run_market(
+        env,
+        Config(mech="batch_lmsr_limit", rounds=3, b=B, limit_slack=slack,
+               disclosure="price"),
+    )
+    s = summarize(env, res)
+    assert s["conservation_maxabs"] < 1e-10
+    # LMSR welfare identity: total trader PnL = b*(ln2 - LL(p_final))
+    pnl_tot = _pnl(env, res).sum(axis=1)
+    pf = np.clip(res["final_price"], 1e-12, 1 - 1e-12)
+    ll = -np.where(env.payout > 0.5, np.log(pf), np.log1p(-pf))
+    np.testing.assert_allclose(pnl_tot, B * (np.log(2.0) - ll), atol=1e-10)
+
+
+def test_engine_seat_invariance_with_manip():
+    env = GaussianEnv(n=4, m=300, sigma_eps=1.0, seed=23)
+    outs = []
+    for seat in (0, 3):
+        perm = [(j - seat) % 4 for j in range(4)]
+        cfg = Config(mech="batch_lmsr_limit", rounds=2, b=B, limit_slack=0.0,
+                     disclosure="price", manip_seat=seat, bounty=0.15)
+        outs.append(run_market(env.with_trader_order(perm), cfg))
+    np.testing.assert_allclose(
+        outs[0]["final_price"], outs[1]["final_price"], atol=1e-12
+    )
+    np.testing.assert_allclose(
+        outs[0]["cash"][:, 0], outs[1]["cash"][:, 3], atol=1e-12
+    )
+
+
+def test_engine_tight_limits_drop_like_minded_fills():
+    """With correlated one-directional flow and slack=0, some honest traders
+    must drop out of the fill (the execution-quality question, Q2)."""
+    env = GaussianEnv(n=10, m=2000, sigma_eps=1.0, seed=29)
+    res = run_market(
+        env,
+        Config(mech="batch_lmsr_limit", rounds=1, b=B, limit_slack=0.0,
+               disclosure="price"),
+    )
+    fill_rate = res["volume"].sum() / res["volume_submitted"].sum()
+    assert fill_rate < 0.999  # strictly some unfilled volume
+    res_inf = run_market(
+        env,
+        Config(mech="batch_lmsr_limit", rounds=1, b=B, limit_slack=np.inf,
+               disclosure="price"),
+    )
+    rate_inf = res_inf["volume"].sum() / res_inf["volume_submitted"].sum()
+    assert rate_inf > fill_rate
