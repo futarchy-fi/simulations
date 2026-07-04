@@ -1,0 +1,33 @@
+core gaussian N=3 R=1 done
+core gaussian N=3 R=2 done
+core gaussian N=3 R=3 done
+core gaussian N=3 R=5 done
+core gaussian N=5 R=1 done
+core gaussian N=5 R=2 done
+core gaussian N=5 R=3 done
+core gaussian N=5 R=5 done
+core gaussian N=10 R=1 done
+core gaussian N=10 R=2 done
+core gaussian N=10 R=3 done
+core gaussian N=10 R=5 done
+core gaussian N=25 R=1 done
+core gaussian N=25 R=2 done
+core gaussian N=25 R=3 done
+core gaussian N=25 R=5 done
+core galanis N=3 R=1 done
+core galanis N=3 R=2 done
+core galanis N=3 R=3 done
+core galanis N=3 R=5 done
+wrote /Users/kas/simulations-limit/mechanism-design/batch-amm/results/limits_core.json
+manip gaussian N=3 R=1 done
+manip gaussian N=3 R=3 done
+manip gaussian N=10 R=1 done
+manip gaussian N=10 R=3 done
+manip galanis N=3 R=1 done
+manip galanis N=3 R=3 done
+wrote /Users/kas/simulations-limit/mechanism-design/batch-amm/results/limits_manip.json
+jam galanis B=0.02 done
+jam galanis B=0.05 done
+jam galanis B=0.2 done
+wrote /Users/kas/simulations-limit/mechanism-design/batch-amm/results/limits_jam.json
+all limit sweeps done in 99.7s
