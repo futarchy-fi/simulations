@@ -38,13 +38,27 @@ Tier2 = MC deviation test incl. manipulator's nonlinear pointwise best response 
 ## Progress
 - [x] Worktree created from origin/main (9e158c5); MANIPULATION.md read.
 - [x] venv installed
-- [ ] scaffold kyle-batch/{src,tests,results}, pyproject
-- [ ] Q1 baseline module + sympy verify + MC + tests
-- [ ] Q2 corruption fixed point + deviation test + sweeps + frontier plot
-- [ ] Q3 entry sweeps
-- [ ] Q4 TWAP multi-round
-- [ ] Q5 AMM brief
-- [ ] KYLE.md, commit/push/merge
+- [x] scaffold + pyproject; core modules: decision.py, closed_forms.py (sympy-verified),
+      onebatch.py (affine Basis machinery, linear+Bayesian MM, T2u absent="honest", AMM mm="fixed"),
+      mc.py (MC + grid + sup deviation tests), twap.py (exact affine multi-round, myopic MM, MC-verified).
+- [x] 18 tests green (test_baseline, test_corruption, test_twap_amm).
+- [ ] sweep scripts + results JSON + frontier plot (NEXT: scripts/run_all.py)
+- [ ] KYLE.md, merge
+
+## Confirmed findings so far (all tested)
+1. NEUTRALIZATION THEOREM (numeric): rho=1 known manipulator, linear MM, affine strategies ->
+   bias exactly 0, b_m=b_h=baseline beta, lambda unchanged, DQ unchanged, manip pays nothing,
+   approval stays 0.5 at ANY B. Subtraction != exclusion (contrast CFR info-deletion).
+   Affine-restriction error (manip nonlinear sup gain): ~0.1% of position value at B=1, ~1% at B=5.
+2. FOC identity: a_m(2-rho) = B E[q'(p)]; covert bias_present = lam(1-rho)a_m, absent = -lam rho a_m.
+   Price bias INCREASES with lam (i.e. with 1/sigma_u) — task's predicted B q'/lam scaling inverted.
+3. T2u analog exact: type uncertainty splits bias +lam(1-rho)(a_m-a_e) bribed / -lam rho(a_m-a_e) honest;
+   symmetric at rho=.5; a_e>0 (honest type partially impersonates). "Blind->blurry" reproduced in closed form.
+4. TWAP (T=4, N=3, covert uninformed pusher): baseline last-price DQ 0.284 > TWAP 0.271 (real baseline cost);
+   corruption bias/DQ-delta similar for both rules at B=2 — TWAP does NOT dominate (reversal of sequential CFR);
+   no last-mover channel in batch (MM prices every batch; pushes decay via honest price-anchored correction).
+5. AMM (fixed kappa=lambda_Kyle): honest counter-trade a_h=-a_m/(N+1); honest profits RISE with B
+   (Hanson transfer works); MM profits from push; DQ degrades smoothly/mildly.
 
 ## Notes
 - Long runs: detached via `run_in_background`, poll (never park).
