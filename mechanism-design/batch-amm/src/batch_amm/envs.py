@@ -42,8 +42,21 @@ Each env exposes:
   make_state()                   — fresh public-belief state for one run
   honest_target(i, state)        — trader i's posterior price (M,)
   reveal(i, implied_target, state, first_time)          — SEQ update
-  reveal_batch(implied_targets, state, first_time)      — BATCH update (N, M)
+  reveal_batch(implied_targets, state, first_time)      — BATCH update, FULL
+                                                           disclosure (N, M)
+  reveal_batch_anon(t_total, state, first_time)         — BATCH update under
+                                                           ANONYMOUS disclosure
   full_info_price()              — posterior given ALL signals (M,)
+
+Disclosure regimes (see Config.disclosure in engine.py): "full" publishes
+per-trader orders between rounds (reveal_batch); "aggregate" publishes only
+the clearing price + net flow, and "price" only the clearing price. Against a
+deterministic AMM the clearing price pins down the net flow exactly (the
+price move is an invertible function of it), so "aggregate" and "price" are
+informationally identical and share reveal_batch_anon; the only knob with
+bite is attribution. Observers under anonymity see T = sum_i logit(implied
+target_i), recoverable from the net flow given the common-knowledge sizing
+rule.
 """
 
 from __future__ import annotations
@@ -52,6 +65,8 @@ import copy
 from typing import Dict, List
 
 import numpy as np
+from scipy.special import expit as _sigmoid
+from scipy.special import logit as _logit
 from scipy.stats import norm
 
 from galanis_market.structures import STATES, STRUCTURES, Structure
@@ -141,6 +156,29 @@ class GaussianEnv:
         )  # inversion uses round-open state; do not mutate until all inverted
         state["pseudo"][:, :] = s_hats
         state["sum"] = state["sum"] + s_hats.sum(axis=1)
+        state["count"] += self.n
+        state["revealed"][:] = True
+
+    def reveal_batch_anon(self, t_total: np.ndarray, state: Dict, first_time: bool) -> None:
+        """ANONYMOUS disclosure: mean-field inversion of the aggregate.
+
+        Observers see only T = sum_i logit(implied target_i). Treat T as N
+        identical "average" traders: q_bar = sigmoid(T/N), invert q_bar into
+        ONE pseudo-signal s_bar against the round-open belief, enter N copies
+        of s_bar into the pool. Each trader's own pool copy is then swapped
+        for their exact signal by honest_target (they know their own order;
+        to first order that subtracts their own contribution from the
+        aggregate). Exact when all signals are equal (unit-tested); the
+        Jensen gap of s -> logit(posterior(s)) is the information anonymity
+        destroys. As with FULL disclosure, only round 1's aggregate is
+        treated as informative.
+        """
+        if not first_time:
+            return
+        q_bar = clip_price(_sigmoid(t_total / self.n))
+        s_bar = self._invert(q_bar, state)
+        state["pseudo"][:, :] = s_bar[:, None]  # each seat holds one s_bar copy
+        state["sum"] = state["sum"] + self.n * s_bar
         state["count"] += self.n
         state["revealed"][:] = True
 
@@ -251,6 +289,40 @@ class GalanisEnv:
             mask = np.ones(8, dtype=bool)
             for i in range(self.n):  # all inverted vs the same round-open belief
                 mask &= self._consistent_mask(i, float(implied_targets[i, rep]), row)
+            new = row * mask
+            z = new.sum()
+            if z > 0:
+                state["belief"][rep] = new / z
+
+    def reveal_batch_anon(self, t_total: np.ndarray, state: Dict, first_time: bool) -> None:
+        """ANONYMOUS disclosure: exact Bayesian update on the aggregate.
+
+        Observers see only T = sum_i logit(capped target_i). Because the state
+        space is discrete, the update is exact: keep the omegas whose honest
+        myopic quote profile (given the round-open belief) predicts the
+        observed T. Anonymity coarsens the round-1 partition from "which
+        trader holds which bit" to "how many bits are set" — which is exactly
+        sufficient for the symmetric payoff X = 1{>=2 bits} (unit-tested).
+        An unexplainable T (manipulation) leaves the belief unchanged, as in
+        the attributed fall-back.
+        """
+        del first_time  # Galanis updates on every round (see module doc)
+        for rep in range(8):
+            row = state["belief"][rep]
+            support = row > 0.0
+            t_pred = np.full(8, np.nan)
+            for w in range(8):
+                if not support[w]:
+                    continue
+                t_pred[w] = sum(
+                    float(
+                        _logit(
+                            self._cap(self._target_given_cell(i, self.cells[w, i], row))
+                        )
+                    )
+                    for i in range(self.n)
+                )
+            mask = support & (np.abs(t_pred - float(t_total[rep])) < 1e-6)
             new = row * mask
             z = new.sum()
             if z > 0:

@@ -26,7 +26,12 @@ manipulation *seat lottery* — including the catastrophic bribed-last-mover of
 `mechanism-design/MANIPULATION.md` phase 2a — is removed by construction. The price paid: with
 non-discounting traders, a given bounty buys price distortion **2.4–4.2× more cheaply** in batch
 (uniform-price fills give the manipulator average-price execution), though worst-case damage is
-capped at the sequential *mean*, far above the sequential *worst seat*.
+capped at the sequential *mean*, far above the sequential *worst seat*. Under the owner's
+pseudo-anonymity constraint (traders see only anonymous aggregates, §9) these conclusions
+survive almost unchanged — anonymity costs ≤ ~0.1% of trader welfare in aggregation (exactly zero
+for symmetric payoffs), needs no extra rounds, and preserves seat-invariance and the damping
+requirement — but it adds one new attack: against strict-consistency belief updating, a single
+inconsistent order can jam the entire anonymous aggregate (denial-of-aggregation).
 
 ---
 
@@ -142,7 +147,8 @@ Log-loss of final price vs realized outcome, and |logit error| vs the full-infor
 * **R ≥ 2 heals it completely** (competitive sizing): round 1's disclosed orders reveal all
   signals, round 2 clears exactly at the shared posterior. Final-price aggregation is then
   *identical* to sequential; only TWAP retains a penalty from the bad first round (N=25 R=3:
-  TWAP LL 0.200 vs 0.139 SEQ).
+  TWAP LL 0.200 vs 0.139 SEQ). This row assumes per-trader order disclosure; see §9 for the
+  pseudo-anonymous version (survives to within ~0.1% of welfare; exactly for Galanis).
 * **Full sizing must not be iterated**: overshoot re-corrections oscillate divergently
   (N=5 R=3: LL 0.94 vs 0.29; Galanis R=3: decision accuracy collapses to 0.25). BATCH-KYLE full
   R=3 is catastrophic (traders lose −153 per market at N=25 to their own oscillation). Any real
@@ -250,7 +256,98 @@ correlated equilibrium caveat as usual). Results (`results/cfr_batch.json`):
   infoset per signal per round; with per-round net-flow disclosure the R>1 game stays small).
   Each CFR+ solve here takes ~1.2 s.
 
-## 9. Limitations
+## 9. Disclosure regimes / pseudo-anonymity
+
+Design constraint (owner): traders must never learn *which trades came from whom* — other traders
+see only anonymous aggregates (an attributed ledger may exist for a separate audit layer). The
+R ≥ 2 recovery result in §5 assumed FULL disclosure of per-trader orders between rounds, so it was
+re-run under three regimes (`Config.disclosure`; sweeps in `results/disclosure.json` and
+`results/disclosure_manip.json`, CRN across regimes; plumbing unit-tested in
+`tests/test_disclosure.py`):
+
+* **full** — per-trader orders published between rounds (§5's assumption);
+* **aggregate** — clearing price + net flow only;
+* **price** — clearing price only.
+
+**Regimes (b) and (c) are identical, provably.** Against a deterministic AMM the clearing price
+pins down the executed net flow exactly (the LMSR price move is an invertible function of it —
+unit-tested), and the net flow pins down the aggregate statistic T = Σ logit(implied target)
+given the common-knowledge sizing rule. Publishing the net flow on top of the price adds zero
+information; the sweeps produce bit-identical runs. The only disclosure knob with bite is
+**attribution**. Note also that a *sequential* market cannot satisfy the constraint at all — each
+trade is attributed by timing — so pseudo-anonymity effectively mandates batch clearing.
+
+Belief model under anonymity (behavioral, documented in `envs.py`): Gaussian traders apply a
+**mean-field inversion** — read the round-1 aggregate as N identical average traders, invert one
+pseudo-signal s̄, hold N copies, swap their own copy for their exact signal (exact when all
+signals coincide; unit-tested). Galanis traders do the **exact Bayesian update on the aggregate**:
+keep states whose honest quote profile predicts the observed T (tractable because discrete). As
+with FULL, only round 1's aggregate is treated as informative.
+
+**Recovery verdict** (honest, damped sizing, R ∈ {2, 3, 5}, M = 20k):
+
+| env | regime | logit err vs full-info | LL vs SEQ (paired) | trader-welfare cost |
+|---|---|---|---|---|
+| Gaussian N=3  | full | 0.000 | −0.000 | 0 |
+| Gaussian N=3  | aggregate/price | 0.114 | +0.0005 ±0.0005 | −0.00005 (0.15%) |
+| Gaussian N=10 | aggregate/price | 0.178 | +0.0006 ±0.0005 | −0.00006 (0.13%) |
+| Gaussian N=25 | aggregate/price | 0.158 | +0.0004 ±0.0005 | −0.00004 (0.07%) |
+| Galanis       | aggregate/price | **0.000** | **+0.0000 (exact)** | **0 (exact)** |
+
+Two findings. (i) **Gaussian: the recovery survives almost entirely, but the residual gap is
+permanent, not payable in rounds** — R = 2, 3 and 5 give *identical* results to six decimals (the
+model extracts information only from the round-1 aggregate; later flows are re-equilibration).
+The plateau is a small logit error (0.11–0.18, the Jensen gap of the mean-field inversion) whose
+welfare/log-loss cost is at the edge of detectability (~0.1% of trader profits). So the
+rounds-cost of anonymity is: zero extra rounds for ~99.9% of the value, and *no* number of rounds
+recovers the last ~0.1% (under myopic play; a more sophisticated updater could mine later-round
+flows). (ii) **Galanis: anonymity costs exactly nothing.** The round-1 aggregate reveals the
+*bit-count*, which is sufficient for the symmetric payoff X = 1{≥2 bits}; R = 2 anonymous equals
+R = 2 full exactly (LL 0.1054, acc 1.000 — unit-tested). Attribution only matters when the payoff
+is asymmetric in who holds which signal — a useful test for whether a given market needs
+attributed feeds at all.
+
+**Manipulation under anonymity** (bounty sweep re-run under (b), R = 3, batch-competitive):
+
+| env | bounty | Δp_final: full → anon | manip market PnL: full → anon | decision acc: full → anon |
+|---|---|---|---|---|
+| Gaussian N=3 | 0.50 | +0.275 → +0.242 | −0.0219 → −0.0275 | 0.648 → 0.697 |
+| Gaussian N=10 | 0.50 | +0.089 → +0.087 | −0.0012 → −0.0013 | 0.875 → 0.877 |
+| Galanis | 0.02 | +0.134 → +0.113 | +0.0005 → −0.0008 | 0.750 → **0.625** |
+| Galanis | 0.20 | +0.256 → +0.166 | −0.0036 → −0.0033 | 0.750 → **0.500** |
+
+Opposite signs in the two environments, and the mechanism is instructive:
+
+* **Gaussian: anonymity mildly *dampens* manipulation** (distortion −12%, manipulator cost +25%
+  at B = 0.5, N = 3; negligible by N = 10). The soft mean-field inversion spreads the poisoned
+  aggregate across N pseudo-copies and every honest trader swaps one copy out for their exact
+  signal — the poison is diluted rather than credited in full to a fictitious informant.
+* **Galanis: anonymity is *worse* — the manipulator can jam the channel.** Under attribution the
+  manipulator's inconsistent order is discarded *individually* and everyone else's information
+  still flows: the R = 3 correction restores the 0.750 floor at every bounty. Under anonymity the
+  *whole aggregate* becomes unexplainable, the strict-consistency update rejects it, and **no
+  information flows at all**: R = 3 anonymous damage collapses to the R = 1 numbers (acc 0.625 at
+  B = 0.02, 0.500 at B = 0.20 — below the attributed floor, at *lower* manipulator cost). One
+  distorted order converts a price manipulation into a **denial-of-aggregation attack**.
+  Anonymous aggregates are a single point of failure for strict-consistency inference; soft
+  (regression-style) updates, per-participant net caps, or an audit layer that can selectively
+  de-anonymize are the natural mitigations.
+
+Robustness of earlier findings under (b)/(c): batch seat-invariance holds exactly (0 violations at
+1e−9 across the full manipulation grid, manipulator rotated through seats with fixed draws; also
+unit-tested), and the full-sizing oscillation/divergence is unchanged (per-round |logit p|
+profiles match the FULL regime) — **damping is still required**; anonymity neither causes nor
+cures it.
+
+Honest caveat: our myopic traders never discounted anyone even under FULL disclosure, so
+anonymity's classical defensive cost — honest traders can no longer *condition on the
+manipulator's orders* — does not bind in this behavioral model; what is measured is the
+inversion-mechanics channel only. At the equilibrium level that cost is real and is bounded by
+MANIPULATION.md's phase-2c covert-manipulator results (type uncertainty converts "blind in the
+bribed states" into "blurry in all pivotal states"); an anonymous pool is the everyone-unknown
+limit of that setting.
+
+## 10. Limitations
 
 * **Myopic-Bayes traders, no discounting of manipulators.** The main sweeps are behavioral: honest
   traders never suspect anyone. Equilibrium honest play (MANIPULATION.md, and §8) discounts
@@ -271,11 +368,21 @@ correlated equilibrium caveat as usual). Results (`results/cfr_batch.json`):
 * Bounty is common knowledge to no one (honest traders can't react) — the opposite pole from
   MANIPULATION.md's common-knowledge equilibria; reality is between (its phase 2c).
 * TWAP here averages round-end prices (R points), so R=1 TWAP = final price.
+* **Anonymity model extracts information from the round-1 aggregate only** (mean-field inversion
+  for Gaussian, exact aggregate-consistency for Galanis). A rational updater could mine
+  later-round net flows for residual information (Ostrovsky-style iterated revelation), so the
+  §9 "permanent plateau" is an upper bound on anonymity's aggregation cost for the Gaussian env,
+  and the jamming result assumes strict-consistency updating.
 
-## 10. Implications for the proposal-poker engine and bayes-market
+## 11. Implications for the proposal-poker engine and bayes-market
 
 Both engines currently run sequential-ish protocols (turn-taking quotes against a curve /
-arrival-ordered fills). What switching to per-round batch clearing would buy:
+arrival-ordered fills). Under the owner's pseudo-anonymity constraint (traders see only anonymous
+aggregates; §9), **sequential protocols are ruled out outright** — a public tape attributes every
+trade by timing — so the practical question is not "batch vs sequential" but "how to batch".
+**Recommended default: BATCH-LMSR, damped (competitive) sizing, R ≥ 2 rounds, aggregate
+disclosure (regime b — equivalently just publish the clearing price), soft aggregate-inversion
+beliefs, plus per-participant net caps.** What this buys and costs:
 
 1. **Kills the decision-reading attack surface at its worst point.** MANIPULATION.md phase 2a
    showed *any* bribed last mover — even uninformed — breaks a final-price decision rule
@@ -292,18 +399,26 @@ arrival-ordered fills). What switching to per-round batch clearing would buy:
    price by the cost-function identity; at matched b and matched information, batch saves the
    *traders as a group* nothing. The honest pitch is per-trader execution (2–4× better shortfall
    vs arrival, §4) and fairness, not subsidy savings.
-4. **Budget at least two batch rounds (or richer bids).** One-shot batch aggregates markedly worse
-   (logit err grows ~log N); with a disclosure step between rounds, round 2 recovers sequential
-   accuracy exactly. If rounds are expensive (LLM calls), consider bids that carry more than a
-   point order — e.g. demand schedules — which is the natural next mechanism to test.
-5. **Watch the cheap-manipulation flank.** Uniform-price fills subsidize small pushes (2.4–4.2×
-   cheaper per unit distortion; sometimes profitable outright under non-discounting traders). If
-   the engine's traders are naive LLM agents rather than equilibrium discounters, batch trades a
-   rare catastrophic failure for a chronic cheap one. Mitigations to test: per-participant net
-   caps, adaptive b, disclosure of per-seat net positions.
+4. **Budget at least two batch rounds (or richer bids) — and anonymity barely changes the bill.**
+   One-shot batch aggregates markedly worse (logit err grows ~log N); with any disclosure step
+   between rounds, round 2 recovers sequential accuracy exactly under attribution and to within
+   ~0.1% of trader welfare under anonymity (exactly, for symmetric payoffs like majority — §9).
+   No extra rounds are needed for anonymity, and none help past round 2. If rounds are expensive
+   (LLM calls), consider bids that carry more than a point order — e.g. demand schedules — the
+   natural next mechanism to test.
+5. **Watch the cheap-manipulation flank — and, under anonymity, the jamming flank.**
+   Uniform-price fills subsidize small pushes (2.4–4.2× cheaper per unit distortion; sometimes
+   profitable outright under non-discounting traders). Anonymity adds a second cheap attack:
+   where belief-updating is strict/consistency-based, one inconsistent order poisons the whole
+   unattributable aggregate and blocks aggregation entirely (Galanis: R=3 floor 0.750 → 0.500,
+   §9). Mitigations to test: per-participant net caps, adaptive b, *soft* aggregate inversion
+   (the Gaussian-style updater was mildly manipulation-dampening), and an audit layer with
+   selective de-anonymization as deterrent.
 6. **Auditability scales.** Batch games are exponentially smaller to solve (6 vs 182 infosets at
    N=3, R=1) — equilibrium-checking a production mechanism (the kind of audit MANIPULATION.md
-   does) stays tractable at larger N only in the batch design.
+   does) stays tractable at larger N only in the batch design. Anonymity helps here too: the
+   anonymous-aggregate game has coarser public histories (net flow instead of order profiles),
+   keeping R>1 solves small.
 
 ## Reproduction
 
@@ -311,13 +426,15 @@ arrival-ordered fills). What switching to per-round batch clearing would buy:
 cd mechanism-design
 python3.11 -m venv .venv-batch && .venv-batch/bin/pip install numpy scipy pytest
 .venv-batch/bin/pip install -e galanis-market --no-deps -e batch-amm
-.venv-batch/bin/python -m pytest batch-amm/tests -q          # 28 tests
+.venv-batch/bin/python -m pytest batch-amm/tests -q          # 36 tests
 .venv-batch/bin/python batch-amm/scripts/run_sweeps.py       # ~40 s, writes results/*.json
+.venv-batch/bin/python batch-amm/scripts/run_disclosure.py   # ~6 s, disclosure-regime sweeps
 .venv-batch/bin/python batch-amm/scripts/cfr_batch.py        # ~4 s, writes results/cfr_batch.json
 ```
 
 Raw results: `results/core.json` (honest sweeps + paired diffs), `results/manip.json`
 (bounty × seat sweeps), `results/seats.json` (rotation-averaged seat PnL),
+`results/disclosure.json` / `results/disclosure_manip.json` (pseudo-anonymity sweeps, §9),
 `results/cfr_batch.json` (equilibrium check). Sim engine: `src/batch_amm/engine.py`
 (mechanism definitions in the module docstring), `src/batch_amm/envs.py` (environments and the
-belief/inversion model).
+belief/inversion model, incl. the anonymous-aggregate updaters).
