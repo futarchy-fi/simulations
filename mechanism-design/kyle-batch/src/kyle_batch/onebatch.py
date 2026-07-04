@@ -240,10 +240,48 @@ def _manip_utility(a: float, b: float, prof: Profile, p: Params) -> float:
     return trading + p.B * E_q(m_p, np.sqrt(max(var_p, 0.0)), p.tau)
 
 
-def manip_br(prof: Profile, p: Params) -> tuple[float, float]:
-    """Affine best response of the manipulator (numerical)."""
-    informed = p.manip == "informed"
+def _manip_grad(a: float, b: float, prof: Profile, p: Params) -> tuple[float, float]:
+    """Exact gradient of the manipulator's expected utility wrt (a, b):
+        dU/da = -2 lam a + lam (mu - N a_h) + B lam E[q'(p)]
+        dU/db = 1 - 2 lam b (1+se2) - lam b_h N + B lam Cov(s_m,p)/sd_p E[q'(p) z]
+    (Gauss-Hermite for the q' expectations)."""
+    from .decision import _gh_x, _gh_w, logistic_qprime
+    lam, mu = prof.lam, prof.mu
+    N, se2, su2 = p.N, p.se2, p.su2
+    a_h, b_h = prof.a_h, prof.b_h
+    m_p = lam * (a + N * a_h - mu)
+    S = b * b * (1 + se2) + 2 * b * b_h * N + b_h**2 * (N * N + N * se2) + su2
+    sd_p = lam * np.sqrt(max(S, 1e-300))
+    qp = logistic_qprime(m_p + sd_p * _gh_x, p.tau)
+    E_qp = float(np.sum(_gh_w * qp))
+    E_qp_z = float(np.sum(_gh_w * _gh_x * qp))
+    g_a = -2 * lam * a + lam * (mu - N * a_h) + p.B * lam * E_qp
+    cov_sp = lam * (b * (1 + se2) + b_h * N)
+    g_b = (1 - 2 * lam * b * (1 + se2) - lam * b_h * N
+           + p.B * lam * cov_sp / max(sd_p, 1e-300) * E_qp_z)
+    return g_a, g_b
 
+
+def manip_br(prof: Profile, p: Params) -> tuple[float, float]:
+    """Affine best response of the manipulator: exact-gradient root finding
+    (falls back to Nelder-Mead on failure; concavity is verified globally by
+    the sup-deviation test in mc.py)."""
+    informed = p.manip == "informed"
+    if informed:
+        sol = optimize.root(
+            lambda th: _manip_grad(th[0], th[1], prof, p),
+            np.array([prof.a_m, prof.b_m]), method="hybr", tol=1e-13)
+        if sol.success:
+            return float(sol.x[0]), float(sol.x[1])
+    else:
+        try:
+            a = optimize.brentq(
+                lambda aa: _manip_grad(aa, 0.0, prof, p)[0], -100.0, 100.0,
+                xtol=1e-14)
+            return float(a), 0.0
+        except ValueError:
+            pass
+    # fallback
     def neg(theta):
         a = theta[0]
         b = theta[1] if informed else 0.0
@@ -251,7 +289,7 @@ def manip_br(prof: Profile, p: Params) -> tuple[float, float]:
 
     x0 = [prof.a_m] + ([prof.b_m] if informed else [])
     res = optimize.minimize(neg, np.array(x0), method="Nelder-Mead",
-                            options={"xatol": 1e-12, "fatol": 1e-14, "maxiter": 4000})
+                            options={"xatol": 1e-13, "fatol": 1e-15, "maxiter": 4000})
     a = float(res.x[0])
     b = float(res.x[1]) if informed else 0.0
     return a, b
@@ -439,21 +477,28 @@ def _bayes_manip_utility(a: float, prof_eq: Profile, p: Params, n_gh: int = 200)
 
 
 def bayes_manip_fixed_point(p: Params, prof_lin: Profile,
-                            tol: float = 1e-9, max_iter: int = 200) -> Profile:
+                            tol: float = 1e-7, max_iter: int = 400) -> tuple[Profile, dict]:
     """Manipulator's intercept best response against the exact Bayesian
     mixture MM, iterated to a fixed point.  Honest strategies and the
     manipulator's signal slope are frozen at the linear-MM equilibrium
-    (stated approximation).  Returns the profile with the converged a_m;
-    price function is BayesMM(returned_profile, p)."""
+    (stated approximation).  Returns (profile, info); info["residual"] is the
+    final |BR(a) - a| -- sharp detection can produce best-response cycles
+    (no pure intercept fixed point); in that case the damped iteration
+    converges to the cycle's centre and the residual is reported."""
     prof = Profile(prof_lin.a_h, prof_lin.b_h, prof_lin.a_m, prof_lin.b_m,
                    prof_lin.lam, prof_lin.mu, prof_lin.a_e, prof_lin.b_e)
-    for _ in range(max_iter):
+    damp = 0.5
+    residual = np.inf
+    for it in range(max_iter):
         res = optimize.minimize_scalar(
             lambda a: -_bayes_manip_utility(a, prof, p),
             bounds=(-50.0, 50.0), method="bounded", options={"xatol": 1e-10})
         a_new = float(res.x)
-        if abs(a_new - prof.a_m) < tol:
+        residual = abs(a_new - prof.a_m)
+        if residual < tol:
             prof.a_m = a_new
-            return prof
-        prof.a_m = 0.5 * prof.a_m + 0.5 * a_new
-    raise RuntimeError("bayes manipulator fixed point did not converge")
+            return prof, {"converged": True, "residual": residual, "iters": it}
+        if it > 100:
+            damp = 0.9
+        prof.a_m = damp * prof.a_m + (1 - damp) * a_new
+    return prof, {"converged": False, "residual": residual, "iters": max_iter}
