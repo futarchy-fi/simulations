@@ -42,8 +42,19 @@ Tier2 = MC deviation test incl. manipulator's nonlinear pointwise best response 
       onebatch.py (affine Basis machinery, linear+Bayesian MM, T2u absent="honest", AMM mm="fixed"),
       mc.py (MC + grid + sup deviation tests), twap.py (exact affine multi-round, myopic MM, MC-verified).
 - [x] 18 tests green (test_baseline, test_corruption, test_twap_amm).
-- [ ] sweep scripts + results JSON + frontier plot (NEXT: scripts/run_all.py)
-- [ ] KYLE.md, merge
+- [x] sweeps done: results/{baseline,corruption,frontier,entry,twap,amm}.json + 4 figures (dataviz-palette PNGs)
+- [x] KYLE.md complete (model, Q1-Q5, CFR comparison table, limitations, repro)
+- [ ] final: pytest green -> merge kyle-batch-v0 to main, push (IN PROGRESS)
+
+## Extra findings (beyond the list above, all in KYLE.md)
+6. Frontier quantified: damage ∝ σ_u^{-1.8}, subsidy ∝ σ_u, baseline quality flat. 61x resistance per 10x subsidy at B=2.
+7. Bayesian mixture MM ≈ linear MM (detection doesn't rescue thin markets; slightly WORSE DQ from curvature).
+8. Entry: rho=1 informed entry pinned at BASE-3 for all B (floor strengthened vs CFR BASE-2);
+   rho=0.25 crosses BASE-2 at B*≈7.3 (54x seat profit); rho=0.5 NEVER crosses (bias saturates ≈0.40
+   via MM mixture-variance -> lambda collapse, self-limiting).
+9. TWAP verdict: REVERSED vs CFR — last-batch dominates TWAP at all swept (T,B); T itself is the defense (30x damage cut T=1->8).
+10. AMM: honest capture 81% of manip losses (Hanson transfer works vs responsive counterparties;
+    covert Kyle MM only 7-20%); batch-netted curve >> sequential CFMM robustness (path dependence killed).
 
 ## Confirmed findings so far (all tested)
 1. NEUTRALIZATION THEOREM (numeric): rho=1 known manipulator, linear MM, affine strategies ->
