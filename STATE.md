@@ -45,10 +45,27 @@ docs/superpowers/plans/2026-07-04-limit-orders.md (tasks 1-6).
 ## Progress
 - [x] Oriented: BATCH.md, engine.py, envs.py, metrics.py, tests, run_sweeps.py, run_disclosure.py read
 - [x] STATE.md + plan written
-- [ ] venv created, 36 pre-existing tests green
-- [ ] Task 1: clearing.py + tests (incl. bit-exact market equivalence, single-trader limit bound)
-- [ ] Task 2: engine.py batch_lmsr_limit branch + tests
-- [ ] Task 3: envs.py Galanis anon-limit updater + jam counter + tests
-- [ ] Task 4: scripts/run_limits.py sweeps -> results/limits*.json (nohup, poll log)
-- [ ] Task 5: BATCH.md §12 + Reproduction update
-- [ ] Task 6: full test suite, commit, merge to origin/main, push
+- [x] venv healthy, 36 pre-existing tests green
+- [x] Task 1: clearing.py + tests — committed 0790ecc
+- [x] Task 2: engine.py batch_lmsr_limit branch + tests (bit-exact at slack=inf incl. manip;
+      single-trader posterior bound; seat invariance; welfare identity) — committed 1559cac
+- [x] Task 3: envs.py reveal_batch_anon_limit + jams counter (also in reveal_batch_anon);
+      run_market returns "jams"; 61 tests green — committed
+- [x] Task 4: run_limits.py + full M=20000 run (100s) -> results/limits_{core,manip,jam}.json.
+      Found + fixed latent base-engine bug: alpha = X_exec/X blew up on exact-cancellation nets
+      (|X|<1e-14 guard in engine.py AND clearing.py, identical arithmetic keeps bit-exactness;
+      changes published Galanis R=3 manip PnL by <=9%, noted in §12; regression test added)
+- [x] Task 5: BATCH.md §12 written, all quoted numbers verified against JSONs; verdict pointer
+      added to top paragraph; Reproduction block updated (62 tests, run_limits.py line)
+- [ ] Task 6: full test suite (62 green), commit, merge to origin/main, push
+
+## Results summary (for §12; full numbers in results/limits_*.json)
+- Q1: 2.4-4.2x manip discount SURVIVES (gamma=1: c/dp 0.067 vs seq 0.165-0.284, every slack);
+  gamma best-response (3-5x) doubles distortion at c/dp still < seq last seat; N=10 profitable.
+- Q2: 2.2-4.1x execution advantage SURVIVES, ticks up to 2.3-4.3x; fill 97.6-99%; welfare cost
+  0.0004-0.0006/market (~1-2% of profits) via slightly worse R=1 price.
+- Q3: no extra rounds (R=2 heals at every slack); fixed-R accuracy does not degrade (R>=2 tight
+  limits even shave the anonymity plateau, N=25 err 0.158->0.107); Galanis exact identical.
+- Q4: jam unchanged for a funded manipulator (fills at inf limit; same jams/acc at all slacks);
+  structural narrowing only: unfillable inconsistent orders can no longer jam (no-fill leaves
+  X_exec honest/explainable — honest runs jam 0).
