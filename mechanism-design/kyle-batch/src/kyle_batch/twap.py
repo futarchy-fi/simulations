@@ -171,13 +171,30 @@ def actual_pass(dyn: dict, alphas: np.ndarray) -> dict:
     return {"y": y_act, "prices": prices}
 
 
-def statistic_aff(dyn: dict, prices: list, statistic: str):
-    T = dyn["p"].T
+def stat_weights(T: int, statistic: str) -> np.ndarray:
+    """Weight vector w over batch prices: statistic = sum_t w_t p_t.
+
+    "last"    -> e_T                     (K = 1)
+    "twap"    -> uniform 1/T             (K = T)
+    "win:K"   -> mean of the LAST K batch prices (windowed TWAP; K <= T)
+    """
+    w = np.zeros(T)
     if statistic == "twap":
-        return sum(prices, dyn["A"].zero()) / T
+        w[:] = 1.0 / T
     elif statistic == "last":
-        return prices[-1]
-    raise ValueError(statistic)
+        w[-1] = 1.0
+    elif statistic.startswith("win:"):
+        K = int(statistic.split(":")[1])
+        assert 1 <= K <= T, (K, T)
+        w[T - K:] = 1.0 / K
+    else:
+        raise ValueError(statistic)
+    return w
+
+
+def statistic_aff(dyn: dict, prices: list, statistic: str):
+    w = stat_weights(dyn["p"].T, statistic)
+    return sum((w[t] * prices[t] for t in range(dyn["p"].T)), dyn["A"].zero())
 
 
 def evaluate(dyn: dict, alphas: np.ndarray, statistic: str) -> dict:
@@ -219,6 +236,95 @@ def solve_manipulator(dyn: dict, B: float, statistic: str) -> np.ndarray:
     return res.x
 
 
+# --------------------------------------------------------------------------
+# fast exact solver via the push-response matrix (windowed / concealed K)
+# --------------------------------------------------------------------------
+
+def push_response(dyn: dict) -> dict:
+    """Everything the manipulator's open-loop problem needs, precomputed.
+
+    Price means are LINEAR in the push vector (alpha enters the affine
+    propagation through constants only): bias_t = (D @ alpha)_t with
+    D[t, r] = E[p_t | alpha = e_r]; all covariances are alpha-independent.
+    Hence for any statistic P = w'p:
+        E[P] = w'D alpha,  sd(P), Cov(v, P) fixed,
+        manip trading pnl = -alpha' D alpha,
+        U(alpha) = -alpha'D alpha + B * E_q(w'D alpha, sd_P).
+    Verified against `evaluate` (full affine propagation) in tests.
+    """
+    p: TwapParams = dyn["p"]
+    T = p.T
+    A: _Aff = dyn["A"]
+    D = np.zeros((T, T))
+    for r in range(T):
+        e = np.zeros(T)
+        e[r] = 1.0
+        act = actual_pass(dyn, e)
+        D[:, r] = [A.mean(pr) for pr in act["prices"]]
+    prices0 = actual_pass(dyn, np.zeros(T))["prices"]
+    cov_pp = np.array([[A.cov(prices0[i], prices0[j]) for j in range(T)]
+                       for i in range(T)])
+    cov_vp = np.array([A.cov(dyn["v"], prices0[t]) for t in range(T)])
+    return {"p": p, "D": D, "cov_pp": cov_pp, "cov_vp": cov_vp}
+
+
+def _stat_moments(pr: dict, w: np.ndarray) -> tuple[float, float]:
+    """(sd_P, cov_vP) for statistic weights w (alpha-independent)."""
+    sd = float(np.sqrt(w @ pr["cov_pp"] @ w))
+    return sd, float(pr["cov_vp"] @ w)
+
+
+def solve_manipulator_fast(pr: dict, B: float, statistics: list[str],
+                           probs: list[float] | None = None) -> np.ndarray:
+    """Open-loop optimal pushes when the settlement statistic is drawn from
+    `statistics` with probabilities `probs` AFTER trading (concealed window);
+    a single statistic = the known-K case.  Exact objective and gradient:
+
+        U(alpha) = -alpha'D alpha + B sum_k pi_k E_q(w_k'D alpha, sd_k)
+        grad U   = -(D + D')alpha + B sum_k pi_k E[q'](m_k, sd_k) D'w_k
+    """
+    from .decision import E_qprime
+    p: TwapParams = pr["p"]
+    T, D = p.T, pr["D"]
+    ws = [stat_weights(T, s) for s in statistics]
+    pis = np.full(len(ws), 1.0 / len(ws)) if probs is None else np.asarray(probs)
+    sds = [_stat_moments(pr, w)[0] for w in ws]
+
+    def negU_and_grad(alpha):
+        Da = D @ alpha
+        U = -alpha @ Da
+        g = -(D + D.T) @ alpha
+        for w, pi, sd in zip(ws, pis, sds):
+            m = float(w @ Da)
+            U += B * pi * E_q(m, sd, p.tau)
+            g = g + B * pi * E_qprime(m, sd, p.tau) * (D.T @ w)
+        return -U, -g
+
+    best = None
+    for x0 in (np.zeros(T), np.full(T, 0.1)):
+        res = optimize.minimize(negU_and_grad, x0, jac=True, method="BFGS",
+                                options={"gtol": 1e-12, "maxiter": 2000})
+        if best is None or res.fun < best.fun:
+            best = res
+    assert np.linalg.norm(best.jac) < 1e-7, ("gradient not stationary", best.jac)
+    return best.x
+
+
+def evaluate_mixture(dyn: dict, alphas: np.ndarray, statistics: list[str],
+                     B: float, probs: list[float] | None = None) -> dict:
+    """Realized metrics when K is drawn after trading: per-statistic metrics
+    (via the exact affine `evaluate`) plus the probability mixture."""
+    pis = (np.full(len(statistics), 1.0 / len(statistics)) if probs is None
+           else np.asarray(probs))
+    per = {s: evaluate(dyn, alphas, s) for s in statistics}
+    dq = float(sum(pi * per[s]["decision_quality"] for s, pi in zip(statistics, pis)))
+    ap = float(sum(pi * per[s]["approval_prob"] for s, pi in zip(statistics, pis)))
+    trading = per[statistics[0]]["manip_trading_pnl"]  # statistic-independent
+    return {"per_statistic": per, "decision_quality_mix": dq,
+            "approval_prob_mix": ap, "manip_trading_pnl": trading,
+            "manip_total": trading + B * ap}
+
+
 def mc_check(dyn: dict, alphas: np.ndarray, statistic: str,
              n: int = 400_000, seed: int = 3) -> dict:
     """Monte Carlo verification of the affine propagation."""
@@ -237,7 +343,7 @@ def mc_check(dyn: dict, alphas: np.ndarray, statistic: str,
         x = betas[t] * (s - m_prev[None] - e_prev[None])
         ys[t] = x.sum(axis=0) + rng.standard_normal(n) * p.sigma_u + alphas[t]
         prices[t] = (M[t + 1, :t + 1, None] * ys[:t + 1]).sum(axis=0)
-    P = prices.mean(axis=0) if statistic == "twap" else prices[-1]
+    P = stat_weights(T, statistic) @ prices
     q = logistic_q(P, p.tau)
     return {
         "stat_bias": float(P.mean()), "stat_sd": float(P.std()),

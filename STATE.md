@@ -1,4 +1,48 @@
-# STATE — kyle-batch agent (analytic + numerical corruption theory, Kyle batch decision markets)
+# STATE — kyle-batch EXTENSION agent (windowed TWAP + subsidy comparison)
+
+Branch: `kyle-batch-v0` in ~/simulations-kyle (previously merged to main; merge again when tested — owner authorized).
+Venv: `mechanism-design/.venv-kyle/bin/python`. Never touch other worktrees.
+
+## Extension task (from Kelvin, 2026-07-04)
+1. WINDOWED TWAP (priority): Q4 compared only K=1 (last) vs K=T (full TWAP) — confounds
+   "averaging bad" with "remembering early rounds bad". Rerun multi-round sweep with statistic =
+   mean of LAST K batch prices, K in {1,2,4,T}, T in {4,8,16}, same B grid. Report K*(T,B); decompose
+   per K: baseline accuracy cost (B=0) vs manipulation-damage reduction (delta at B>0).
+   CONCEALED-WINDOW variant: manip BR to known K vs uniform-random K in {1,2,4} drawn after trading.
+   Extend KYLE.md Q4; supersede old verdict explicitly if it flips for late windows.
+2. SUBSIDY COMPARISON: grid of budgets S; (a) noise flow with lambda*sigma_u^2 = S;
+   (b) AMM depth (Q5 fixed-kappa machinery) with b sized so worst-case maker loss = S
+   (LMSR bridge: p = (tau/b)*Q exactly via logit link => kappa = tau*ln2/S, worst-case loss b*ln2).
+   Metrics at reference B=2: bias, -dDQ, baseline DQ. One resistance-per-dollar figure.
+   Flag equilibrium-rescaling caveat: sigma_u-invariance needs beta scaling; LLM results
+   (results/llm-decision-market/RESULTS.md finding v1-4: no within-market learning) => behavioral
+   noise-subsidy may dampen aggregation — mark open experiment; quantify frozen-beta pessimistic bound.
+Validation discipline unchanged: MC + unilateral-deviation tests with stated bounds per table.
+
+## Extension progress
+- [x] Oriented: read KYLE.md, twap.py, onebatch.py, closed_forms.py, decision.py, mc.py, run_sweeps.py, tests
+- [ ] twap.py: windowed statistic (win:K), push-response-matrix fast solver + gradient, concealed mixture
+- [ ] tests/test_windowed.py green
+- [ ] windowed sweep -> results/twap_windowed.json + figure
+- [ ] subsidy sweep -> results/subsidy.json + figure (sizing identities tested)
+- [ ] KYLE.md Q4 rewrite + new Q6 subsidy section; STATE.md final
+- [ ] full pytest green, commit/push kyle-batch-v0, merge to main
+
+Key design notes (extension):
+- Price means are LINEAR in push vector alpha (affine propagation, alpha enters constants only):
+  bias = D @ alpha with D[t,r] = mean price_t under alpha=e_r; Var/cov(v,P) alpha-independent.
+  Manip open-loop objective U(alpha) = -alpha'D alpha + B*E_q(w'D alpha, sd_P) — solve with BFGS +
+  exact gradient (T=16 cheap); cross-check vs Nelder-Mead at T=4 and vs existing evaluate().
+- Concealed window: single alpha vs uniform mixture over K in {1,2,4}: U = -alpha'D alpha +
+  B*mean_K E_q(w_K'D alpha, sd_K); realized DQ = mean_K DQ_K(alpha). Compare vs known-K mixture.
+- Subsidy noise leg: whole affine equilibrium scales with sigma_u (flows in sigma_u units), so
+  lambda0*sigma_u^2 = lambda0(1)*sigma_u exactly => sigma_u = S/lambda0(1); verify numerically.
+- Covert-covert is the apples-to-apples threat model (rho=0 both leg); AMM with aware honest
+  traders (Q5 rho=1) reported as secondary variant.
+
+---
+
+# STATE — kyle-batch agent v0 (analytic + numerical corruption theory, Kyle batch decision markets) — COMPLETE
 
 (Previous STATE.md content — manipulator-sweeps + Arm G agents — was COMPLETE and merged; replaced 2026-07-04.)
 
