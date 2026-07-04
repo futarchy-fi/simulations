@@ -31,7 +31,11 @@ pseudo-anonymity constraint (traders see only anonymous aggregates, §9) these c
 survive almost unchanged — anonymity costs ≤ ~0.1% of trader welfare in aggregation (exactly zero
 for symmetric payoffs), needs no extra rounds, and preserves seat-invariance and the damping
 requirement — but it adds one new attack: against strict-consistency belief updating, a single
-inconsistent order can jam the entire anonymous aggregate (denial-of-aggregation).
+inconsistent order can jam the entire anonymous aggregate (denial-of-aggregation). Both headline
+numbers also survive giving traders **limit prices** (§12): the execution advantage ticks up to
+2.3–4.3×, while the cheap-manipulation discount is untouched — limits protect the manipulator's
+fellow-direction traders, not the market — and a size-best-responding manipulator shows the §6
+convention understated batch manipulability.
 
 ---
 
@@ -420,21 +424,167 @@ beliefs, plus per-participant net caps.** What this buys and costs:
    anonymous-aggregate game has coarser public histories (net flow instead of order profiles),
    keeping R>1 solves small.
 
+## 12. Limit orders
+
+Every batch result above assumed **pure market orders**: a trader submits a quantity and fills in
+full at the uniform clearing price wherever it lands. Two headline findings plausibly depended on
+that: the cheap-manipulation discount (§6.2 — honest counterparties absorb the pushed clearing
+price via uniform-price fills) and the per-trader execution advantage (§4). This section re-runs
+both with **limit prices** (`Config.mech="batch_lmsr_limit"`; sweeps in `scripts/run_limits.py`,
+results in `results/limits_*.json`, same SEED/per-N env seeds as every other sweep — CRN against
+the §4–§9 baselines; price-only disclosure throughout, per the §9 constraint).
+
+**Mechanism** (`clearing.py`, unit-tested in `tests/test_limit_clearing.py`). An order becomes
+(direction, quantity, limit): a buy fills only if the uniform clearing price π ≤ its limit, a
+sell only if π ≥ its limit. Clearing is the standard uniform-price call auction against the
+curve: π is the unique crossing of φ(D(π)), where φ(X) is the LMSR average execution price of
+net flow X and D(π) the eligible net demand (a nonincreasing step function). If the crossing sits
+inside a constancy interval of D, all eligible orders fill in full; if it jumps across a limit,
+the marginal order's limit **is** the clearing price and marginal orders fill pro-rata. Honest
+traders submit their usual competitive-sized quantity with limit = posterior ± slack (slack 0 =
+"never trade past my belief"; a loose-limit variant sweeps slack ∈ {0.02, 0.05}); slack = ∞
+reproduces the market-order engine **bit-exactly** (asserted on seeded runs, with and without a
+manipulator), and a single trader with limit = posterior never executes past their posterior
+(asserted). The manipulator keeps the §6 bounty objective, uses limit ±∞ (they want fills), and
+now **best-responds in size**: order scaled by γ over a grid {0.25…5}, γ* = argmax of mean
+utility (market PnL + bounty·(p_final − ½)); the full grid is recorded. Observers can no longer
+read the submitted aggregate off the price — they see only the **executed** net flow — so the
+Gaussian mean-field inversion runs on X_exec, and the Galanis exact updater keeps the ω's whose
+predicted honest limit-order clearing reproduces X_exec (`reveal_batch_anon_limit`), jam-counting
+as in §9. (Implementation note: this work exposed a latent numerical bug in the base batch
+engine — when orders net to a pure rounding error, the pro-rata rescale α = X_exec/X divided two
+rounding errors and mis-scaled every fill. It never triggers in honest runs — round-1 Galanis
+nets are ∝ (2k−3)·ln3 ≠ 0 and Gaussian flow is continuous — but manipulated Galanis R=3 rounds
+produce exactly-offsetting flow; the guard (net below 1e−14 ⇒ exact cancellation, full fills at
+mid) changes the §6/§9 Galanis R=3 manipulator-PnL entries by up to ~9% (e.g. B=0.2:
+−0.0036 → −0.0033) and nothing else; distortion and accuracy columns are unchanged.)
+
+**Q1 — manipulation cost per unit distortion: the 2.4–4.2× discount does NOT close.**
+Gaussian, N=3, R=1, B=0.5 (cost = manipulator's market-PnL drop vs honest play, same draws;
+`results/limits_manip.json`):
+
+| arm | Δp_final | cost | cost per unit Δp | decision acc (honest 0.831) |
+|---|---|---|---|---|
+| SEQ seat 0 | +0.216 | 0.0616 | 0.284 | 0.722 |
+| SEQ seat 2 (last) | +0.402 | 0.0664 | 0.165 | 0.503 |
+| BATCH market orders (γ=1, §6) | +0.158 | 0.0107 | 0.068 | 0.720 |
+| BATCH limit, slack 0, γ=1 | +0.154 | 0.0103 | 0.067 | — |
+| BATCH limit, slack 0, **γ\*=3** | +0.347 | 0.0473 | 0.136 | 0.556 |
+| BATCH limit, slack ∞, **γ\*=3** | +0.352 | 0.0491 | 0.139 | 0.556 |
+
+At the §6 convention (γ=1) the limit-order cost per unit distortion is 0.067 vs sequential
+0.165–0.284 — the **2.5–4.2× discount survives to the third digit at every slack**, because the
+traders whose limits bind are the *same-direction* ones (buyers priced out by the push), while
+the manipulator's actual counterparties — the AMM curve and the contra-directional flow, whose
+sell limits sit *below* the pushed price — remain fully eligible. Tight honest limits protect the
+like-minded from overpaying; they do not make the manipulator pay more (at slack 0 they pay
+marginally *less*: the priced-out honest buys no longer push π up under them). The size
+best-response makes it strictly worse: γ*=3 more than doubles the achieved distortion
+(+0.35 vs +0.16) at a cost per unit (0.136–0.139) still below the sequential *last seat*, and
+utility 0.137 vs 0.077 at γ=1 — the §6 numbers *understated* batch manipulability by fixing
+γ = 1. At N=10, B=0.15 the pattern sharpens: γ*=5, Δp_final +0.107 (4× the market-order push)
+at **negative** cost — the under-reacting R=1 batch price means a large push toward the
+manipulator's own posterior is outright profitable before the bounty. At R=3 the correction
+rounds bite as in §6 (market-order c/Δp rises to 0.163 ≈ SEQ-last 0.166) and limits again change
+nothing at γ=1 (0.165); γ*=1.5 still buys +0.31 distortion at 0.221 per unit. Galanis (exact):
+at γ*, R=1 decision accuracy is 0.500 at *every* bounty ≥ 0.02 under every slack — one notch
+below the market-order batch's 0.625 exclusion floor at small B, again because §6 had implicitly
+capped the manipulator's size.
+
+**Q2 — the 2.2–4.1× execution advantage survives (marginally improves).**
+Gaussian, R=1, honest, per-market execution shortfall vs arrival price (paired, ±≤0.001;
+`results/limits_core.json`):
+
+| N | SEQ | market orders | limit slack 0 | fill rate (slack 0) | ΔPnL_total vs market (paired) |
+|---|---|---|---|---|---|
+| 3 | 0.0492 | 0.0224 (2.2×) | 0.0214 (**2.3×**) | 0.978 | −0.00040 ±0.00001 |
+| 5 | 0.0560 | 0.0202 (2.8×) | 0.0191 (**2.9×**) | 0.976 | −0.00052 ±0.00001 |
+| 10 | 0.0649 | 0.0190 (3.4×) | 0.0179 (**3.6×**) | 0.976 | −0.00058 ±0.00001 |
+| 25 | 0.0729 | 0.0179 (4.1×) | 0.0169 (**4.3×**) | 0.976 | −0.00061 ±0.00000 |
+
+Tight limits drop only 2.2–2.4% of submitted volume (the crowd-priced-out margin), and the
+dropped fills are exactly the ones that would have executed above the trader's own belief — so
+measured shortfall *falls* and the headline ratio ticks up to 2.3–4.3×. The cost shows up in the
+welfare identity, not in execution: the unexecuted information leaves the R=1 price slightly
+worse (LL 0.4194 vs 0.4154 at N=3), so paired total PnL is lower by 0.0004–0.0006 per market
+(~1–2% of trader profits). Loose limits interpolate smoothly (slack 0.05: fill 99.0%, ΔPnL
+−0.0002); the frontier between market orders and tight limits is shallow and monotone.
+
+**Q3 — aggregation: zero extra rounds needed; fixed-R accuracy does not degrade.**
+Gaussian log-loss of the final price / |logit error| vs the full-info posterior, by R × slack:
+
+| env, N | R | market orders | slack 0 | slack 0.05 |
+|---|---|---|---|---|
+| Gaussian 3 | 1 | 0.4154 / 1.52 | 0.4194 / 1.55 | 0.4168 / 1.53 |
+| Gaussian 3 | 2 | 0.3602 / 0.114 | 0.3602 / 0.096 | 0.3601 / 0.099 |
+| Gaussian 3 | 3, 5 | 0.3602 / 0.114 | 0.3601 / 0.106 | 0.3601 / 0.101 |
+| Gaussian 25 | 1 | 0.3714 / 5.16 | 0.3774 / 5.19 | 0.3735 / 5.18 |
+| Gaussian 25 | 2–5 | 0.1392 / 0.158 | 0.1391 / 0.107 | 0.1392 / 0.150 |
+| Galanis (exact) | 1 | 0.4670, acc 1.000 | identical | identical |
+| Galanis (exact) | 2–5 | 0.1054, acc 1.000 | identical | identical |
+
+Unfilled orders do carry information that never reaches the round-1 price — the effect is real
+but tiny (N=3: LL +0.004, logit err +0.03 at slack 0). From R = 2 on, the traders who dropped
+out re-quote against the new posted price and their information arrives anyway: recovery is
+complete at R = 2 for every slack, exactly as with market orders — **R_needed(limit) =
+R_needed(market) = 2, no extra rounds**. At R ≥ 2 tight limits even *shave* the §9 anonymity
+plateau (N=25 logit err 0.158 → 0.107: the executed flow is closer to the mean-field observer's
+model when the overshooting tail is truncated). Galanis is exact and bit-identical in accuracy
+at every R: the executed-flow partition still reveals the bit-count.
+
+**Q4 — jamming: the attack surface narrows, the funded attack is unchanged.**
+Galanis, R=3, price-only disclosure, manipulated (`results/limits_jam.json`; honest runs jam 0
+at every slack and stay at acc 1.000):
+
+| bounty | market orders acc / jams | limit slack 0, γ=1 | limit slack 0, γ* | limit slack ∞, γ* |
+|---|---|---|---|---|
+| 0.02 | 0.625 / 24 | 0.625 / 24 | 0.625 / 21 (γ\*=1.5) | 0.625 / 21 |
+| 0.05 | 0.625 / 24 | 0.625 / 24 | 0.500 / 21 (γ\*=1.5) | 0.500 / 21 |
+| 0.20 | 0.500 / 24 | 0.500 / 24 | 0.500 / 24 (γ\*=5) | 0.500 / 24 |
+
+The structural hope — an inconsistent anonymous order that can't fill can't stall clearing — is
+half right. Under limit clearing an order only distorts the executed flow if it *fills*: a
+"free" jam via an unfillable order is now impossible by construction (a no-fill leaves X_exec at
+its honest value, which is always explainable — the honest rows jam zero), whereas under market
+orders *every* submitted order enters X. So jamming now requires taking, and paying for, a real
+position. But the §9 attacker already did exactly that: their ±∞-limit order fills in full
+(fill rate 1.000 across the grid), the executed aggregate is unexplainable, and the
+strict-consistency update freezes — same jams, same accuracy collapse, at every slack, γ for γ.
+Honest tight limits never pin π at an honest posterior in this environment (the pooling that
+would let a manipulated outcome masquerade as honest does not materialize), so **limit
+protection does not restore aggregation against a funded manipulator** — and the attack still
+*pays* (utility +0.003 to +0.074 across bounties). The §9 mitigations (soft updates, net caps,
+audit-layer de-anonymization) remain the operative ones.
+
+**Verdict on the two headline numbers.** (1) The 2.4–4.2× cheap-manipulation batch discount
+**survives** limit orders essentially unchanged (2.5–4.2× at the §6 convention, every slack) —
+and letting the manipulator best-respond in size shows the original number was, if anything, an
+*understatement* of batch manipulability (double the distortion at sequential-last-seat unit
+cost; outright profitable at N=10). Limit prices protect the manipulator's fellow-direction
+traders, not the market. (2) The 2.2–4.1× per-trader execution advantage **survives and ticks
+up** (2.3–4.3×) at a ~1–2%-of-profits aggregate welfare cost paid through slightly worse one-shot
+aggregation; recovery still needs exactly two rounds. Neither headline reverses; the §11
+recommendation is unchanged, with one addition: offering limit orders is cheap execution
+insurance for honest participants, but it is **not** a manipulation or jamming defense.
+
 ## Reproduction
 
 ```bash
 cd mechanism-design
 python3.11 -m venv .venv-batch && .venv-batch/bin/pip install numpy scipy pytest
 .venv-batch/bin/pip install -e galanis-market --no-deps -e batch-amm
-.venv-batch/bin/python -m pytest batch-amm/tests -q          # 36 tests
+.venv-batch/bin/python -m pytest batch-amm/tests -q          # 62 tests
 .venv-batch/bin/python batch-amm/scripts/run_sweeps.py       # ~40 s, writes results/*.json
 .venv-batch/bin/python batch-amm/scripts/run_disclosure.py   # ~6 s, disclosure-regime sweeps
+.venv-batch/bin/python batch-amm/scripts/run_limits.py       # ~100 s, limit-order sweeps (§12)
 .venv-batch/bin/python batch-amm/scripts/cfr_batch.py        # ~4 s, writes results/cfr_batch.json
 ```
 
 Raw results: `results/core.json` (honest sweeps + paired diffs), `results/manip.json`
 (bounty × seat sweeps), `results/seats.json` (rotation-averaged seat PnL),
 `results/disclosure.json` / `results/disclosure_manip.json` (pseudo-anonymity sweeps, §9),
-`results/cfr_batch.json` (equilibrium check). Sim engine: `src/batch_amm/engine.py`
-(mechanism definitions in the module docstring), `src/batch_amm/envs.py` (environments and the
-belief/inversion model, incl. the anonymous-aggregate updaters).
+`results/limits_core.json` / `results/limits_manip.json` / `results/limits_jam.json`
+(limit-order sweeps, §12), `results/cfr_batch.json` (equilibrium check). Sim engine:
+`src/batch_amm/engine.py` (mechanism definitions in the module docstring),
+`src/batch_amm/clearing.py` (limit-order uniform-price clearing), `src/batch_amm/envs.py`
+(environments and the belief/inversion model, incl. the anonymous-aggregate updaters).
