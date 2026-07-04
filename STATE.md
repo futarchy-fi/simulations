@@ -60,7 +60,8 @@ whether Q4b headline survives / is scoped to static info. Price-only disclosure 
    ((1,1,3,6) vs (1,1,2,8)) cuts K=1 damage 2.4x, restores K*=1 at B=10, shrinks B=20
    window gain to +0.0015. Concealed-K still the robust extreme-bounty choice where last
    price is fragile; dominated by committed K=1 under public arrival.
-- [ ] commit, merge to main, push (in progress)
+- [x] committed 26231c1 on exp/twap-info-arrival; origin/main fast-forwarded 43cd720..26231c1
+      and pushed. TASK COMPLETE 2026-07-04.
 
 ---
 
