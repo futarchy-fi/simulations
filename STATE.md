@@ -57,7 +57,8 @@ docs/superpowers/plans/2026-07-04-limit-orders.md (tasks 1-6).
       changes published Galanis R=3 manip PnL by <=9%, noted in §12; regression test added)
 - [x] Task 5: BATCH.md §12 written, all quoted numbers verified against JSONs; verdict pointer
       added to top paragraph; Reproduction block updated (62 tests, run_limits.py line)
-- [ ] Task 6: full test suite (62 green), commit, merge to origin/main, push
+- [x] Task 6: scoped suite grew to 106 tests, all green (44 galanis-market + 62 batch-amm);
+      committed, merged to origin/main, and pushed
 
 ## Results summary (for §12; full numbers in results/limits_*.json)
 - Q1: 2.4-4.2x manip discount SURVIVES (gamma=1: c/dp 0.067 vs seq 0.165-0.284, every slack);
